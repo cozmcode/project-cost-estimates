@@ -1,8 +1,8 @@
 // Supabase Configuration
 // IMPORTANT: Replace these values with your actual Supabase project credentials
 
-const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // e.g., 'https://xxxxx.supabase.co'
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // Your anon/public key
+const SUPABASE_URL = 'https://cwflqdfytvniozxcreiq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN3ZmxxZGZ5dHZuaW96eGNyZWlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwMTIwNDcsImV4cCI6MjA4NDU4ODA0N30.WOrnjzEgujqCGu_6Noh94KJsURoK9_g_qNP96P0ezBE';
 
 // Pre-approved users (will be synced to database on first login)
 const PRE_APPROVED_EMAILS = [
