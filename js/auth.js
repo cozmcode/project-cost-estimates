@@ -59,21 +59,38 @@ class AuthManager {
         }
     }
 
-    // Create app_users entry for new user
+    // Create or update app_users entry for user
     async createAppUser() {
         const email = this.currentUser.email.toLowerCase();
         const isPreApproved = window.SupabaseConfig.isPreApproved(email);
         const isSuperuser = window.SupabaseConfig.isSuperuser(email);
 
         try {
-            await this.supabase.from('app_users').insert({
-                id: this.currentUser.id,
-                email: email,
-                role: isSuperuser ? 'superuser' : 'user',
-                approved: isPreApproved
-            });
+            // First check if user exists by email (in case auth ID changed)
+            const { data: existingUser } = await this.supabase
+                .from('app_users')
+                .select('id')
+                .eq('email', email)
+                .single();
+
+            if (existingUser && existingUser.id !== this.currentUser.id) {
+                // User exists with different ID - update the ID to match new auth user
+                await this.supabase
+                    .from('app_users')
+                    .update({ id: this.currentUser.id })
+                    .eq('email', email);
+            } else if (!existingUser) {
+                // New user - insert
+                await this.supabase.from('app_users').insert({
+                    id: this.currentUser.id,
+                    email: email,
+                    role: isSuperuser ? 'superuser' : 'user',
+                    approved: isPreApproved
+                });
+            }
+            // If user exists with same ID, nothing to do
         } catch (err) {
-            console.error('Error creating app user:', err);
+            console.error('Error creating/updating app user:', err);
         }
     }
 
