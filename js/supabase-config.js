@@ -17,12 +17,12 @@ const SUPERUSER_EMAILS = [
 ];
 
 // Initialise Supabase client
-let supabase;
+let supabaseClient;
 
 function initSupabase() {
     if (typeof window !== 'undefined' && window.supabase) {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        return supabase;
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        return supabaseClient;
     }
     console.error('Supabase library not loaded');
     return null;
