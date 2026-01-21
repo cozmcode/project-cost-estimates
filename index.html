@@ -43,10 +43,12 @@
             <!-- Step 2: Email Verification -->
             <div id="step-verify" class="hidden">
                 <h1 class="auth-title">Verify your email</h1>
-                <p class="auth-subtitle">We've sent a 6-digit code to your email</p>
+                <p class="auth-subtitle">We've sent an 8-digit code to your email</p>
 
                 <form class="auth-form" onsubmit="event.preventDefault(); verifyCode();">
                     <div class="otp-container">
+                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
                         <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
                         <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
                         <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
@@ -94,6 +96,8 @@
 
                 <form class="auth-form" onsubmit="event.preventDefault(); verifyCode();">
                     <div class="otp-container">
+                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
                         <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
                         <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
                         <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">

@@ -123,8 +123,8 @@ class AuthManager {
 
     // Step 2: Verify OTP code
     async verifyOtp(code) {
-        if (!code || code.length !== 6) {
-            this.showError('Please enter the 6-digit verification code.');
+        if (!code || code.length !== 8) {
+            this.showError('Please enter the 8-digit verification code.');
             return;
         }
 
@@ -211,8 +211,8 @@ class AuthManager {
 
     // Verify 2FA code
     async verify2FA(code) {
-        if (!code || code.length !== 6) {
-            this.showError('Please enter the 6-digit code.');
+        if (!code || code.length !== 8) {
+            this.showError('Please enter the 8-digit code.');
             return;
         }
 
@@ -396,13 +396,13 @@ function setupOtpInputs() {
         input.addEventListener('paste', (e) => {
             e.preventDefault();
             const paste = (e.clipboardData || window.clipboardData).getData('text');
-            const digits = paste.replace(/\D/g, '').slice(0, 6);
+            const digits = paste.replace(/\D/g, '').slice(0, 8);
             digits.split('').forEach((digit, i) => {
                 if (inputs[i]) {
                     inputs[i].value = digit;
                 }
             });
-            if (digits.length === 6) {
+            if (digits.length === 8) {
                 verifyCode();
             }
         });
