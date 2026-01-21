@@ -6,9 +6,23 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // Pre-approved users (will be synced to database on first login)
 const PRE_APPROVED_EMAILS = [
+    // The Cozm team
     'benjamin@thecozm.com',
     'graham@thecozm.com',
-    'harish@thecozm.com'
+    'harish@thecozm.com',
+    'umama@thecozm.com',
+    'tanya@thecozm.com',
+    'raihana@thecozm.com',
+    'michiel@thecozm.com',
+    'singh@thecozm.com',
+    'jen@thecozm.com',
+    'paul@thecozm.com',
+    'julia@thecozm.com',
+    'enoch@thecozm.com',
+    'avni@thecozm.com',
+    'siobhan@thecozm.com',
+    'sayeed@thecozm.com',
+    'ise@thecozm.com'
 ];
 
 // Superuser emails
