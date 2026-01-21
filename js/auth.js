@@ -77,7 +77,7 @@ class AuthManager {
         }
     }
 
-    // Step 1: Enter email to start signup/login
+    // Step 1: Enter email - always send OTP (no passwords)
     async submitEmail(email) {
         email = email.toLowerCase().trim();
 
@@ -89,33 +89,21 @@ class AuthManager {
         this.showLoading(true);
 
         try {
-            // Check if user exists in auth
-            const { data: existingUsers } = await this.supabase
-                .from('app_users')
-                .select('email')
-                .eq('email', email);
+            // Always send OTP - works for both new and existing users
+            const { error } = await this.supabase.auth.signInWithOtp({
+                email: email,
+                options: {
+                    shouldCreateUser: true
+                }
+            });
 
-            if (existingUsers && existingUsers.length > 0) {
-                // Existing user - go to login flow
-                this.showStep('login');
-                document.getElementById('login-email').value = email;
-            } else {
-                // New user - send OTP for verification
-                const { error } = await this.supabase.auth.signInWithOtp({
-                    email: email,
-                    options: {
-                        shouldCreateUser: true
-                    }
-                });
+            if (error) throw error;
 
-                if (error) throw error;
-
-                this.pendingEmail = email;
-                this.showStep('verify');
-                this.showSuccess('Verification code sent to ' + email);
-            }
+            this.pendingEmail = email;
+            this.showStep('verify');
+            this.showSuccess('Sign-in code sent to ' + email);
         } catch (err) {
-            this.showError(err.message || 'Failed to process email. Please try again.');
+            this.showError(err.message || 'Failed to send sign-in code. Please try again.');
         } finally {
             this.showLoading(false);
         }

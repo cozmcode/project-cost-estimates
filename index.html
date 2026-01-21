@@ -36,14 +36,14 @@
                 </form>
 
                 <div class="auth-footer">
-                    <p>Already have an account? <a href="#" onclick="switchToLogin()">Sign in</a></p>
+                    <p>We'll send you a sign-in code via email</p>
                 </div>
             </div>
 
             <!-- Step 2: Email Verification -->
             <div id="step-verify" class="hidden">
-                <h1 class="auth-title">Verify your email</h1>
-                <p class="auth-subtitle">We've sent an 8-digit code to your email</p>
+                <h1 class="auth-title">Check your email</h1>
+                <p class="auth-subtitle">Enter the 8-digit code we sent you</p>
 
                 <form class="auth-form" onsubmit="event.preventDefault(); verifyCode();">
                     <div class="otp-container">
@@ -65,56 +65,7 @@
                 </div>
             </div>
 
-            <!-- Step 3: Login (existing user) -->
-            <div id="step-login" class="hidden">
-                <h1 class="auth-title">Welcome back</h1>
-                <p class="auth-subtitle">Sign in to your account</p>
-
-                <form class="auth-form" onsubmit="event.preventDefault(); loginSubmit();">
-                    <div class="form-group">
-                        <label class="form-label" for="login-email">Email address</label>
-                        <input type="email" id="login-email" class="form-input" placeholder="you@company.com" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="login-password">Password</label>
-                        <input type="password" id="login-password" class="form-input" placeholder="Enter your password" required>
-                    </div>
-
-                    <button type="submit" class="btn-primary">Sign In</button>
-                </form>
-
-                <div class="auth-footer">
-                    <p>New user? <a href="#" onclick="switchToSignup()">Request access</a></p>
-                </div>
-            </div>
-
-            <!-- Step 4: 2FA Verification -->
-            <div id="step-2fa" class="hidden">
-                <h1 class="auth-title">Two-factor authentication</h1>
-                <p class="auth-subtitle">Enter the code sent to your email</p>
-
-                <form class="auth-form" onsubmit="event.preventDefault(); verifyCode();">
-                    <div class="otp-container">
-                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
-                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
-                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
-                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
-                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
-                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
-                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
-                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
-                    </div>
-
-                    <button type="submit" class="btn-primary">Verify Code</button>
-                </form>
-
-                <div class="auth-footer">
-                    <p>Didn't receive the code? <a href="#" onclick="resendCode()">Resend</a></p>
-                </div>
-            </div>
-
-            <!-- Step 5: Pending Approval -->
+            <!-- Step 3: Pending Approval -->
             <div id="step-pending" class="hidden">
                 <div style="text-align: center; padding: 20px 0;">
                     <svg style="width: 64px; height: 64px; color: #BD8941; margin-bottom: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
