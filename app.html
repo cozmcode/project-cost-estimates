@@ -1,0 +1,2981 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FSE Deployment Cost Calculator | The Cozm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cozm-teal: #44919c;
+            --cozm-light-teal: #C7E5E9;
+            --cozm-red: #BD4040;
+            --cozm-gold: #BD8941;
+            --cozm-dark: #1a1a2e;
+            --grey-50: #f9fafb;
+            --grey-100: #f3f4f6;
+            --grey-200: #e5e7eb;
+            --grey-300: #d1d5db;
+            --grey-600: #4b5563;
+            --grey-700: #374151;
+            --grey-900: #111827;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--grey-50);
+            color: var(--grey-900);
+        }
+
+        .bg-cozm-teal {
+            background-color: var(--cozm-teal);
+        }
+
+        .bg-cozm-light-teal {
+            background-color: var(--cozm-light-teal);
+        }
+
+        .bg-cozm-dark {
+            background-color: var(--cozm-dark);
+        }
+
+        .text-cozm-teal {
+            color: var(--cozm-teal);
+        }
+
+        .text-cozm-gold {
+            color: var(--cozm-gold);
+        }
+
+        .text-cozm-red {
+            color: var(--cozm-red);
+        }
+
+        .border-cozm-teal {
+            border-color: var(--cozm-teal);
+        }
+
+        .hover\:bg-cozm-teal-dark:hover {
+            background-color: #3a7d86;
+        }
+
+        .ring-cozm-teal:focus {
+            --tw-ring-color: var(--cozm-teal);
+        }
+
+        .tab-active {
+            border-bottom: 3px solid var(--cozm-teal);
+            color: var(--cozm-teal);
+            font-weight: 600;
+        }
+
+        .tab-inactive {
+            border-bottom: 3px solid transparent;
+            color: var(--grey-600);
+        }
+
+        .tab-inactive:hover {
+            color: var(--cozm-teal);
+            border-bottom-color: var(--cozm-light-teal);
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+        }
+
+        .input-field {
+            border: 1px solid var(--grey-300);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--cozm-teal);
+            box-shadow: 0 0 0 3px rgba(68, 145, 156, 0.15);
+        }
+
+        .btn-primary {
+            background-color: var(--cozm-teal);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: #3a7d86;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--cozm-teal);
+            border: 2px solid var(--cozm-teal);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--cozm-light-teal);
+        }
+
+        .view-toggle {
+            background-color: var(--grey-100);
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .view-toggle button {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .view-toggle button.active {
+            background-color: white;
+            color: var(--cozm-teal);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .view-toggle button:not(.active) {
+            color: var(--grey-600);
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, var(--cozm-teal) 0%, #3a7d86 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .result-card-light {
+            background: white;
+            border: 1px solid var(--grey-200);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .breakdown-table th {
+            background-color: var(--cozm-dark);
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .breakdown-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--grey-200);
+        }
+
+        .breakdown-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .breakdown-table .total-row {
+            background-color: var(--cozm-light-teal);
+            font-weight: 600;
+        }
+
+        .breakdown-table .subtotal-row {
+            background-color: var(--grey-100);
+            font-weight: 500;
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--grey-300);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: var(--cozm-teal);
+            background-color: rgba(68, 145, 156, 0.05);
+        }
+
+        .assumptions-panel {
+            background-color: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .currency-input {
+            position: relative;
+        }
+
+        .currency-input::before {
+            content: '€';
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--grey-600);
+            font-weight: 500;
+        }
+
+        .currency-input input {
+            padding-left: 28px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .logo-container img {
+            height: 48px;
+            width: auto;
+        }
+
+        /* Main navigation tabs */
+        .nav-tab {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--grey-600);
+            transition: all 0.2s;
+        }
+
+        .nav-tab:hover {
+            color: var(--cozm-teal);
+            background-color: white;
+        }
+
+        .nav-tab-active {
+            background-color: white;
+            color: var(--cozm-teal);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Optimisation selector */
+        .optimise-option {
+            border: 2px solid var(--grey-200);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .optimise-option:hover {
+            border-color: var(--cozm-teal);
+            background-color: rgba(68, 145, 156, 0.05);
+        }
+
+        .optimise-option.selected {
+            border-color: var(--cozm-teal);
+            background-color: var(--cozm-light-teal);
+        }
+
+        .optimise-option .icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .optimise-option.cost .icon { background-color: #dcfce7; color: #16a34a; }
+        .optimise-option.compliance .icon { background-color: #dbeafe; color: #2563eb; }
+        .optimise-option.speed .icon { background-color: #fef3c7; color: #d97706; }
+
+        /* Staffing results */
+        .staff-card {
+            background: white;
+            border: 1px solid var(--grey-200);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .staff-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .staff-card.recommended {
+            border-color: var(--cozm-teal);
+            border-width: 2px;
+        }
+
+        .score-bar {
+            height: 8px;
+            background-color: var(--grey-200);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .score-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease-out;
+        }
+
+        .score-bar-fill.high { background-color: var(--cozm-teal); }
+        .score-bar-fill.medium { background-color: var(--cozm-gold); }
+        .score-bar-fill.low { background-color: var(--cozm-red); }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-success { background-color: #dcfce7; color: #16a34a; }
+        .badge-warning { background-color: #fef3c7; color: #d97706; }
+        .badge-danger { background-color: #fee2e2; color: #dc2626; }
+        .badge-info { background-color: #dbeafe; color: #2563eb; }
+
+        /* Help tooltip styles */
+        .help-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: var(--grey-200);
+            color: var(--grey-600);
+            font-size: 10px;
+            font-weight: 600;
+            cursor: help;
+            margin-left: 6px;
+            flex-shrink: 0;
+        }
+
+        .help-icon:hover {
+            background-color: var(--cozm-teal);
+            color: white;
+        }
+
+        .tooltip-container {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .tooltip-content {
+            display: none;
+            position: absolute;
+            left: calc(100% + 8px);
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: var(--cozm-dark);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            line-height: 1.5;
+            width: 280px;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .tooltip-content::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: transparent var(--cozm-dark) transparent transparent;
+        }
+
+        .help-icon:hover + .tooltip-content,
+        .tooltip-content:hover {
+            display: block;
+        }
+
+        /* Position tooltip on left for right-side fields */
+        .tooltip-left .tooltip-content {
+            left: auto;
+            right: calc(100% + 8px);
+        }
+
+        .tooltip-left .tooltip-content::before {
+            left: auto;
+            right: -6px;
+            border-color: transparent transparent transparent var(--cozm-dark);
+        }
+
+        /* Position tooltip below for tight spaces */
+        .tooltip-below .tooltip-content {
+            left: 50%;
+            transform: translateX(-50%);
+            top: calc(100% + 8px);
+        }
+
+        .tooltip-below .tooltip-content::before {
+            left: 50%;
+            transform: translateX(-50%);
+            top: -6px;
+            border-color: transparent transparent var(--cozm-dark) transparent;
+        }
+
+        /* Selected Individuals Table */
+        .selected-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .selected-table th {
+            background-color: var(--cozm-dark);
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .selected-table th:last-child,
+        .selected-table td:last-child {
+            text-align: center;
+        }
+
+        .selected-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--grey-200);
+            font-size: 14px;
+        }
+
+        .selected-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .selected-table .total-row {
+            background-color: var(--cozm-light-teal);
+            font-weight: 600;
+        }
+
+        .selected-table .total-row td {
+            border-bottom: none;
+        }
+
+        .risk-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .risk-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .risk-dot.low { background-color: var(--cozm-teal); }
+        .risk-dot.medium { background-color: var(--cozm-gold); }
+        .risk-dot.high { background-color: var(--cozm-red); }
+
+        .find-alt-link {
+            color: var(--cozm-teal);
+            text-decoration: none;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .find-alt-link:hover {
+            text-decoration: underline;
+        }
+
+        .remove-btn {
+            color: var(--grey-600);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .remove-btn:hover {
+            color: var(--cozm-red);
+            background-color: #fee2e2;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: translateY(20px);
+            transition: all 0.2s;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--grey-900);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--grey-600);
+            padding: 4px;
+        }
+
+        .modal-close:hover {
+            color: var(--grey-900);
+        }
+
+        .modal-warning {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+            background-color: #fef3c7;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .modal-warning svg {
+            flex-shrink: 0;
+            color: var(--cozm-gold);
+        }
+
+        .modal-warning-text {
+            font-size: 14px;
+            color: var(--grey-700);
+            line-height: 1.5;
+        }
+
+        .modal-current {
+            padding: 16px;
+            background-color: var(--grey-100);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .modal-current-label {
+            font-size: 12px;
+            color: var(--grey-600);
+            margin-bottom: 8px;
+        }
+
+        .modal-current-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--grey-900);
+        }
+
+        .modal-alternatives {
+            margin-top: 20px;
+        }
+
+        .modal-alt-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--grey-700);
+            margin-bottom: 12px;
+        }
+
+        .modal-alt-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border: 1px solid var(--grey-200);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-alt-item:hover {
+            border-color: var(--cozm-teal);
+            background-color: rgba(68, 145, 156, 0.05);
+        }
+
+        .modal-alt-item.selected {
+            border-color: var(--cozm-teal);
+            background-color: var(--cozm-light-teal);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid var(--grey-200);
+        }
+
+        /* Voice Button Styles */
+        .voice-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: var(--cozm-teal);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .voice-btn:hover {
+            background-color: #3a7d86;
+            transform: scale(1.05);
+        }
+
+        .voice-btn.listening {
+            animation: pulse-ring 1.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        }
+
+        .voice-btn.listening::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border-radius: 50%;
+            border: 2px solid var(--cozm-teal);
+            animation: pulse-border 1.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(68, 145, 156, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(68, 145, 156, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(68, 145, 156, 0); }
+        }
+
+        @keyframes pulse-border {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.3); }
+        }
+
+        .voice-status {
+            font-size: 12px;
+            color: var(--cozm-teal);
+            margin-top: 8px;
+            text-align: center;
+            min-height: 18px;
+        }
+
+        .voice-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background-color: var(--cozm-dark);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1001;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .toast.active {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background-color: var(--cozm-teal);
+        }
+    </style>
+
+    <!-- Supabase JS for authentication -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+</head>
+
+<body class="min-h-screen">
+    <!-- Auth Check - Redirect if not authenticated -->
+    <script>
+        (async function() {
+            const supabase = window.SupabaseConfig.init();
+            if (!supabase) {
+                window.location.href = 'index.html';
+                return;
+            }
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+            // Check if approved
+            const { data: appUser, error } = await supabase
+                .from('app_users')
+                .select('approved, role')
+                .eq('id', session.user.id)
+                .single();
+            if (error || !appUser || !appUser.approved) {
+                window.location.href = 'index.html';
+                return;
+            }
+            // Store user info for later
+            window.currentUser = session.user;
+            window.currentUserRole = appUser.role;
+            // Show the page
+            document.getElementById('app-content').style.display = 'block';
+            document.getElementById('loading-screen').style.display = 'none';
+        })();
+    </script>
+
+    <!-- Loading Screen (shown while checking auth) -->
+    <div id="loading-screen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #f9fafb; display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="text-align: center;">
+            <div style="width: 48px; height: 48px; border: 4px solid #e5e7eb; border-top-color: #44919c; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+            <p style="color: #6b7280; font-family: Inter, sans-serif;">Loading...</p>
+        </div>
+        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+    </div>
+    <div id="app-content" style="display: none;">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-6">
+                    <div class="logo-container">
+                        <img src="https://thecozm.com/logo.png" alt="The Cozm" />
+                    </div>
+                    <div class="border-l border-gray-300 pl-6">
+                        <h1 class="text-xl font-bold text-gray-900">FSE Deployment Cost Calculator</h1>
+                        <p class="text-sm text-cozm-teal font-medium">Powered by The Cozm</p>
+                    </div>
+                </div>
+                <!-- Main Navigation Tabs -->
+                <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                    <button id="nav-calculator" class="nav-tab nav-tab-active" onclick="switchMainTab('calculator')">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                        </svg>
+                        Cost Calculator
+                    </button>
+                    <button id="nav-staffing" class="nav-tab" onclick="switchMainTab('staffing')">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        Project Staffing
+                    </button>
+                </div>
+            </div>
+                <!-- User Controls -->
+                <div class="flex items-center gap-3 ml-4">
+                    <button id="admin-btn" style="display: none;" onclick="window.location.href='admin.html'" class="nav-tab" title="Admin Panel">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </button>
+                    <button onclick="appSignOut()" class="nav-tab text-cozm-red" title="Sign Out">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                    </button>
+                </div>
+
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Calculator Section -->
+        <div id="section-calculator">
+        <!-- Input Section -->
+        <div class="card p-6 mb-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-lg font-semibold text-gray-900">Calculate Deployment Costs</h2>
+                <div class="flex border-b border-gray-200">
+                    <button id="tab-single" class="tab-active px-4 py-2 text-sm transition-all" onclick="switchTab('single')">
+                        Single FSE
+                    </button>
+                    <button id="tab-bulk" class="tab-inactive px-4 py-2 text-sm transition-all" onclick="switchTab('bulk')">
+                        Bulk Upload
+                    </button>
+                </div>
+            </div>
+
+            <!-- Single FSE Form -->
+            <div id="form-single" class="animate-fade-in">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Home Country -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="tooltip-container">
+                                Home Country
+                                <span class="help-icon">i</span>
+                                <span class="tooltip-content">The country where the employee is currently based and employed. This determines home country tax residency and social security obligations.</span>
+                            </span>
+                        </label>
+                        <select id="homeCountry" class="input-field w-full">
+                            <option value="Finland">Finland</option>
+                            <option value="Portugal">Portugal</option>
+                        </select>
+                    </div>
+
+                    <!-- Host Country -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="tooltip-container">
+                                Host Country
+                                <span class="help-icon">i</span>
+                                <span class="tooltip-content">The destination country where the employee will be deployed. Tax rates, social security requirements, and work permit rules vary by country.</span>
+                            </span>
+                        </label>
+                        <select id="hostCountry" class="input-field w-full" onchange="updateCountryInfo()">
+                            <option value="Brazil">Brazil</option>
+                            <option value="USA">United States</option>
+                            <option value="Germany">Germany</option>
+                            <option value="UK">United Kingdom</option>
+                            <option value="UAE">United Arab Emirates</option>
+                            <option value="Singapore">Singapore</option>
+                            <option value="Australia">Australia</option>
+                            <option value="Mexico">Mexico</option>
+                            <option value="India">India</option>
+                            <option value="SouthAfrica">South Africa</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1" id="countryTaxInfo">Tax rate: 27.5% | Currency: BRL</p>
+                    </div>
+
+                    <!-- Monthly Salary -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="tooltip-container tooltip-left">
+                                Monthly Salary (EUR)
+                                <span class="help-icon">i</span>
+                                <span class="tooltip-content">The employee's gross monthly salary in Euros. This is used to calculate tax liability and social security contributions in the host country.</span>
+                            </span>
+                        </label>
+                        <div class="currency-input">
+                            <input type="number" id="monthlySalary" value="7000" class="input-field w-full" min="0" step="100">
+                        </div>
+                    </div>
+
+                    <!-- Assignment Length -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="tooltip-container">
+                                Assignment Length
+                                <span class="help-icon">i</span>
+                                <span class="tooltip-content">Duration of the deployment. Assignments over 183 days typically trigger full tax residency in the host country. Shorter assignments may qualify for tax exemptions.</span>
+                            </span>
+                        </label>
+                        <select id="assignmentLength" class="input-field w-full">
+                            <option value="3">3 months</option>
+                            <option value="6" selected>6 months</option>
+                            <option value="12">12 months</option>
+                            <option value="18">18 months</option>
+                            <option value="24">24 months</option>
+                        </select>
+                    </div>
+
+                    <!-- Daily Allowance -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="tooltip-container">
+                                Daily Allowance (EUR/day)
+                                <span class="help-icon">i</span>
+                                <span class="tooltip-content">Tax-free per diem paid to cover living expenses abroad. Rates are set by the home country (Finnish 2025 rates by default). This is exempt from host country social security.</span>
+                            </span>
+                        </label>
+                        <div class="currency-input">
+                            <input type="number" id="dailyAllowance" value="70" class="input-field w-full" min="0" step="5">
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Based on Finnish 2025 rates</p>
+                    </div>
+
+                    <!-- Working Days -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="tooltip-container tooltip-left">
+                                Working Days / Month
+                                <span class="help-icon">i</span>
+                                <span class="tooltip-content">Average working days per month (excluding weekends and holidays). Used to calculate total daily allowances. Typical range is 20-25 days.</span>
+                            </span>
+                        </label>
+                        <input type="number" id="workingDays" value="25" class="input-field w-full" min="1" max="31">
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button class="btn-primary" onclick="calculateCosts()">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                            </svg>
+                            Calculate Costs
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bulk Upload Form -->
+            <div id="form-bulk" class="hidden animate-fade-in">
+                <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" class="hidden" accept=".xlsx,.xls" onchange="handleFileUpload(event)">
+                    <svg class="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <p class="text-gray-600 font-medium">Drop your Excel file here or click to browse</p>
+                    <p class="text-sm text-gray-500 mt-1">Supports .xlsx and .xls files</p>
+                </div>
+
+                <div class="mt-4 flex items-center justify-between">
+                    <button class="btn-secondary text-sm" onclick="downloadTemplate()">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Download Excel Template
+                        </span>
+                    </button>
+                    <span class="text-xs text-gray-400">Template includes example data for all supported countries</span>
+                </div>
+
+                <!-- Preview Table (hidden until file uploaded) -->
+                <div id="bulkPreview" class="hidden mt-6">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3">Preview (5 FSEs loaded)</h3>
+                    <div class="overflow-x-auto rounded-lg border border-gray-200">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="px-4 py-3 text-left font-medium text-gray-700">Name</th>
+                                    <th class="px-4 py-3 text-left font-medium text-gray-700">Home</th>
+                                    <th class="px-4 py-3 text-left font-medium text-gray-700">Host</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-700">Salary</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-700">Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bulkPreviewBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 flex justify-end">
+                        <button class="btn-primary" onclick="calculateBulkCosts()">
+                            Calculate All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="hidden animate-fade-in">
+            <!-- View Toggle -->
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-900">Cost Estimate Results</h2>
+                <div class="view-toggle flex">
+                    <button id="view-summary" class="active" onclick="switchView('summary')">Summary</button>
+                    <button id="view-detailed" onclick="switchView('detailed')">Detailed</button>
+                </div>
+            </div>
+
+            <!-- Summary View -->
+            <div id="summary-view" class="animate-fade-in">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="result-card-light">
+                        <p class="text-sm text-gray-500 mb-1">Total Tax Cost</p>
+                        <p class="text-2xl font-bold text-cozm-teal" id="summaryTax">€0</p>
+                    </div>
+                    <div class="result-card-light">
+                        <p class="text-sm text-gray-500 mb-1">Total Social Security</p>
+                        <p class="text-2xl font-bold text-cozm-teal" id="summarySocialSec">€0</p>
+                    </div>
+                    <div class="result-card-light">
+                        <p class="text-sm text-gray-500 mb-1">Daily Allowances</p>
+                        <p class="text-2xl font-bold text-cozm-teal" id="summaryAllowances">€0</p>
+                    </div>
+                    <div class="result-card-light">
+                        <p class="text-sm text-gray-500 mb-1">Admin Fees</p>
+                        <p class="text-2xl font-bold text-cozm-teal" id="summaryAdminFees">€0</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="result-card">
+                        <p class="text-sm opacity-80 mb-1">Total Cost per Day</p>
+                        <p class="text-3xl font-bold" id="summaryPerDay">€0</p>
+                    </div>
+                    <div class="result-card">
+                        <p class="text-sm opacity-80 mb-1">Total Assignment Cost</p>
+                        <p class="text-3xl font-bold" id="summaryTotal">€0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed View -->
+            <div id="detailed-view" class="hidden animate-fade-in">
+                <div class="card overflow-hidden mb-6">
+                    <div class="overflow-x-auto">
+                        <table class="w-full breakdown-table">
+                            <thead>
+                                <tr>
+                                    <th colspan="4">Tax Calculation - Brazil</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="font-medium">Gross Salary (Assignment Period)</td>
+                                    <td></td>
+                                    <td class="text-right" id="detailGrossSalary">€0</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">Daily Allowances</td>
+                                    <td class="text-gray-500 text-sm" id="detailDaysCalc">0 days × €0</td>
+                                    <td class="text-right" id="detailAllowances">€0</td>
+                                    <td></td>
+                                </tr>
+                                <tr class="subtotal-row">
+                                    <td class="font-medium">Total Taxable Income (EUR)</td>
+                                    <td></td>
+                                    <td class="text-right" id="detailTaxableEUR">€0</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">Exchange Rate</td>
+                                    <td class="text-gray-500 text-sm" id="exchangeRateInfo">1 EUR = 6.187 BRL</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">Total Taxable Income (Local)</td>
+                                    <td></td>
+                                    <td class="text-right" id="detailTaxableBRL">R$0</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">Standard Deduction</td>
+                                    <td class="text-gray-500 text-sm">Local personal deduction</td>
+                                    <td class="text-right" id="detailDeduction">-</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">Tax Rate Applied</td>
+                                    <td class="text-gray-500 text-sm" id="taxRateInfo">Top marginal rate</td>
+                                    <td class="text-right" id="taxRateValue">27.5%</td>
+                                    <td></td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td class="font-medium">Total Tax (EUR)</td>
+                                    <td></td>
+                                    <td class="text-right" id="detailTaxTotal">€0</td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card overflow-hidden mb-6">
+                    <div class="overflow-x-auto">
+                        <table class="w-full breakdown-table">
+                            <thead>
+                                <tr>
+                                    <th colspan="4">Social Security Contributions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="font-medium">Host Country (Brazil)</td>
+                                    <td class="text-gray-500 text-sm">No local contract - N/A</td>
+                                    <td class="text-right">€0</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">Home Country (Finland)</td>
+                                    <td class="text-gray-500 text-sm">Employee responsibility</td>
+                                    <td class="text-right text-gray-400">Not included</td>
+                                    <td></td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td class="font-medium">Total Social Security Cost</td>
+                                    <td></td>
+                                    <td class="text-right" id="detailSocialSecTotal">€0</td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card overflow-hidden mb-6">
+                    <div class="overflow-x-auto">
+                        <table class="w-full breakdown-table">
+                            <thead>
+                                <tr>
+                                    <th>Admin Fees</th>
+                                    <th>Fee (EUR)</th>
+                                    <th>Period</th>
+                                    <th class="text-right">Per Day</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Monthly Tax Reports</td>
+                                    <td>€200</td>
+                                    <td>Annual</td>
+                                    <td class="text-right">€0.55</td>
+                                </tr>
+                                <tr>
+                                    <td>Yearly Tax Returns</td>
+                                    <td>€300</td>
+                                    <td>Annual</td>
+                                    <td class="text-right">€0.82</td>
+                                </tr>
+                                <tr>
+                                    <td>Work Permit Fee</td>
+                                    <td>€1,000</td>
+                                    <td>One-time</td>
+                                    <td class="text-right" id="detailWorkPermitPerDay">€0</td>
+                                </tr>
+                                <tr>
+                                    <td>Visa Fee</td>
+                                    <td>€200</td>
+                                    <td>One-time</td>
+                                    <td class="text-right" id="detailVisaPerDay">€0</td>
+                                </tr>
+                                <tr>
+                                    <td>Tax & Social Security Registration</td>
+                                    <td>€500</td>
+                                    <td>One-time</td>
+                                    <td class="text-right" id="detailRegPerDay">€0</td>
+                                </tr>
+                                <tr>
+                                    <td>Service Provider Coordination</td>
+                                    <td>€1,000</td>
+                                    <td>Annual</td>
+                                    <td class="text-right">€2.74</td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td class="font-medium">Total Admin Fees</td>
+                                    <td class="font-medium" id="detailAdminTotal">€0</td>
+                                    <td></td>
+                                    <td class="text-right font-medium" id="detailAdminPerDay">€0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full breakdown-table">
+                            <thead>
+                                <tr>
+                                    <th colspan="4">Grand Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="font-medium">Tax Costs</td>
+                                    <td></td>
+                                    <td class="text-right" id="grandTax">€0</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">Social Security</td>
+                                    <td></td>
+                                    <td class="text-right" id="grandSocialSec">€0</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">Daily Allowances</td>
+                                    <td></td>
+                                    <td class="text-right" id="grandAllowances">€0</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="font-medium">Admin Fees</td>
+                                    <td></td>
+                                    <td class="text-right" id="grandAdmin">€0</td>
+                                    <td></td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td class="font-bold text-lg">TOTAL ASSIGNMENT COST</td>
+                                    <td></td>
+                                    <td class="text-right font-bold text-lg" id="grandTotal">€0</td>
+                                    <td></td>
+                                </tr>
+                                <tr class="bg-cozm-dark text-white">
+                                    <td class="font-bold">COST PER DAY</td>
+                                    <td></td>
+                                    <td class="text-right font-bold" id="grandPerDay">€0</td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assumptions Panel -->
+            <div class="mt-6">
+                <button class="flex items-center gap-2 text-sm text-gray-600 font-medium mb-3" onclick="toggleAssumptions()">
+                    <svg id="assumptionsArrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                    Calculation Assumptions
+                </button>
+                <div id="assumptionsPanel" class="assumptions-panel hidden">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-cozm-gold flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <div class="text-sm text-gray-700">
+                            <ul class="space-y-2">
+                                <li><strong>Tax Liability:</strong> Company pays host country taxes; FSE responsible for home country taxes</li>
+                                <li><strong>Daily Allowance Rates:</strong> Based on Finnish 2025 official rates</li>
+                                <li><strong>Tax Threshold:</strong> Brazilian tax liability applies after 183 days presence</li>
+                                <li><strong>Tax Rate:</strong> Using resident rate of 27.5% (applicable for stays >183 days)</li>
+                                <li><strong>Social Security:</strong> No local Brazilian contract assumed; home country contributions are employee responsibility</li>
+                                <li><strong>Exchange Rate:</strong> 1 EUR = 6.187 BRL (subject to change)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Actions -->
+            <div class="mt-6 flex justify-end gap-3">
+                <button class="btn-secondary">
+                    <span class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Export PDF
+                    </span>
+                </button>
+                <button class="btn-secondary">
+                    <span class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Export Excel
+                    </span>
+                </button>
+            </div>
+        </div>
+        </div><!-- End Calculator Section -->
+
+        <!-- Staffing Section -->
+        <div id="section-staffing" class="hidden">
+            <!-- Step 1: Staff Pool -->
+            <div class="card p-6 mb-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">1. Define Your Staff Pool</h2>
+                        <p class="text-sm text-gray-500 mt-1">Upload your available engineers or add them manually</p>
+                    </div>
+                    <div class="flex border-b border-gray-200">
+                        <button id="staff-tab-upload" class="tab-active px-4 py-2 text-sm transition-all" onclick="switchStaffTab('upload')">
+                            Upload Excel
+                        </button>
+                        <button id="staff-tab-manual" class="tab-inactive px-4 py-2 text-sm transition-all" onclick="switchStaffTab('manual')">
+                            Manual Entry
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Upload Staff Pool -->
+                <div id="staff-upload" class="animate-fade-in">
+                    <div class="drop-zone" id="staffDropZone" onclick="document.getElementById('staffFileInput').click()">
+                        <input type="file" id="staffFileInput" class="hidden" accept=".xlsx,.xls" onchange="handleStaffUpload(event)">
+                        <svg class="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <p class="text-gray-600 font-medium">Drop your staff roster here or click to browse</p>
+                        <p class="text-sm text-gray-500 mt-1">Include name, home country, skills, salary, and availability</p>
+                    </div>
+                    <div class="mt-4 flex items-center justify-between">
+                        <button class="btn-secondary text-sm" onclick="downloadStaffTemplate()">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                                Download Staff Template
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Manual Staff Entry -->
+                <div id="staff-manual" class="hidden animate-fade-in">
+                    <div class="overflow-x-auto rounded-lg border border-gray-200">
+                        <table class="w-full text-sm" id="staffTable">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="px-4 py-3 text-left font-medium text-gray-700">Name</th>
+                                    <th class="px-4 py-3 text-left font-medium text-gray-700">Home Country</th>
+                                    <th class="px-4 py-3 text-left font-medium text-gray-700">Skills</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-700">Monthly Salary (EUR)</th>
+                                    <th class="px-4 py-3 text-center font-medium text-gray-700">Available</th>
+                                    <th class="px-4 py-3 text-center font-medium text-gray-700"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="staffTableBody">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-2"><input type="text" class="input-field w-full text-sm" placeholder="e.g. Mikko Virtanen"></td>
+                                    <td class="px-4 py-2">
+                                        <select class="input-field w-full text-sm">
+                                            <option value="Finland">Finland</option>
+                                            <option value="Portugal">Portugal</option>
+                                            <option value="Germany">Germany</option>
+                                            <option value="UK">UK</option>
+                                        </select>
+                                    </td>
+                                    <td class="px-4 py-2"><input type="text" class="input-field w-full text-sm" placeholder="e.g. Marine, Electrical"></td>
+                                    <td class="px-4 py-2"><input type="number" class="input-field w-full text-sm text-right" value="7000"></td>
+                                    <td class="px-4 py-2 text-center">
+                                        <input type="checkbox" class="w-4 h-4 text-cozm-teal rounded" checked>
+                                    </td>
+                                    <td class="px-4 py-2 text-center">
+                                        <button class="text-gray-400 hover:text-red-500" onclick="removeStaffRow(this)">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4">
+                        <button class="btn-secondary text-sm" onclick="addStaffRow()">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                                Add Engineer
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loaded Staff Preview -->
+                <div id="staffPoolPreview" class="hidden mt-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-semibold text-gray-700">Staff Pool Loaded</h3>
+                        <span class="badge badge-success">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            <span id="staffCount">8</span> engineers
+                        </span>
+                    </div>
+                    <div class="overflow-x-auto rounded-lg border border-gray-200">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="px-4 py-3 text-left font-medium text-gray-700">Name</th>
+                                    <th class="px-4 py-3 text-left font-medium text-gray-700">Home Country</th>
+                                    <th class="px-4 py-3 text-left font-medium text-gray-700">Skills</th>
+                                    <th class="px-4 py-3 text-right font-medium text-gray-700">Salary</th>
+                                    <th class="px-4 py-3 text-center font-medium text-gray-700">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="staffPreviewBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Project Requirements -->
+            <div class="card p-6 mb-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-2">2. Project Requirements</h2>
+                <p class="text-sm text-gray-500 mb-6">Define what the project needs</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="tooltip-container">
+                                Host Country (Deployment)
+                                <span class="help-icon">i</span>
+                                <span class="tooltip-content">Where the engineers will be deployed. This affects visa requirements, work permits, and tax obligations.</span>
+                            </span>
+                        </label>
+                        <select id="projectHostCountry" class="input-field w-full">
+                            <option value="Brazil">Brazil</option>
+                            <option value="USA">United States</option>
+                            <option value="Germany">Germany</option>
+                            <option value="UK">United Kingdom</option>
+                            <option value="UAE">United Arab Emirates</option>
+                            <option value="Singapore">Singapore</option>
+                            <option value="Australia">Australia</option>
+                            <option value="Mexico">Mexico</option>
+                            <option value="India">India</option>
+                            <option value="SouthAfrica">South Africa</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="tooltip-container">
+                                Required Skills
+                                <span class="help-icon">i</span>
+                                <span class="tooltip-content">Technical skills needed for this project. Engineers with matching skills will be prioritised.</span>
+                            </span>
+                        </label>
+                        <input type="text" id="requiredSkills" class="input-field w-full" placeholder="e.g. Marine, Electrical, Mechanical">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="tooltip-container tooltip-left">
+                                Number of Engineers
+                                <span class="help-icon">i</span>
+                                <span class="tooltip-content">How many engineers are needed for this project deployment.</span>
+                            </span>
+                        </label>
+                        <input type="number" id="numEngineers" value="3" class="input-field w-full" min="1" max="50">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="tooltip-container">
+                                Project Duration
+                                <span class="help-icon">i</span>
+                                <span class="tooltip-content">Length of the deployment. Affects visa type, tax residency, and total costs.</span>
+                            </span>
+                        </label>
+                        <select id="projectDuration" class="input-field w-full">
+                            <option value="1">1 month</option>
+                            <option value="3">3 months</option>
+                            <option value="6" selected>6 months</option>
+                            <option value="12">12 months</option>
+                            <option value="18">18 months</option>
+                            <option value="24">24 months</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="tooltip-container">
+                                Start Date
+                                <span class="help-icon">i</span>
+                                <span class="tooltip-content">When the project needs to begin. Earlier dates may require faster visa processing.</span>
+                            </span>
+                        </label>
+                        <input type="date" id="startDate" class="input-field w-full">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="tooltip-container tooltip-left">
+                                Budget Constraint (EUR)
+                                <span class="help-icon">i</span>
+                                <span class="tooltip-content">Optional maximum total cost for the project staffing. Leave blank for no limit.</span>
+                            </span>
+                        </label>
+                        <div class="currency-input">
+                            <input type="number" id="budgetConstraint" class="input-field w-full" placeholder="Optional">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Optimisation Priority -->
+            <div class="card p-6 mb-6">
+                <div class="flex items-start justify-between mb-6">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900 mb-2">3. Optimisation Priority</h2>
+                        <p class="text-sm text-gray-500">Select what matters most for this project</p>
+                    </div>
+                    <div class="voice-container">
+                        <button class="voice-btn" id="voiceBtn" onclick="toggleVoiceCommand()" title="Voice commands: 'optimise for cost', 'optimise for speed', 'optimise for compliance'">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                            </svg>
+                        </button>
+                        <p class="voice-status" id="voiceStatus"></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="optimise-option cost selected" onclick="selectOptimisation('cost')">
+                        <div class="icon">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Lowest Cost</h3>
+                        <p class="text-sm text-gray-500">Minimise total deployment costs including tax, social security, and admin fees</p>
+                        <input type="radio" name="optimisation" value="cost" class="hidden" checked>
+                    </div>
+
+                    <div class="optimise-option compliance" onclick="selectOptimisation('compliance')">
+                        <div class="icon">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Best Compliance</h3>
+                        <p class="text-sm text-gray-500">Prioritise straightforward immigration, tax, and social security arrangements</p>
+                        <input type="radio" name="optimisation" value="compliance" class="hidden">
+                    </div>
+
+                    <div class="optimise-option speed" onclick="selectOptimisation('speed')">
+                        <div class="icon">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">Fastest Deployment</h3>
+                        <p class="text-sm text-gray-500">Minimise time to mobilise with quickest visa and work permit processing</p>
+                        <input type="radio" name="optimisation" value="speed" class="hidden">
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button class="btn-primary" onclick="optimiseStaffing()">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                            </svg>
+                            Find Optimal Team
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Staffing Results -->
+            <div id="staffingResults" class="hidden animate-fade-in">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">Recommended Team</h2>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-gray-500">Optimised for:</span>
+                        <span id="optimisedForLabel" class="badge badge-success">Lowest Cost</span>
+                    </div>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="result-card-light">
+                        <p class="text-sm text-gray-500 mb-1">Total Team Cost</p>
+                        <p class="text-2xl font-bold text-cozm-teal" id="staffingTotalCost">€0</p>
+                        <p class="text-xs text-gray-400 mt-1">For full project duration</p>
+                    </div>
+                    <div class="result-card-light">
+                        <p class="text-sm text-gray-500 mb-1">Average Compliance Score</p>
+                        <p class="text-2xl font-bold text-cozm-teal" id="staffingComplianceScore">0%</p>
+                        <p class="text-xs text-gray-400 mt-1">Lower complexity = higher</p>
+                    </div>
+                    <div class="result-card-light">
+                        <p class="text-sm text-gray-500 mb-1">Estimated Mobilisation</p>
+                        <p class="text-2xl font-bold text-cozm-teal" id="staffingMobilisation">0 weeks</p>
+                        <p class="text-xs text-gray-400 mt-1">Until team can start</p>
+                    </div>
+                    <div class="result-card-light">
+                        <p class="text-sm text-gray-500 mb-1">Overall Score</p>
+                        <p class="text-2xl font-bold text-cozm-teal" id="staffingOverallScore">0/100</p>
+                        <p class="text-xs text-gray-400 mt-1">Based on your priority</p>
+                    </div>
+                </div>
+
+                <!-- Selected Individuals Table -->
+                <div class="card overflow-hidden mb-6">
+                    <div class="p-4 bg-cozm-dark text-white flex items-center justify-between">
+                        <h3 class="font-semibold">Selected Individuals</h3>
+                        <span class="text-sm opacity-80" id="selectedCount">0 engineers selected</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="selected-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Find Alternative</th>
+                                    <th>Risk Level</th>
+                                    <th>Cost</th>
+                                    <th>Deployment Time</th>
+                                    <th>Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody id="selectedIndividualsBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                            <tfoot>
+                                <tr class="total-row">
+                                    <td colspan="3"><strong>Total</strong></td>
+                                    <td><strong id="selectedTotalCost">€0</strong></td>
+                                    <td><strong id="selectedMaxDeployment">0 weeks</strong></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Recommended Engineers -->
+                <div class="space-y-4" id="recommendedEngineers">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Alternative Options -->
+                <div class="mt-8">
+                    <button class="flex items-center gap-2 text-sm text-gray-600 font-medium mb-3" onclick="toggleAlternatives()">
+                        <svg id="alternativesArrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                        View Alternative Assignments
+                    </button>
+                    <div id="alternativesPanel" class="hidden space-y-3">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Export Actions -->
+                <div class="mt-6 flex justify-end gap-3">
+                    <button class="btn-secondary">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Export Staffing Plan
+                        </span>
+                    </button>
+                    <button class="btn-primary" onclick="proceedToCalculator()">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                            </svg>
+                            View Detailed Costs
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div><!-- End Staffing Section -->
+    </main>
+
+    <!-- Find Alternative Modal -->
+    <div class="modal-overlay" id="findAlternativeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Find Alternative</h3>
+                <button class="modal-close" onclick="closeAlternativeModal()">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-current">
+                <p class="modal-current-label">Current Selection</p>
+                <p class="modal-current-name" id="modalCurrentName">-</p>
+            </div>
+
+            <div class="modal-warning">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <p class="modal-warning-text">Swapping this person will recalculate the total project cost and deployment time. The alternatives shown below have similar skills and availability.</p>
+            </div>
+
+            <div class="modal-alternatives">
+                <p class="modal-alt-title">Available Alternatives</p>
+                <div id="modalAlternativesList">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeAlternativeModal()">Cancel</button>
+                <button class="btn-primary" onclick="confirmSwap()" id="confirmSwapBtn" disabled>Swap Person</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Footer -->
+    <footer class="mt-auto py-6 border-t border-gray-200 bg-white">
+        <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
+            <p class="text-sm text-gray-500">© 2026 The Cozm Ltd. All rights reserved.</p>
+            <p class="text-sm text-gray-500">Multi-Country Cost Model</p>
+        </div>
+    </footer>
+
+    <script>
+        // Country tax configurations
+        const countryConfig = {
+            Brazil: { taxRate: 0.275, currency: 'BRL', exchangeRate: 6.187, deduction: 16754.34, socialSec: 0, name: 'Brazil' },
+            USA: { taxRate: 0.37, currency: 'USD', exchangeRate: 1.08, deduction: 13850, socialSec: 0.0765, name: 'United States' },
+            Germany: { taxRate: 0.45, currency: 'EUR', exchangeRate: 1.0, deduction: 10908, socialSec: 0.205, name: 'Germany' },
+            UK: { taxRate: 0.45, currency: 'GBP', exchangeRate: 0.86, deduction: 12570, socialSec: 0.138, name: 'United Kingdom' },
+            UAE: { taxRate: 0, currency: 'AED', exchangeRate: 3.96, deduction: 0, socialSec: 0, name: 'United Arab Emirates' },
+            Singapore: { taxRate: 0.22, currency: 'SGD', exchangeRate: 1.45, deduction: 0, socialSec: 0.17, name: 'Singapore' },
+            Australia: { taxRate: 0.45, currency: 'AUD', exchangeRate: 1.65, deduction: 18200, socialSec: 0.115, name: 'Australia' },
+            Mexico: { taxRate: 0.35, currency: 'MXN', exchangeRate: 18.5, deduction: 0, socialSec: 0.0625, name: 'Mexico' },
+            India: { taxRate: 0.30, currency: 'INR', exchangeRate: 90.5, deduction: 250000, socialSec: 0.12, name: 'India' },
+            SouthAfrica: { taxRate: 0.45, currency: 'ZAR', exchangeRate: 20.2, deduction: 87300, socialSec: 0.01, name: 'South Africa' }
+        };
+
+        // Update country info display
+        function updateCountryInfo() {
+            const country = document.getElementById('hostCountry').value;
+            const config = countryConfig[country];
+            const taxPercent = (config.taxRate * 100).toFixed(0);
+            const infoEl = document.getElementById('countryTaxInfo');
+
+            if (config.taxRate === 0) {
+                infoEl.textContent = `Tax rate: 0% (Tax-free) | Currency: ${config.currency}`;
+            } else {
+                infoEl.textContent = `Tax rate: up to ${taxPercent}% | Currency: ${config.currency}`;
+            }
+        }
+
+        // Tab switching
+        function switchTab(tab) {
+            const singleTab = document.getElementById('tab-single');
+            const bulkTab = document.getElementById('tab-bulk');
+            const singleForm = document.getElementById('form-single');
+            const bulkForm = document.getElementById('form-bulk');
+
+            if (tab === 'single') {
+                singleTab.className = 'tab-active px-4 py-2 text-sm transition-all';
+                bulkTab.className = 'tab-inactive px-4 py-2 text-sm transition-all';
+                singleForm.classList.remove('hidden');
+                bulkForm.classList.add('hidden');
+            } else {
+                singleTab.className = 'tab-inactive px-4 py-2 text-sm transition-all';
+                bulkTab.className = 'tab-active px-4 py-2 text-sm transition-all';
+                singleForm.classList.add('hidden');
+                bulkForm.classList.remove('hidden');
+            }
+        }
+
+        // View switching
+        function switchView(view) {
+            const summaryBtn = document.getElementById('view-summary');
+            const detailedBtn = document.getElementById('view-detailed');
+            const summaryView = document.getElementById('summary-view');
+            const detailedView = document.getElementById('detailed-view');
+
+            if (view === 'summary') {
+                summaryBtn.classList.add('active');
+                detailedBtn.classList.remove('active');
+                summaryView.classList.remove('hidden');
+                detailedView.classList.add('hidden');
+            } else {
+                summaryBtn.classList.remove('active');
+                detailedBtn.classList.add('active');
+                summaryView.classList.add('hidden');
+                detailedView.classList.remove('hidden');
+            }
+        }
+
+        // Toggle assumptions panel
+        function toggleAssumptions() {
+            const panel = document.getElementById('assumptionsPanel');
+            const arrow = document.getElementById('assumptionsArrow');
+            panel.classList.toggle('hidden');
+            arrow.style.transform = panel.classList.contains('hidden') ? '' : 'rotate(90deg)';
+        }
+
+        // Format currency
+        function formatCurrency(amount, currency = '€') {
+            return currency + amount.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        function formatCurrencyDecimal(amount, currency = '€') {
+            return currency + amount.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Calculate costs
+        function calculateCosts() {
+            const monthlySalary = parseFloat(document.getElementById('monthlySalary').value) || 0;
+            const assignmentLength = parseInt(document.getElementById('assignmentLength').value) || 6;
+            const dailyAllowance = parseFloat(document.getElementById('dailyAllowance').value) || 0;
+            const workingDaysPerMonth = parseInt(document.getElementById('workingDays').value) || 25;
+            const hostCountry = document.getElementById('hostCountry').value;
+            const config = countryConfig[hostCountry];
+
+            // Calculate totals
+            const totalWorkingDays = workingDaysPerMonth * assignmentLength;
+            const totalCalendarDays = assignmentLength * 30; // Approximate
+            const grossSalary = monthlySalary * assignmentLength;
+            const totalAllowances = dailyAllowance * totalWorkingDays;
+            const totalTaxableIncome = grossSalary + totalAllowances;
+
+            // Use country-specific configuration
+            const exchangeRate = config.exchangeRate;
+            const taxableIncomeLocal = totalTaxableIncome * exchangeRate;
+            const standardDeduction = config.deduction;
+            const taxRate = config.taxRate;
+            const taxAmountLocal = Math.max(0, (taxableIncomeLocal - standardDeduction) * taxRate);
+            const taxAmountEUR = taxAmountLocal / exchangeRate;
+
+            // Social security based on country
+            const socialSecurityCost = grossSalary * config.socialSec;
+
+            // Admin fees (annual, pro-rated)
+            const monthlyTaxReports = 200;
+            const yearlyTaxReturns = 300;
+            const workPermitFee = 1000;
+            const visaFee = 200;
+            const taxSocialSecReg = 500;
+            const serviceProviderFee = 1000;
+
+            // Pro-rate annual fees based on assignment length
+            const annualFees = (monthlyTaxReports + yearlyTaxReturns + serviceProviderFee) * (assignmentLength / 12);
+            const oneTimeFees = workPermitFee + visaFee + taxSocialSecReg;
+            const totalAdminFees = annualFees + oneTimeFees;
+
+            // Grand totals
+            const grandTotal = taxAmountEUR + socialSecurityCost + totalAllowances + totalAdminFees;
+            const costPerDay = grandTotal / totalCalendarDays;
+
+            // Update Summary View
+            document.getElementById('summaryTax').textContent = formatCurrency(taxAmountEUR);
+            document.getElementById('summarySocialSec').textContent = formatCurrency(socialSecurityCost);
+            document.getElementById('summaryAllowances').textContent = formatCurrency(totalAllowances);
+            document.getElementById('summaryAdminFees').textContent = formatCurrency(totalAdminFees);
+            document.getElementById('summaryPerDay').textContent = formatCurrencyDecimal(costPerDay);
+            document.getElementById('summaryTotal').textContent = formatCurrency(grandTotal);
+
+            // Update Detailed View
+            document.getElementById('detailGrossSalary').textContent = formatCurrency(grossSalary);
+            document.getElementById('detailDaysCalc').textContent = `${totalWorkingDays} days × €${dailyAllowance}`;
+            document.getElementById('detailAllowances').textContent = formatCurrency(totalAllowances);
+            document.getElementById('detailTaxableEUR').textContent = formatCurrency(totalTaxableIncome);
+            document.getElementById('detailTaxableBRL').textContent = config.currency + ' ' + taxableIncomeLocal.toLocaleString('en-GB', { minimumFractionDigits: 2 });
+            document.getElementById('detailTaxTotal').textContent = formatCurrency(taxAmountEUR);
+            document.getElementById('detailSocialSecTotal').textContent = formatCurrency(socialSecurityCost);
+
+            // Update table headers to show selected country
+            document.querySelector('.breakdown-table thead th').textContent = `Tax Calculation - ${config.name}`;
+            document.getElementById('exchangeRateInfo').textContent = `1 EUR = ${exchangeRate} ${config.currency}`;
+            document.getElementById('taxRateInfo').textContent = config.taxRate === 0 ? 'Tax-free jurisdiction' : `Top marginal rate`;
+            document.getElementById('taxRateValue').textContent = (config.taxRate * 100).toFixed(1) + '%';
+            document.getElementById('detailDeduction').textContent = config.deduction > 0 ? `-${config.currency} ${config.deduction.toLocaleString('en-GB')}` : 'N/A';
+
+            // Admin fees per day
+            document.getElementById('detailWorkPermitPerDay').textContent = formatCurrencyDecimal(workPermitFee / totalCalendarDays);
+            document.getElementById('detailVisaPerDay').textContent = formatCurrencyDecimal(visaFee / totalCalendarDays);
+            document.getElementById('detailRegPerDay').textContent = formatCurrencyDecimal(taxSocialSecReg / totalCalendarDays);
+            document.getElementById('detailAdminTotal').textContent = formatCurrency(totalAdminFees);
+            document.getElementById('detailAdminPerDay').textContent = formatCurrencyDecimal(totalAdminFees / totalCalendarDays);
+
+            // Grand totals in detailed view
+            document.getElementById('grandTax').textContent = formatCurrency(taxAmountEUR);
+            document.getElementById('grandSocialSec').textContent = formatCurrency(socialSecurityCost);
+            document.getElementById('grandAllowances').textContent = formatCurrency(totalAllowances);
+            document.getElementById('grandAdmin').textContent = formatCurrency(totalAdminFees);
+            document.getElementById('grandTotal').textContent = formatCurrency(grandTotal);
+            document.getElementById('grandPerDay').textContent = formatCurrencyDecimal(costPerDay);
+
+            // Show results section
+            document.getElementById('resultsSection').classList.remove('hidden');
+
+            // Scroll to results
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Drag and drop handling
+        const dropZone = document.getElementById('dropZone');
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                handleFileUpload({ target: { files } });
+            }
+        });
+
+        // File upload handling (mock)
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Show mock preview data
+                const mockData = [
+                    { name: 'Mikko Virtanen', home: 'Finland', host: 'Brazil', salary: '€7,500', duration: '12 months' },
+                    { name: 'João Silva', home: 'Portugal', host: 'USA', salary: '€6,800', duration: '6 months' },
+                    { name: 'Antti Korhonen', home: 'Finland', host: 'Germany', salary: '€7,200', duration: '9 months' },
+                    { name: 'Maria Santos', home: 'Portugal', host: 'UAE', salary: '€6,500', duration: '12 months' },
+                    { name: 'Pekka Nieminen', home: 'Finland', host: 'Singapore', salary: '€8,000', duration: '6 months' },
+                ];
+
+                const tbody = document.getElementById('bulkPreviewBody');
+                tbody.innerHTML = mockData.map(row => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">${row.name}</td>
+                        <td class="px-4 py-3">${row.home}</td>
+                        <td class="px-4 py-3">${row.host}</td>
+                        <td class="px-4 py-3 text-right">${row.salary}</td>
+                        <td class="px-4 py-3 text-right">${row.duration}</td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('bulkPreview').classList.remove('hidden');
+            }
+        }
+
+        // Download template (generates Excel-compatible XML format)
+        function downloadTemplate() {
+            // Create Excel XML format (opens natively in Excel)
+            const excelContent = `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <Worksheet ss:Name="FSE Data">
+  <Table>
+   <Row>
+    <Cell><Data ss:Type="String">Name</Data></Cell>
+    <Cell><Data ss:Type="String">Home Country</Data></Cell>
+    <Cell><Data ss:Type="String">Host Country</Data></Cell>
+    <Cell><Data ss:Type="String">Monthly Salary (EUR)</Data></Cell>
+    <Cell><Data ss:Type="String">Assignment Length (months)</Data></Cell>
+    <Cell><Data ss:Type="String">Daily Allowance (EUR)</Data></Cell>
+    <Cell><Data ss:Type="String">Working Days/Month</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">Mikko Virtanen</Data></Cell>
+    <Cell><Data ss:Type="String">Finland</Data></Cell>
+    <Cell><Data ss:Type="String">Brazil</Data></Cell>
+    <Cell><Data ss:Type="Number">7000</Data></Cell>
+    <Cell><Data ss:Type="Number">6</Data></Cell>
+    <Cell><Data ss:Type="Number">70</Data></Cell>
+    <Cell><Data ss:Type="Number">25</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">João Silva</Data></Cell>
+    <Cell><Data ss:Type="String">Portugal</Data></Cell>
+    <Cell><Data ss:Type="String">USA</Data></Cell>
+    <Cell><Data ss:Type="Number">6800</Data></Cell>
+    <Cell><Data ss:Type="Number">12</Data></Cell>
+    <Cell><Data ss:Type="Number">70</Data></Cell>
+    <Cell><Data ss:Type="Number">25</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">Antti Korhonen</Data></Cell>
+    <Cell><Data ss:Type="String">Finland</Data></Cell>
+    <Cell><Data ss:Type="String">Germany</Data></Cell>
+    <Cell><Data ss:Type="Number">7200</Data></Cell>
+    <Cell><Data ss:Type="Number">9</Data></Cell>
+    <Cell><Data ss:Type="Number">70</Data></Cell>
+    <Cell><Data ss:Type="Number">25</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">Maria Santos</Data></Cell>
+    <Cell><Data ss:Type="String">Portugal</Data></Cell>
+    <Cell><Data ss:Type="String">UAE</Data></Cell>
+    <Cell><Data ss:Type="Number">6500</Data></Cell>
+    <Cell><Data ss:Type="Number">12</Data></Cell>
+    <Cell><Data ss:Type="Number">70</Data></Cell>
+    <Cell><Data ss:Type="Number">25</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">Pekka Nieminen</Data></Cell>
+    <Cell><Data ss:Type="String">Finland</Data></Cell>
+    <Cell><Data ss:Type="String">Singapore</Data></Cell>
+    <Cell><Data ss:Type="Number">8000</Data></Cell>
+    <Cell><Data ss:Type="Number">6</Data></Cell>
+    <Cell><Data ss:Type="Number">70</Data></Cell>
+    <Cell><Data ss:Type="Number">25</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="Supported Countries">
+  <Table>
+   <Row>
+    <Cell><Data ss:Type="String">Country</Data></Cell>
+    <Cell><Data ss:Type="String">Tax Rate</Data></Cell>
+    <Cell><Data ss:Type="String">Currency</Data></Cell>
+   </Row>
+   <Row><Cell><Data ss:Type="String">Brazil</Data></Cell><Cell><Data ss:Type="String">27.5%</Data></Cell><Cell><Data ss:Type="String">BRL</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">USA</Data></Cell><Cell><Data ss:Type="String">37%</Data></Cell><Cell><Data ss:Type="String">USD</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Germany</Data></Cell><Cell><Data ss:Type="String">45%</Data></Cell><Cell><Data ss:Type="String">EUR</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">UK</Data></Cell><Cell><Data ss:Type="String">45%</Data></Cell><Cell><Data ss:Type="String">GBP</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">UAE</Data></Cell><Cell><Data ss:Type="String">0%</Data></Cell><Cell><Data ss:Type="String">AED</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Singapore</Data></Cell><Cell><Data ss:Type="String">22%</Data></Cell><Cell><Data ss:Type="String">SGD</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Australia</Data></Cell><Cell><Data ss:Type="String">45%</Data></Cell><Cell><Data ss:Type="String">AUD</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Mexico</Data></Cell><Cell><Data ss:Type="String">35%</Data></Cell><Cell><Data ss:Type="String">MXN</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">India</Data></Cell><Cell><Data ss:Type="String">30%</Data></Cell><Cell><Data ss:Type="String">INR</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">SouthAfrica</Data></Cell><Cell><Data ss:Type="String">45%</Data></Cell><Cell><Data ss:Type="String">ZAR</Data></Cell></Row>
+  </Table>
+ </Worksheet>
+</Workbook>`;
+
+            const blob = new Blob([excelContent], { type: 'application/vnd.ms-excel' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'fse_cost_template.xls';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Calculate bulk costs (mock)
+        function calculateBulkCosts() {
+            // For demo, just show results with aggregated mock data
+            document.getElementById('summaryTax').textContent = '€69,500';
+            document.getElementById('summarySocialSec').textContent = '€0';
+            document.getElementById('summaryAllowances').textContent = '€78,750';
+            document.getElementById('summaryAdminFees').textContent = '€14,200';
+            document.getElementById('summaryPerDay').textContent = '€495.23';
+            document.getElementById('summaryTotal').textContent = '€162,450';
+
+            document.getElementById('resultsSection').classList.remove('hidden');
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ===== STAFFING OPTIMISATION FUNCTIONS =====
+
+        // Sample staff pool data (for demo)
+        const sampleStaffPool = [
+            { id: 1, name: 'Mikko Virtanen', home: 'Finland', skills: ['Marine', 'Electrical'], salary: 7500, available: true },
+            { id: 2, name: 'Antti Korhonen', home: 'Finland', skills: ['Marine', 'Mechanical'], salary: 7000, available: true },
+            { id: 3, name: 'João Silva', home: 'Portugal', skills: ['Marine', 'Electrical'], salary: 6200, available: true },
+            { id: 4, name: 'Maria Santos', home: 'Portugal', skills: ['Electrical', 'Automation'], salary: 6000, available: true },
+            { id: 5, name: 'Pekka Nieminen', home: 'Finland', skills: ['Mechanical', 'Automation'], salary: 7200, available: true },
+            { id: 6, name: 'Hans Mueller', home: 'Germany', skills: ['Marine', 'Electrical'], salary: 7800, available: true },
+            { id: 7, name: 'Sofia Berg', home: 'Finland', skills: ['Marine', 'Mechanical'], salary: 7100, available: false },
+            { id: 8, name: 'Carlos Ferreira', home: 'Portugal', skills: ['Mechanical', 'Electrical'], salary: 5800, available: true },
+        ];
+
+        // Country compliance data (for scoring)
+        const complianceData = {
+            Finland: {
+                Brazil: { visaWeeks: 8, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: false },
+                USA: { visaWeeks: 12, complexity: 'high', workPermit: true, a1Required: false, socialSecAgreement: true },
+                Germany: { visaWeeks: 2, complexity: 'low', workPermit: false, a1Required: true, socialSecAgreement: true },
+                UK: { visaWeeks: 4, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: true },
+                UAE: { visaWeeks: 3, complexity: 'low', workPermit: true, a1Required: false, socialSecAgreement: false },
+                Singapore: { visaWeeks: 4, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: false },
+                Australia: { visaWeeks: 8, complexity: 'high', workPermit: true, a1Required: false, socialSecAgreement: true },
+                Mexico: { visaWeeks: 6, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: false },
+                India: { visaWeeks: 6, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: false },
+                SouthAfrica: { visaWeeks: 8, complexity: 'high', workPermit: true, a1Required: false, socialSecAgreement: false },
+            },
+            Portugal: {
+                Brazil: { visaWeeks: 4, complexity: 'low', workPermit: false, a1Required: false, socialSecAgreement: true },
+                USA: { visaWeeks: 10, complexity: 'high', workPermit: true, a1Required: false, socialSecAgreement: true },
+                Germany: { visaWeeks: 1, complexity: 'low', workPermit: false, a1Required: true, socialSecAgreement: true },
+                UK: { visaWeeks: 4, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: true },
+                UAE: { visaWeeks: 3, complexity: 'low', workPermit: true, a1Required: false, socialSecAgreement: false },
+                Singapore: { visaWeeks: 4, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: false },
+                Australia: { visaWeeks: 8, complexity: 'high', workPermit: true, a1Required: false, socialSecAgreement: true },
+                Mexico: { visaWeeks: 5, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: false },
+                India: { visaWeeks: 6, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: false },
+                SouthAfrica: { visaWeeks: 6, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: false },
+            },
+            Germany: {
+                Brazil: { visaWeeks: 6, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: true },
+                USA: { visaWeeks: 10, complexity: 'high', workPermit: true, a1Required: false, socialSecAgreement: true },
+                UK: { visaWeeks: 4, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: true },
+                UAE: { visaWeeks: 3, complexity: 'low', workPermit: true, a1Required: false, socialSecAgreement: false },
+                Singapore: { visaWeeks: 4, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: false },
+                Australia: { visaWeeks: 8, complexity: 'high', workPermit: true, a1Required: false, socialSecAgreement: true },
+                Mexico: { visaWeeks: 6, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: false },
+                India: { visaWeeks: 6, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: false },
+                SouthAfrica: { visaWeeks: 6, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: false },
+            },
+            UK: {
+                Brazil: { visaWeeks: 6, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: false },
+                USA: { visaWeeks: 8, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: true },
+                Germany: { visaWeeks: 4, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: true },
+                UAE: { visaWeeks: 3, complexity: 'low', workPermit: true, a1Required: false, socialSecAgreement: false },
+                Singapore: { visaWeeks: 4, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: false },
+                Australia: { visaWeeks: 6, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: true },
+                Mexico: { visaWeeks: 6, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: false },
+                India: { visaWeeks: 6, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: true },
+                SouthAfrica: { visaWeeks: 6, complexity: 'medium', workPermit: true, a1Required: false, socialSecAgreement: false },
+            }
+        };
+
+        let currentOptimisation = 'cost';
+        let loadedStaffPool = [];
+
+        // Switch main navigation tabs
+        function switchMainTab(tab) {
+            const calcSection = document.getElementById('section-calculator');
+            const staffSection = document.getElementById('section-staffing');
+            const calcTab = document.getElementById('nav-calculator');
+            const staffTab = document.getElementById('nav-staffing');
+
+            if (tab === 'calculator') {
+                calcSection.classList.remove('hidden');
+                staffSection.classList.add('hidden');
+                calcTab.classList.add('nav-tab-active');
+                staffTab.classList.remove('nav-tab-active');
+            } else {
+                calcSection.classList.add('hidden');
+                staffSection.classList.remove('hidden');
+                calcTab.classList.remove('nav-tab-active');
+                staffTab.classList.add('nav-tab-active');
+            }
+        }
+
+        // Switch staff input tabs
+        function switchStaffTab(tab) {
+            const uploadTab = document.getElementById('staff-tab-upload');
+            const manualTab = document.getElementById('staff-tab-manual');
+            const uploadForm = document.getElementById('staff-upload');
+            const manualForm = document.getElementById('staff-manual');
+
+            if (tab === 'upload') {
+                uploadTab.className = 'tab-active px-4 py-2 text-sm transition-all';
+                manualTab.className = 'tab-inactive px-4 py-2 text-sm transition-all';
+                uploadForm.classList.remove('hidden');
+                manualForm.classList.add('hidden');
+            } else {
+                uploadTab.className = 'tab-inactive px-4 py-2 text-sm transition-all';
+                manualTab.className = 'tab-active px-4 py-2 text-sm transition-all';
+                uploadForm.classList.add('hidden');
+                manualForm.classList.remove('hidden');
+            }
+        }
+
+        // Handle staff file upload
+        function handleStaffUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Load sample data for demo
+                loadedStaffPool = [...sampleStaffPool];
+                showStaffPreview();
+            }
+        }
+
+        // Show staff pool preview
+        function showStaffPreview() {
+            document.getElementById('staffCount').textContent = loadedStaffPool.filter(s => s.available).length;
+
+            const tbody = document.getElementById('staffPreviewBody');
+            tbody.innerHTML = loadedStaffPool.map(staff => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 font-medium">${staff.name}</td>
+                    <td class="px-4 py-3">${staff.home}</td>
+                    <td class="px-4 py-3">${staff.skills.join(', ')}</td>
+                    <td class="px-4 py-3 text-right">€${staff.salary.toLocaleString()}</td>
+                    <td class="px-4 py-3 text-center">
+                        ${staff.available
+                            ? '<span class="badge badge-success">Available</span>'
+                            : '<span class="badge badge-danger">Unavailable</span>'}
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('staffPoolPreview').classList.remove('hidden');
+        }
+
+        // Download staff template
+        function downloadStaffTemplate() {
+            const excelContent = `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <Worksheet ss:Name="Staff Pool">
+  <Table>
+   <Row>
+    <Cell><Data ss:Type="String">Name</Data></Cell>
+    <Cell><Data ss:Type="String">Home Country</Data></Cell>
+    <Cell><Data ss:Type="String">Skills (comma separated)</Data></Cell>
+    <Cell><Data ss:Type="String">Monthly Salary (EUR)</Data></Cell>
+    <Cell><Data ss:Type="String">Available (Yes/No)</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">Mikko Virtanen</Data></Cell>
+    <Cell><Data ss:Type="String">Finland</Data></Cell>
+    <Cell><Data ss:Type="String">Marine, Electrical</Data></Cell>
+    <Cell><Data ss:Type="Number">7500</Data></Cell>
+    <Cell><Data ss:Type="String">Yes</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">João Silva</Data></Cell>
+    <Cell><Data ss:Type="String">Portugal</Data></Cell>
+    <Cell><Data ss:Type="String">Marine, Electrical</Data></Cell>
+    <Cell><Data ss:Type="Number">6200</Data></Cell>
+    <Cell><Data ss:Type="String">Yes</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">Antti Korhonen</Data></Cell>
+    <Cell><Data ss:Type="String">Finland</Data></Cell>
+    <Cell><Data ss:Type="String">Marine, Mechanical</Data></Cell>
+    <Cell><Data ss:Type="Number">7000</Data></Cell>
+    <Cell><Data ss:Type="String">Yes</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+</Workbook>`;
+
+            const blob = new Blob([excelContent], { type: 'application/vnd.ms-excel' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'staff_pool_template.xls';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Add staff row to manual entry
+        function addStaffRow() {
+            const tbody = document.getElementById('staffTableBody');
+            const newRow = document.createElement('tr');
+            newRow.className = 'hover:bg-gray-50';
+            newRow.innerHTML = `
+                <td class="px-4 py-2"><input type="text" class="input-field w-full text-sm" placeholder="e.g. Name"></td>
+                <td class="px-4 py-2">
+                    <select class="input-field w-full text-sm">
+                        <option value="Finland">Finland</option>
+                        <option value="Portugal">Portugal</option>
+                        <option value="Germany">Germany</option>
+                        <option value="UK">UK</option>
+                    </select>
+                </td>
+                <td class="px-4 py-2"><input type="text" class="input-field w-full text-sm" placeholder="e.g. Marine, Electrical"></td>
+                <td class="px-4 py-2"><input type="number" class="input-field w-full text-sm text-right" value="7000"></td>
+                <td class="px-4 py-2 text-center">
+                    <input type="checkbox" class="w-4 h-4 text-cozm-teal rounded" checked>
+                </td>
+                <td class="px-4 py-2 text-center">
+                    <button class="text-gray-400 hover:text-red-500" onclick="removeStaffRow(this)">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(newRow);
+        }
+
+        // Remove staff row
+        function removeStaffRow(btn) {
+            btn.closest('tr').remove();
+        }
+
+        // Select optimisation priority
+        function selectOptimisation(type) {
+            currentOptimisation = type;
+            document.querySelectorAll('.optimise-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.querySelector(`.optimise-option.${type}`).classList.add('selected');
+        }
+
+        // Calculate scores for each staff member
+        function calculateStaffScores(staff, hostCountry, duration) {
+            const compliance = complianceData[staff.home]?.[hostCountry] || { visaWeeks: 8, complexity: 'high' };
+            const config = countryConfig[hostCountry];
+
+            // Cost score (lower cost = higher score)
+            const totalSalary = staff.salary * duration;
+            const taxCost = totalSalary * config.taxRate;
+            const socialSecCost = totalSalary * config.socialSec;
+            const totalCost = totalSalary + taxCost + socialSecCost + 3200; // admin fees
+            const maxCost = 15000 * duration; // Assume max salary for scoring
+            const costScore = Math.max(0, 100 - (totalCost / maxCost * 100));
+
+            // Compliance score (simpler = higher score)
+            const complexityScores = { low: 90, medium: 60, high: 30 };
+            let complianceScore = complexityScores[compliance.complexity] || 50;
+            if (compliance.socialSecAgreement) complianceScore += 10;
+            if (!compliance.workPermit) complianceScore += 10;
+            complianceScore = Math.min(100, complianceScore);
+
+            // Speed score (faster visa = higher score)
+            const maxWeeks = 12;
+            const speedScore = Math.max(0, 100 - (compliance.visaWeeks / maxWeeks * 100));
+
+            return {
+                cost: Math.round(costScore),
+                compliance: Math.round(complianceScore),
+                speed: Math.round(speedScore),
+                totalCost,
+                visaWeeks: compliance.visaWeeks,
+                complexity: compliance.complexity,
+                workPermit: compliance.workPermit,
+                a1Required: compliance.a1Required
+            };
+        }
+
+        // Main optimisation function
+        function optimiseStaffing() {
+            const hostCountry = document.getElementById('projectHostCountry').value;
+            const duration = parseInt(document.getElementById('projectDuration').value);
+            const numNeeded = parseInt(document.getElementById('numEngineers').value);
+            const requiredSkillsInput = document.getElementById('requiredSkills').value;
+            const requiredSkills = requiredSkillsInput ? requiredSkillsInput.split(',').map(s => s.trim().toLowerCase()) : [];
+
+            // Use loaded pool or sample data
+            const pool = loadedStaffPool.length > 0 ? loadedStaffPool : sampleStaffPool;
+            const availablePool = pool.filter(s => s.available);
+
+            // Score each staff member
+            const scoredStaff = availablePool.map(staff => {
+                const scores = calculateStaffScores(staff, hostCountry, duration);
+
+                // Skill match bonus
+                let skillMatch = 0;
+                if (requiredSkills.length > 0) {
+                    const staffSkillsLower = staff.skills.map(s => s.toLowerCase());
+                    skillMatch = requiredSkills.filter(rs => staffSkillsLower.some(ss => ss.includes(rs))).length / requiredSkills.length;
+                } else {
+                    skillMatch = 1; // No requirements = all match
+                }
+
+                // Calculate weighted score based on optimisation priority
+                let overallScore;
+                switch (currentOptimisation) {
+                    case 'cost':
+                        overallScore = scores.cost * 0.6 + scores.compliance * 0.2 + scores.speed * 0.2;
+                        break;
+                    case 'compliance':
+                        overallScore = scores.cost * 0.2 + scores.compliance * 0.6 + scores.speed * 0.2;
+                        break;
+                    case 'speed':
+                        overallScore = scores.cost * 0.2 + scores.compliance * 0.2 + scores.speed * 0.6;
+                        break;
+                }
+
+                // Apply skill match multiplier
+                overallScore = overallScore * (0.5 + skillMatch * 0.5);
+
+                return {
+                    ...staff,
+                    scores,
+                    skillMatch: Math.round(skillMatch * 100),
+                    overallScore: Math.round(overallScore)
+                };
+            });
+
+            // Sort by overall score
+            scoredStaff.sort((a, b) => b.overallScore - a.overallScore);
+
+            // Get top recommendations
+            const recommended = scoredStaff.slice(0, numNeeded);
+            const alternatives = scoredStaff.slice(numNeeded);
+
+            // Update UI
+            displayStaffingResults(recommended, alternatives, hostCountry, duration);
+        }
+
+        // Display staffing results
+        function displayStaffingResults(recommended, alternatives, hostCountry, duration) {
+            // Store alternatives for swapping functionality
+            availableAlternatives = [...alternatives];
+
+            // Update optimised for label
+            const labels = { cost: 'Lowest Cost', compliance: 'Best Compliance', speed: 'Fastest Deployment' };
+            const badgeClasses = { cost: 'badge-success', compliance: 'badge-info', speed: 'badge-warning' };
+            const labelEl = document.getElementById('optimisedForLabel');
+            labelEl.textContent = labels[currentOptimisation];
+            labelEl.className = `badge ${badgeClasses[currentOptimisation]}`;
+
+            // Calculate totals
+            const totalCost = recommended.reduce((sum, s) => sum + s.scores.totalCost, 0);
+            const avgCompliance = recommended.reduce((sum, s) => sum + s.scores.compliance, 0) / recommended.length;
+            const maxVisaWeeks = Math.max(...recommended.map(s => s.scores.visaWeeks));
+            const avgOverall = recommended.reduce((sum, s) => sum + s.overallScore, 0) / recommended.length;
+
+            document.getElementById('staffingTotalCost').textContent = formatCurrency(totalCost);
+            document.getElementById('staffingComplianceScore').textContent = Math.round(avgCompliance) + '%';
+            document.getElementById('staffingMobilisation').textContent = maxVisaWeeks + ' weeks';
+            document.getElementById('staffingOverallScore').textContent = Math.round(avgOverall) + '/100';
+
+            // Update the Selected Individuals table
+            updateSelectedIndividualsTable(recommended, hostCountry);
+
+            // Display recommended engineers
+            const container = document.getElementById('recommendedEngineers');
+            container.innerHTML = recommended.map((staff, idx) => `
+                <div class="staff-card ${idx === 0 ? 'recommended' : ''}">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full bg-cozm-light-teal flex items-center justify-content text-cozm-teal font-bold text-lg">
+                                ${staff.name.split(' ').map(n => n[0]).join('')}
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">${staff.name}</h3>
+                                <p class="text-sm text-gray-500">${staff.home} → ${countryConfig[hostCountry].name}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            ${idx === 0 ? '<span class="badge badge-success mb-2">Best Match</span>' : ''}
+                            <p class="text-2xl font-bold text-cozm-teal">${staff.overallScore}/100</p>
+                            <p class="text-xs text-gray-400">Overall Score</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-4 mb-4">
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Total Cost</p>
+                            <p class="font-semibold">${formatCurrency(staff.scores.totalCost)}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Visa Processing</p>
+                            <p class="font-semibold">${staff.scores.visaWeeks} weeks</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Complexity</p>
+                            <p class="font-semibold capitalize">${staff.scores.complexity}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Skill Match</p>
+                            <p class="font-semibold">${staff.skillMatch}%</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <div class="flex items-center justify-between text-xs mb-1">
+                                <span class="text-gray-500">Cost Score</span>
+                                <span class="font-medium">${staff.scores.cost}%</span>
+                            </div>
+                            <div class="score-bar">
+                                <div class="score-bar-fill ${staff.scores.cost >= 70 ? 'high' : staff.scores.cost >= 40 ? 'medium' : 'low'}"
+                                     style="width: ${staff.scores.cost}%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between text-xs mb-1">
+                                <span class="text-gray-500">Compliance Score</span>
+                                <span class="font-medium">${staff.scores.compliance}%</span>
+                            </div>
+                            <div class="score-bar">
+                                <div class="score-bar-fill ${staff.scores.compliance >= 70 ? 'high' : staff.scores.compliance >= 40 ? 'medium' : 'low'}"
+                                     style="width: ${staff.scores.compliance}%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between text-xs mb-1">
+                                <span class="text-gray-500">Speed Score</span>
+                                <span class="font-medium">${staff.scores.speed}%</span>
+                            </div>
+                            <div class="score-bar">
+                                <div class="score-bar-fill ${staff.scores.speed >= 70 ? 'high' : staff.scores.speed >= 40 ? 'medium' : 'low'}"
+                                     style="width: ${staff.scores.speed}%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        ${staff.skills.map(s => `<span class="badge badge-info">${s}</span>`).join('')}
+                        ${staff.scores.workPermit ? '<span class="badge badge-warning">Work Permit Required</span>' : ''}
+                        ${staff.scores.a1Required ? '<span class="badge badge-info">A1 Certificate Required</span>' : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            // Display alternatives using the shared function
+            updateAlternativesDisplay();
+
+            // Show results
+            document.getElementById('staffingResults').classList.remove('hidden');
+            document.getElementById('staffingResults').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Toggle alternatives panel
+        function toggleAlternatives() {
+            const panel = document.getElementById('alternativesPanel');
+            const arrow = document.getElementById('alternativesArrow');
+            panel.classList.toggle('hidden');
+            arrow.style.transform = panel.classList.contains('hidden') ? '' : 'rotate(90deg)';
+        }
+
+        // Proceed to cost calculator with selected team
+        function proceedToCalculator() {
+            switchMainTab('calculator');
+            // Could pre-populate calculator with selected staff here
+        }
+
+        // Initialize date picker with today's date
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('startDate');
+            if (dateInput) {
+                dateInput.value = today;
+            }
+        });
+
+        // Staff drop zone handling
+        const staffDropZone = document.getElementById('staffDropZone');
+        if (staffDropZone) {
+            staffDropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                staffDropZone.classList.add('dragover');
+            });
+
+            staffDropZone.addEventListener('dragleave', () => {
+                staffDropZone.classList.remove('dragover');
+            });
+
+            staffDropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                staffDropZone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length) {
+                    handleStaffUpload({ target: { files } });
+                }
+            });
+        }
+
+        // ===== SELECTED INDIVIDUALS & SWAP FUNCTIONALITY =====
+
+        let selectedTeam = []; // Track currently selected team
+        let availableAlternatives = []; // Track alternatives for swapping
+        let currentSwapTarget = null; // Track who we're trying to swap
+        let selectedAlternativeId = null; // Track selected alternative in modal
+
+        // Update the selected individuals table
+        function updateSelectedIndividualsTable(recommended, hostCountry) {
+            selectedTeam = [...recommended];
+            const tbody = document.getElementById('selectedIndividualsBody');
+
+            tbody.innerHTML = selectedTeam.map(staff => {
+                const riskLevel = staff.scores.complexity;
+                const riskClass = riskLevel === 'low' ? 'low' : riskLevel === 'medium' ? 'medium' : 'high';
+                const riskLabel = riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1);
+
+                return `
+                    <tr data-staff-id="${staff.id}">
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-cozm-light-teal flex items-center justify-center text-cozm-teal font-medium text-sm">
+                                    ${staff.name.split(' ').map(n => n[0]).join('')}
+                                </div>
+                                <span class="font-medium">${staff.name}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <a class="find-alt-link" onclick="openFindAlternative(${staff.id})">Find Alternative</a>
+                        </td>
+                        <td>
+                            <span class="risk-indicator">
+                                <span class="risk-dot ${riskClass}"></span>
+                                ${riskLabel}
+                            </span>
+                        </td>
+                        <td>${formatCurrency(staff.scores.totalCost)}</td>
+                        <td>${staff.scores.visaWeeks} weeks</td>
+                        <td>
+                            <button class="remove-btn" onclick="removeFromTeam(${staff.id})" title="Remove from team">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            updateSelectedTotals();
+        }
+
+        // Update totals in the selected individuals table
+        function updateSelectedTotals() {
+            const totalCost = selectedTeam.reduce((sum, s) => sum + s.scores.totalCost, 0);
+            const maxDeployment = selectedTeam.length > 0 ? Math.max(...selectedTeam.map(s => s.scores.visaWeeks)) : 0;
+
+            document.getElementById('selectedTotalCost').textContent = formatCurrency(totalCost);
+            document.getElementById('selectedMaxDeployment').textContent = maxDeployment + ' weeks';
+            document.getElementById('selectedCount').textContent = selectedTeam.length + ' engineers selected';
+
+            // Also update the summary cards
+            document.getElementById('staffingTotalCost').textContent = formatCurrency(totalCost);
+            document.getElementById('staffingMobilisation').textContent = maxDeployment + ' weeks';
+
+            if (selectedTeam.length > 0) {
+                const avgCompliance = selectedTeam.reduce((sum, s) => sum + s.scores.compliance, 0) / selectedTeam.length;
+                const avgOverall = selectedTeam.reduce((sum, s) => sum + s.overallScore, 0) / selectedTeam.length;
+                document.getElementById('staffingComplianceScore').textContent = Math.round(avgCompliance) + '%';
+                document.getElementById('staffingOverallScore').textContent = Math.round(avgOverall) + '/100';
+            }
+        }
+
+        // Remove a person from the team
+        function removeFromTeam(staffId) {
+            const staff = selectedTeam.find(s => s.id === staffId);
+            if (!staff) return;
+
+            selectedTeam = selectedTeam.filter(s => s.id !== staffId);
+
+            // Add back to alternatives
+            availableAlternatives.push(staff);
+            availableAlternatives.sort((a, b) => b.overallScore - a.overallScore);
+
+            // Re-render
+            const hostCountry = document.getElementById('projectHostCountry').value;
+            updateSelectedIndividualsTable(selectedTeam, hostCountry);
+            updateAlternativesDisplay();
+
+            showToast(`${staff.name} removed from team`);
+        }
+
+        // Update the alternatives panel display
+        function updateAlternativesDisplay() {
+            const altContainer = document.getElementById('alternativesPanel');
+            const hostCountry = document.getElementById('projectHostCountry').value;
+
+            altContainer.innerHTML = availableAlternatives.slice(0, 5).map(staff => `
+                <div class="staff-card opacity-75">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium text-sm">
+                                ${staff.name.split(' ').map(n => n[0]).join('')}
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-900">${staff.name}</h3>
+                                <p class="text-xs text-gray-500">${staff.home} | ${staff.skills.join(', ')}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="text-right">
+                                <p class="font-semibold text-gray-600">${staff.overallScore}/100</p>
+                                <p class="text-xs text-gray-400">${formatCurrency(staff.scores.totalCost)}</p>
+                            </div>
+                            <button class="btn-secondary text-sm py-2 px-3" onclick="addToTeam(${staff.id})">
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Add a person to the team from alternatives
+        function addToTeam(staffId) {
+            const staff = availableAlternatives.find(s => s.id === staffId);
+            if (!staff) return;
+
+            availableAlternatives = availableAlternatives.filter(s => s.id !== staffId);
+            selectedTeam.push(staff);
+
+            const hostCountry = document.getElementById('projectHostCountry').value;
+            updateSelectedIndividualsTable(selectedTeam, hostCountry);
+            updateAlternativesDisplay();
+
+            showToast(`${staff.name} added to team`);
+        }
+
+        // Open the Find Alternative modal
+        function openFindAlternative(staffId) {
+            const staff = selectedTeam.find(s => s.id === staffId);
+            if (!staff) return;
+
+            currentSwapTarget = staff;
+            selectedAlternativeId = null;
+
+            document.getElementById('modalCurrentName').textContent = staff.name + ' (' + staff.home + ')';
+            document.getElementById('confirmSwapBtn').disabled = true;
+
+            // Filter alternatives with similar skills
+            const staffSkillsLower = staff.skills.map(s => s.toLowerCase());
+            const similarAlternatives = availableAlternatives.filter(alt => {
+                const altSkillsLower = alt.skills.map(s => s.toLowerCase());
+                return staffSkillsLower.some(ss => altSkillsLower.some(as => as.includes(ss) || ss.includes(as)));
+            });
+
+            // If no similar skills found, show all alternatives
+            const displayAlternatives = similarAlternatives.length > 0 ? similarAlternatives : availableAlternatives;
+
+            const listContainer = document.getElementById('modalAlternativesList');
+            listContainer.innerHTML = displayAlternatives.slice(0, 5).map(alt => {
+                const riskClass = alt.scores.complexity === 'low' ? 'low' : alt.scores.complexity === 'medium' ? 'medium' : 'high';
+                return `
+                    <div class="modal-alt-item" data-alt-id="${alt.id}" onclick="selectAlternative(${alt.id})">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-cozm-light-teal flex items-center justify-center text-cozm-teal font-medium text-sm">
+                                ${alt.name.split(' ').map(n => n[0]).join('')}
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900">${alt.name}</p>
+                                <p class="text-xs text-gray-500">${alt.home} | ${alt.skills.join(', ')}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold">${formatCurrency(alt.scores.totalCost)}</p>
+                            <div class="flex items-center gap-2 justify-end">
+                                <span class="risk-dot ${riskClass}"></span>
+                                <span class="text-xs text-gray-500">${alt.scores.visaWeeks} weeks</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (displayAlternatives.length === 0) {
+                listContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No alternatives available</p>';
+            }
+
+            document.getElementById('findAlternativeModal').classList.add('active');
+        }
+
+        // Select an alternative in the modal
+        function selectAlternative(altId) {
+            selectedAlternativeId = altId;
+
+            document.querySelectorAll('.modal-alt-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            document.querySelector(`[data-alt-id="${altId}"]`).classList.add('selected');
+            document.getElementById('confirmSwapBtn').disabled = false;
+        }
+
+        // Confirm the swap
+        function confirmSwap() {
+            if (!currentSwapTarget || !selectedAlternativeId) return;
+
+            const newPerson = availableAlternatives.find(s => s.id === selectedAlternativeId);
+            if (!newPerson) return;
+
+            // Remove old person from team, add to alternatives
+            selectedTeam = selectedTeam.filter(s => s.id !== currentSwapTarget.id);
+            availableAlternatives.push(currentSwapTarget);
+
+            // Add new person to team, remove from alternatives
+            selectedTeam.push(newPerson);
+            availableAlternatives = availableAlternatives.filter(s => s.id !== selectedAlternativeId);
+
+            // Re-sort alternatives
+            availableAlternatives.sort((a, b) => b.overallScore - a.overallScore);
+
+            // Update UI
+            const hostCountry = document.getElementById('projectHostCountry').value;
+            updateSelectedIndividualsTable(selectedTeam, hostCountry);
+            updateAlternativesDisplay();
+
+            closeAlternativeModal();
+            showToast(`Swapped ${currentSwapTarget.name} with ${newPerson.name}`);
+        }
+
+        // Close the modal
+        function closeAlternativeModal() {
+            document.getElementById('findAlternativeModal').classList.remove('active');
+            currentSwapTarget = null;
+            selectedAlternativeId = null;
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'default') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.classList.add('active');
+
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, 3000);
+        }
+
+        // ===== VOICE COMMAND FUNCTIONALITY =====
+
+        let recognition = null;
+        let isListening = false;
+
+        // Initialize speech recognition
+        function initVoiceRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (!SpeechRecognition) {
+                console.log('Speech recognition not supported');
+                document.getElementById('voiceBtn').style.display = 'none';
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-GB';
+
+            recognition.onstart = function() {
+                isListening = true;
+                document.getElementById('voiceBtn').classList.add('listening');
+                document.getElementById('voiceStatus').textContent = 'Listening...';
+            };
+
+            recognition.onend = function() {
+                isListening = false;
+                document.getElementById('voiceBtn').classList.remove('listening');
+                document.getElementById('voiceStatus').textContent = '';
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript.toLowerCase();
+                processVoiceCommand(transcript);
+            };
+
+            recognition.onerror = function(event) {
+                console.log('Speech recognition error:', event.error);
+                isListening = false;
+                document.getElementById('voiceBtn').classList.remove('listening');
+                document.getElementById('voiceStatus').textContent = '';
+
+                if (event.error === 'not-allowed') {
+                    showToast('Microphone access denied');
+                }
+            };
+        }
+
+        // Toggle voice listening
+        function toggleVoiceCommand() {
+            if (!recognition) {
+                initVoiceRecognition();
+                if (!recognition) {
+                    showToast('Voice commands not supported in this browser');
+                    return;
+                }
+            }
+
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        }
+
+        // Process voice commands
+        function processVoiceCommand(transcript) {
+            document.getElementById('voiceStatus').textContent = `"${transcript}"`;
+
+            let recognised = false;
+
+            // Cost commands
+            if (transcript.includes('cost') || transcript.includes('cheapest') || transcript.includes('lowest')) {
+                selectOptimisation('cost');
+                showToast('Optimising for lowest cost', 'success');
+                recognised = true;
+            }
+            // Speed commands
+            else if (transcript.includes('speed') || transcript.includes('fast') || transcript.includes('quick')) {
+                selectOptimisation('speed');
+                showToast('Optimising for fastest deployment', 'success');
+                recognised = true;
+            }
+            // Compliance commands
+            else if (transcript.includes('compliance') || transcript.includes('risk') || transcript.includes('safe')) {
+                selectOptimisation('compliance');
+                showToast('Optimising for best compliance', 'success');
+                recognised = true;
+            }
+            // Find optimal team
+            else if (transcript.includes('find') || transcript.includes('optimise') || transcript.includes('optimize') || transcript.includes('calculate')) {
+                optimiseStaffing();
+                showToast('Finding optimal team...', 'success');
+                recognised = true;
+            }
+
+            if (!recognised) {
+                showToast('Command not recognised. Try "optimise for cost", "speed", or "compliance"');
+            }
+
+            setTimeout(() => {
+                document.getElementById('voiceStatus').textContent = '';
+            }, 2000);
+        }
+
+        // Initialize voice recognition on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initVoiceRecognition();
+        });
+    </script>
+</div>
+    <script>
+        // Show admin button for superusers
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.currentUserRole === 'superuser') {
+                document.getElementById('admin-btn').style.display = 'flex';
+            }
+        });
+        
+        // Sign out function
+        async function appSignOut() {
+            const supabase = window.SupabaseConfig.init();
+            await supabase.auth.signOut();
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | FSE Cost Calculator - The Cozm</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/auth.css">
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <!-- Logo -->
+            <div class="auth-logo">
+                <img src="https://thecozm.com/logo.png" alt="The Cozm" onerror="this.style.display='none'">
+                <h2 style="color: #44919c; font-size: 24px; margin-top: 8px;">The Cozm</h2>
+            </div>
+
+            <!-- Message Container -->
+            <div id="message-container"></div>
+
+            <!-- Step 1: Email Entry -->
+            <div id="step-email">
+                <h1 class="auth-title">Welcome</h1>
+                <p class="auth-subtitle">Sign in to access the FSE Deployment Cost Calculator</p>
+
+                <form class="auth-form" onsubmit="event.preventDefault(); submitEmail();">
+                    <div class="form-group">
+                        <label class="form-label" for="email-input">Email address</label>
+                        <input type="email" id="email-input" class="form-input" placeholder="you@company.com" required autofocus>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Continue</button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="#" onclick="switchToLogin()">Sign in</a></p>
+                </div>
+            </div>
+
+            <!-- Step 2: Email Verification -->
+            <div id="step-verify" class="hidden">
+                <h1 class="auth-title">Verify your email</h1>
+                <p class="auth-subtitle">We've sent a 6-digit code to your email</p>
+
+                <form class="auth-form" onsubmit="event.preventDefault(); verifyCode();">
+                    <div class="otp-container">
+                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                    </div>
+
+                    <button type="submit" class="btn-primary">Verify Code</button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Didn't receive the code? <a href="#" onclick="resendCode()">Resend</a></p>
+                </div>
+            </div>
+
+            <!-- Step 3: Login (existing user) -->
+            <div id="step-login" class="hidden">
+                <h1 class="auth-title">Welcome back</h1>
+                <p class="auth-subtitle">Sign in to your account</p>
+
+                <form class="auth-form" onsubmit="event.preventDefault(); loginSubmit();">
+                    <div class="form-group">
+                        <label class="form-label" for="login-email">Email address</label>
+                        <input type="email" id="login-email" class="form-input" placeholder="you@company.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="login-password">Password</label>
+                        <input type="password" id="login-password" class="form-input" placeholder="Enter your password" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Sign In</button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>New user? <a href="#" onclick="switchToSignup()">Request access</a></p>
+                </div>
+            </div>
+
+            <!-- Step 4: 2FA Verification -->
+            <div id="step-2fa" class="hidden">
+                <h1 class="auth-title">Two-factor authentication</h1>
+                <p class="auth-subtitle">Enter the code sent to your email</p>
+
+                <form class="auth-form" onsubmit="event.preventDefault(); verifyCode();">
+                    <div class="otp-container">
+                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                    </div>
+
+                    <button type="submit" class="btn-primary">Verify Code</button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Didn't receive the code? <a href="#" onclick="resendCode()">Resend</a></p>
+                </div>
+            </div>
+
+            <!-- Step 5: Pending Approval -->
+            <div id="step-pending" class="hidden">
+                <div style="text-align: center; padding: 20px 0;">
+                    <svg style="width: 64px; height: 64px; color: #BD8941; margin-bottom: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <h1 class="auth-title">Awaiting approval</h1>
+                    <p class="auth-subtitle">Your account is pending approval from an administrator. You'll receive an email once your access has been granted.</p>
+                    <button class="btn-secondary" style="margin-top: 24px;" onclick="signOut()">Sign Out</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Powered by -->
+        <p style="text-align: center; color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 24px;">
+            Powered by The Cozm
+        </p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/supabase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Setup OTP inputs on page load
+        document.addEventListener('DOMContentLoaded', setupOtpInputs);
+    </script>
+</body>
+</html>

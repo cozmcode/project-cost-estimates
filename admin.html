@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | FSE Cost Calculator - The Cozm</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/auth.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            background: var(--grey-50);
+            min-height: 100vh;
+            padding: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header -->
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">User Management</h1>
+                <p style="color: var(--grey-600); font-size: 14px; margin-top: 4px;">Manage access to the FSE Cost Calculator</p>
+            </div>
+            <div class="user-info">
+                <div>
+                    <p style="font-size: 14px; font-weight: 500; color: var(--grey-900);" id="user-email"></p>
+                    <p style="font-size: 12px; color: var(--cozm-teal);">Superuser</p>
+                </div>
+                <div class="user-avatar" id="user-avatar">B</div>
+                <button class="btn-text" onclick="adminSignOut()">Sign Out</button>
+            </div>
+        </div>
+
+        <!-- Message Container -->
+        <div id="message-container" style="margin-bottom: 16px;"></div>
+
+        <!-- Navigation -->
+        <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+            <a href="app.html" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: white; border-radius: 8px; text-decoration: none; color: var(--grey-700); font-size: 14px; font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back to Calculator
+            </a>
+        </div>
+
+        <!-- Pending Approvals -->
+        <div class="admin-section">
+            <div class="section-header">
+                <h2 class="section-title">Pending Approvals</h2>
+                <span class="badge badge-warning" id="pending-count">0</span>
+            </div>
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Requested</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="pending-users-body">
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                <p>No pending requests</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Approved Users -->
+        <div class="admin-section">
+            <div class="section-header">
+                <h2 class="section-title">Approved Users</h2>
+            </div>
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Approved</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="approved-users-body">
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <p>Loading users...</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <p style="text-align: center; color: var(--grey-600); font-size: 12px; margin-top: 32px;">
+            Powered by The Cozm
+        </p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/supabase-config.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
