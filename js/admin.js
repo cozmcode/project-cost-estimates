@@ -98,14 +98,14 @@ class AdminManager {
 
         tbody.innerHTML = users.map(user => `
             <tr>
-                <td>${user.email}</td>
-                <td><span class="badge badge-warning">Pending</span></td>
+                <td style="font-weight: 600; color: var(--grey-900);">${user.email}</td>
+                <td><span class="badge badge-warning">Awaiting Review</span></td>
                 <td>${this.formatDate(user.created_at)}</td>
-                <td>
-                    <button class="action-btn approve" onclick="adminManager.approveUser('${user.id}')">
+                <td style="text-align: right;">
+                    <button class="action-btn approve" style="background: #166534; color: white; padding: 8px 16px; border-radius: 8px; font-weight: 600;" onclick="adminManager.approveUser('${user.id}')">
                         Approve
                     </button>
-                    <button class="action-btn deny" onclick="adminManager.denyUser('${user.id}')">
+                    <button class="action-btn deny" style="background: #991b1b; color: white; padding: 8px 16px; border-radius: 8px; font-weight: 600;" onclick="adminManager.denyUser('${user.id}')">
                         Deny
                     </button>
                 </td>
@@ -122,7 +122,7 @@ class AdminManager {
                 <tr>
                     <td colspan="4">
                         <div class="empty-state">
-                            <p>No approved users yet</p>
+                            <p>No authorised users found</p>
                         </div>
                     </td>
                 </tr>
@@ -132,19 +132,19 @@ class AdminManager {
 
         tbody.innerHTML = users.map(user => `
             <tr>
-                <td>${user.email}</td>
+                <td style="font-weight: 600; color: var(--grey-900);">${user.email}</td>
                 <td>
                     ${user.role === 'superuser'
-                        ? '<span class="badge badge-info">Superuser</span>'
-                        : '<span class="badge badge-success">User</span>'}
+                        ? '<span class="badge badge-info">Administrator</span>'
+                        : '<span class="badge badge-success">Standard User</span>'}
                 </td>
                 <td>${this.formatDate(user.created_at)}</td>
-                <td>
+                <td style="text-align: right;">
                     ${user.email !== this.currentUser.email
-                        ? `<button class="action-btn deny" onclick="adminManager.revokeAccess('${user.id}')">
-                               Revoke
+                        ? `<button class="action-btn deny" style="background: white; border: 1.5px solid #991b1b; color: #991b1b; padding: 6px 14px; border-radius: 8px; font-weight: 600;" onclick="adminManager.revokeAccess('${user.id}')">
+                               Revoke Access
                            </button>`
-                        : '<span style="color: var(--grey-600); font-size: 12px;">You</span>'}
+                        : '<span style="color: var(--grey-400); font-size: 13px; font-style: italic; padding-right: 12px;">You (Current User)</span>'}
                 </td>
             </tr>
         `).join('');

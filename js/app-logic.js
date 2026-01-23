@@ -30,7 +30,7 @@ const perDiemSourceUrl = 'https://www.veronmaksajat.fi/neuvot/henkiloverotus/tyo
 
 // Country tax configurations (fallback static rates)
 const countryConfig = {
-    Brazil: { taxRate: 0.25, currency: 'BRL', exchangeRate: 6.187, currencySymbol: 'R$', deduction: 0, socialSec: 0, name: 'Brazil', taxSource: 'Receita Federal (Decree 9,580/2018, Art. 682)', taxSourceUrl: 'https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/decreto/d9580.htm', taxNote: 'Non-resident flat rate (25%)' },
+    Brazil: { taxRate: 0.25, currency: 'BRL', exchangeRate: 6.187, currencySymbol: 'R$', deduction: 0, socialSec: 0.35, name: 'Brazil', taxSource: 'Receita Federal (Decree 9,580/2018, Art. 682)', taxSourceUrl: 'https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/decreto/d9580.htm', taxNote: 'Non-resident flat rate (25%)', socialSecNote: 'No Finland-Brazil totalization agreement - dual INSS contributions required (employer ~27.5% + employee ~7.5%)', socialSecSource: 'INSS/Receita Federal', noTreatyWarning: true },
     USA: { taxRate: 0.37, currency: 'USD', exchangeRate: 1.08, currencySymbol: '$', deduction: 13850, socialSec: 0.0765, name: 'United States' },
     Germany: { taxRate: 0.45, currency: 'EUR', exchangeRate: 1.0, currencySymbol: '€', deduction: 10908, socialSec: 0.205, name: 'Germany' },
     UK: { taxRate: 0.45, currency: 'GBP', exchangeRate: 0.86, currencySymbol: '£', deduction: 12570, socialSec: 0.138, name: 'United Kingdom' },
@@ -327,6 +327,46 @@ function calculateCosts() {
     document.getElementById('summaryPerDay').textContent = formatCurrencyDecimal(costPerDay);
     document.getElementById('summaryTotal').textContent = formatCurrency(grandTotal);
 
+    // Update assignment info
+    const assignmentInfo = document.getElementById('summaryAssignmentInfo');
+    if (assignmentInfo) {
+        assignmentInfo.textContent = `${assignmentLength} months · ${totalCalendarDays} days · ${config.name}`;
+    }
+
+    // Update stacked bar breakdown
+    updateCostBreakdownBar(taxAmountEUR, socialSecurityCost, totalAllowances, totalAdminFees, grandTotal);
+
+    // Show/hide no-treaty warning banner (slim style)
+    const noTreatyWarning = document.getElementById('noTreatyWarning');
+    const noTreatyWarningText = document.getElementById('noTreatyWarningText');
+    const socialSecWarningNote = document.getElementById('socialSecWarningNote');
+    const socialSecCard = document.getElementById('socialSecCard');
+
+    if (config.noTreatyWarning) {
+        if (noTreatyWarning) {
+            noTreatyWarning.classList.remove('hidden');
+            if (noTreatyWarningText) {
+                // Shortened warning text for slim banner
+                noTreatyWarningText.textContent = `Dual social security contributions apply (no Finland-${config.name} treaty)`;
+            }
+        }
+        if (socialSecWarningNote) {
+            socialSecWarningNote.textContent = 'Dual contributions';
+            socialSecWarningNote.classList.remove('hidden');
+        }
+        if (socialSecCard) {
+            socialSecCard.classList.add('border-l-4');
+            socialSecCard.style.borderLeftColor = 'var(--cozm-gold)';
+        }
+    } else {
+        if (noTreatyWarning) noTreatyWarning.classList.add('hidden');
+        if (socialSecWarningNote) socialSecWarningNote.classList.add('hidden');
+        if (socialSecCard) {
+            socialSecCard.classList.remove('border-l-4');
+            socialSecCard.style.borderLeftColor = '';
+        }
+    }
+
     // Update Detailed View (with null checks for optional elements)
     const setElementText = (id, text) => {
         const el = document.getElementById(id);
@@ -413,7 +453,49 @@ function calculateCosts() {
     document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// Update the detailed calculation workings display
+// Update cost breakdown bar visualisation
+function updateCostBreakdownBar(tax, social, perdiem, admin, total) {
+    if (total <= 0) return;
+
+    const taxPct = (tax / total * 100).toFixed(1);
+    const socialPct = (social / total * 100).toFixed(1);
+    const perdiemPct = (perdiem / total * 100).toFixed(1);
+    const adminPct = (admin / total * 100).toFixed(1);
+
+    // Update bar segments
+    const barTax = document.getElementById('barTax');
+    const barSocial = document.getElementById('barSocial');
+    const barPerdiem = document.getElementById('barPerdiem');
+    const barAdmin = document.getElementById('barAdmin');
+
+    if (barTax) barTax.style.width = taxPct + '%';
+    if (barSocial) barSocial.style.width = socialPct + '%';
+    if (barPerdiem) barPerdiem.style.width = perdiemPct + '%';
+    if (barAdmin) barAdmin.style.width = adminPct + '%';
+
+    // Update legend values and percentages
+    const setLegend = (id, value, pct) => {
+        const valEl = document.getElementById(id);
+        const pctEl = document.getElementById(id + 'Pct');
+        if (valEl) valEl.textContent = formatCurrency(value);
+        if (pctEl) pctEl.textContent = `(${pct}%)`;
+    };
+
+    setLegend('legendTax', tax, taxPct);
+    setLegend('legendSocial', social, socialPct);
+    setLegend('legendPerdiem', perdiem, perdiemPct);
+    setLegend('legendAdmin', admin, adminPct);
+}
+
+// Toggle accordion section
+function toggleAccordion(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        section.classList.toggle('open');
+    }
+}
+
+// Update the detailed calculation workings display with collapsible sections
 function updateCalculationWorkings(calc) {
     const workingsContainer = document.getElementById('calculationWorkings');
     if (!workingsContainer) return;
@@ -424,80 +506,173 @@ function updateCalculationWorkings(calc) {
 
     let adminFeesNotes = '';
     if (calc.visaFeesTaxableNote) {
-        adminFeesNotes += `<li class="text-cozm-gold">${calc.visaFeesTaxableNote}</li>`;
+        adminFeesNotes += `<li>${calc.visaFeesTaxableNote}</li>`;
     }
     if (calc.relocationTaxableNote) {
-        adminFeesNotes += `<li class="text-cozm-gold">${calc.relocationTaxableNote}</li>`;
+        adminFeesNotes += `<li>${calc.relocationTaxableNote}</li>`;
     }
     if (calc.taxableAdminFees > 0) {
         adminFeesNotes += `<li>Taxable admin fees included in income: ${formatCurrency(calc.taxableAdminFees)}</li>`;
     }
 
     workingsContainer.innerHTML = `
-        <div class="bg-gray-50 rounded-lg p-6 font-mono text-sm">
-            <div class="border-b-2 border-gray-300 pb-4 mb-4">
-                <h4 class="text-lg font-bold text-gray-900 mb-2">INCOME CALCULATION</h4>
-                <table class="w-full">
-                    <tr><td class="py-1">Monthly Salary</td><td class="text-right">${formatCurrency(calc.monthlySalary)}</td></tr>
-                    <tr><td class="py-1">Assignment Length</td><td class="text-right">× ${calc.assignmentLength} months</td></tr>
-                    <tr class="border-t border-gray-300"><td class="py-1 font-semibold">Gross Salary (EUR)</td><td class="text-right font-semibold">${formatCurrency(calc.grossSalary)}</td></tr>
-                </table>
-                <table class="w-full mt-4">
-                    <tr><td class="py-1">Daily Allowance (<a href="${perDiemSourceUrl}" target="_blank" class="text-cozm-teal hover:underline">${perDiemSource}</a>)</td><td class="text-right">${formatCurrency(calc.dailyAllowance)}</td></tr>
-                    <tr><td class="py-1">Working Days (${calc.totalWorkingDays / calc.assignmentLength}/month × ${calc.assignmentLength})</td><td class="text-right">× ${calc.totalWorkingDays} days</td></tr>
-                    <tr class="border-t border-gray-300"><td class="py-1 font-semibold">Total Per Diem (EUR)</td><td class="text-right font-semibold">${formatCurrency(calc.totalAllowances)}</td></tr>
-                </table>
+        <div class="space-y-3">
+            <!-- Grand Total Summary (always visible) -->
+            <div class="grand-total-footer">
+                <div class="grand-total-grid">
+                    <div class="grand-total-item">
+                        <p class="grand-total-item-label">Tax</p>
+                        <p class="grand-total-item-value">${formatCurrency(calc.taxAmountEUR)}</p>
+                    </div>
+                    <div class="grand-total-item">
+                        <p class="grand-total-item-label">Social Security</p>
+                        <p class="grand-total-item-value">${formatCurrency(calc.socialSecurityCost)}</p>
+                    </div>
+                    <div class="grand-total-item">
+                        <p class="grand-total-item-label">Per Diem</p>
+                        <p class="grand-total-item-value">${formatCurrency(calc.totalAllowances)}</p>
+                    </div>
+                    <div class="grand-total-item">
+                        <p class="grand-total-item-label">Admin Fees</p>
+                        <p class="grand-total-item-value">${formatCurrency(calc.totalAdminFees)}</p>
+                    </div>
+                </div>
+                <div class="grand-total-final">
+                    <span class="grand-total-final-label">Total Assignment Cost</span>
+                    <div class="flex items-center">
+                        <span class="grand-total-final-amount">${formatCurrency(calc.grandTotal)}</span>
+                        <span class="grand-total-daily">${formatCurrencyDecimal(calc.costPerDay)}/day</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="border-b-2 border-gray-300 pb-4 mb-4">
-                <h4 class="text-lg font-bold text-gray-900 mb-2">CURRENCY CONVERSION</h4>
-                <table class="w-full">
-                    <tr><td class="py-1">Exchange Rate</td><td class="text-right">1 EUR = ${calc.exchangeRate.toFixed(3)} ${calc.config.currency}</td></tr>
-                    <tr><td class="py-1">Source</td><td class="text-right">${exchangeRatesCache.source}</td></tr>
-                    <tr><td class="py-1">Date</td><td class="text-right">${rateDate}</td></tr>
-                </table>
-                <table class="w-full mt-4">
-                    <tr><td class="py-1">Gross Salary (${calc.config.currency})</td><td class="text-right">${formatLocalCurrency(calc.grossSalary * calc.exchangeRate, calc.hostCountry)}</td></tr>
-                    <tr><td class="py-1">Per Diem (${calc.config.currency})</td><td class="text-right">${formatLocalCurrency(calc.totalAllowances * calc.exchangeRate, calc.hostCountry)}</td></tr>
-                    <tr class="border-t border-gray-300"><td class="py-1 font-semibold">Total Income (${calc.config.currency})</td><td class="text-right font-semibold">${formatLocalCurrency((calc.grossSalary + calc.totalAllowances) * calc.exchangeRate, calc.hostCountry)}</td></tr>
-                </table>
+            <!-- Collapsible Section: Income & Per Diem Breakdown -->
+            <div id="accordion-income" class="accordion-section">
+                <div class="accordion-header" onclick="toggleAccordion('accordion-income')">
+                    <span class="accordion-title">
+                        <svg class="w-5 h-5 text-cozm-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Income & Per Diem Breakdown
+                    </span>
+                    <svg class="accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </div>
+                <div class="accordion-content">
+                    <table class="workings-table">
+                        <tr class="section-header"><td colspan="2">Salary Calculation</td></tr>
+                        <tr><td>Monthly Salary</td><td>${formatCurrency(calc.monthlySalary)}</td></tr>
+                        <tr><td>Assignment Length</td><td>× ${calc.assignmentLength} months</td></tr>
+                        <tr class="subtotal-row"><td>Gross Salary (EUR)</td><td>${formatCurrency(calc.grossSalary)}</td></tr>
+                        <tr class="section-header"><td colspan="2">Per Diem Calculation</td></tr>
+                        <tr><td>Daily Rate (<a href="${perDiemSourceUrl}" target="_blank" class="text-cozm-teal hover:underline">${perDiemSource}</a>)</td><td>${formatCurrency(calc.dailyAllowance)}</td></tr>
+                        <tr><td>Working Days</td><td>× ${calc.totalWorkingDays} days</td></tr>
+                        <tr class="subtotal-row"><td>Total Per Diem (EUR)</td><td>${formatCurrency(calc.totalAllowances)}</td></tr>
+                    </table>
+                </div>
             </div>
 
-            <div class="border-b-2 border-gray-300 pb-4 mb-4">
-                <h4 class="text-lg font-bold text-gray-900 mb-2">TAX CALCULATION - ${calc.config.name} (${calc.isResident ? 'Resident' : 'Non-Resident'})</h4>
-                <table class="w-full">
-                    <tr><td class="py-1">Taxable Income (${calc.config.currency})</td><td class="text-right">${formatLocalCurrency(calc.taxableIncomeLocal, calc.hostCountry)}</td></tr>
-                    <tr><td class="py-1">Calculation Method</td><td class="text-right">${calc.taxCalculationMethod}</td></tr>
-                    <tr><td class="py-1">Effective Rate</td><td class="text-right">${calc.effectiveTaxRate.toFixed(1)}%</td></tr>
-                    <tr><td class="py-1">Source</td><td class="text-right"><a href="${taxSourceUrl}" target="_blank" class="text-cozm-teal hover:underline">${taxSource}</a></td></tr>
-                </table>
-                <table class="w-full mt-4">
-                    <tr><td class="py-1">Tax (${calc.config.currency})</td><td class="text-right">${formatLocalCurrency(calc.taxAmountLocal, calc.hostCountry)}</td></tr>
-                    <tr class="border-t border-gray-300"><td class="py-1 font-semibold">Tax (EUR)</td><td class="text-right font-semibold">${formatCurrency(calc.taxAmountEUR)}</td></tr>
-                </table>
-                <table class="w-full mt-4 bg-cozm-light-teal rounded p-2">
-                    <tr><td class="py-1 font-semibold">Tax Per Day (${calc.config.currency})</td><td class="text-right font-semibold">${formatLocalCurrency(calc.taxPerDayLocal, calc.hostCountry)}</td></tr>
-                    <tr><td class="py-1 font-semibold">Tax Per Day (EUR)</td><td class="text-right font-semibold">${formatCurrencyDecimal(calc.taxPerDayEUR)}</td></tr>
-                </table>
+            <!-- Collapsible Section: Tax Calculation Details -->
+            <div id="accordion-tax" class="accordion-section">
+                <div class="accordion-header" onclick="toggleAccordion('accordion-tax')">
+                    <span class="accordion-title">
+                        <svg class="w-5 h-5 text-cozm-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
+                        Tax Calculation Details
+                        <span class="policy-tooltip">
+                            <svg class="policy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span class="policy-content">Under Wärtsilä's mobility policy, the company covers host country tax obligations. The engineer's take-home pay is protected ("tax equalised").</span>
+                        </span>
+                    </span>
+                    <svg class="accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </div>
+                <div class="accordion-content">
+                    <div class="info-box mb-4">
+                        <p class="info-box-title">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Tax Equalisation Policy
+                        </p>
+                        <p class="info-box-text">Under Wärtsilä's mobility policy, the company covers host country tax obligations. The engineer's take-home pay is protected ("tax equalised") so they pay no more than they would have in their home country.</p>
+                    </div>
+                    <table class="workings-table">
+                        <tr class="section-header"><td colspan="2">Tax Calculation - ${calc.config.name} (${calc.isResident ? 'Resident' : 'Non-Resident'})</td></tr>
+                        <tr><td>Taxable Income (${calc.config.currency})</td><td>${formatLocalCurrency(calc.taxableIncomeLocal, calc.hostCountry)}</td></tr>
+                        <tr><td>Calculation Method</td><td>${calc.taxCalculationMethod}</td></tr>
+                        <tr><td>Effective Rate</td><td>${calc.effectiveTaxRate.toFixed(1)}%</td></tr>
+                        <tr><td>Source</td><td><a href="${taxSourceUrl}" target="_blank" class="text-cozm-teal hover:underline">${taxSource}</a></td></tr>
+                        <tr><td>Tax (${calc.config.currency})</td><td>${formatLocalCurrency(calc.taxAmountLocal, calc.hostCountry)}</td></tr>
+                        <tr class="subtotal-row"><td>Tax (EUR)</td><td>${formatCurrency(calc.taxAmountEUR)}</td></tr>
+                        <tr><td>Tax Per Day (${calc.config.currency})</td><td>${formatLocalCurrency(calc.taxPerDayLocal, calc.hostCountry)}</td></tr>
+                        <tr><td>Tax Per Day (EUR)</td><td>${formatCurrencyDecimal(calc.taxPerDayEUR)}</td></tr>
+                    </table>
+                </div>
             </div>
 
-            ${adminFeesNotes ? `
-            <div class="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4">
-                <h5 class="font-semibold text-yellow-800 mb-2">Admin Fees Taxability Notes</h5>
-                <ul class="text-sm text-yellow-700 space-y-1">${adminFeesNotes}</ul>
+            <!-- Collapsible Section: Social Security Details -->
+            <div id="accordion-social" class="accordion-section">
+                <div class="accordion-header" onclick="toggleAccordion('accordion-social')">
+                    <span class="accordion-title">
+                        <svg class="w-5 h-5 text-cozm-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        Social Security Details
+                        ${calc.config.noTreatyWarning ? '<span class="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded">No Treaty</span>' : ''}
+                    </span>
+                    <svg class="accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </div>
+                <div class="accordion-content">
+                    ${calc.config.noTreatyWarning ? `
+                    <div class="warning-box mb-4">
+                        <p class="warning-box-title">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            No Totalization Agreement
+                        </p>
+                        <p class="warning-box-text">${calc.config.socialSecNote}</p>
+                    </div>
+                    ` : `
+                    <div class="success-box mb-4">
+                        <p class="success-box-title">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Social Security Coverage
+                        </p>
+                        <p class="success-box-text">Under Wärtsilä's mobility policy, the company covers host country social security contributions. Where a totalization agreement exists, dual contributions may be avoided with proper documentation (A1/Certificate of Coverage).</p>
+                    </div>
+                    `}
+                    <table class="workings-table">
+                        <tr class="section-header"><td colspan="2">Social Security - ${calc.config.name}</td></tr>
+                        <tr><td>Gross Salary (EUR)</td><td>${formatCurrency(calc.grossSalary)}</td></tr>
+                        <tr><td>Social Security Rate</td><td>${(calc.config.socialSec * 100).toFixed(1)}%</td></tr>
+                        ${calc.config.socialSecSource ? `<tr><td>Source</td><td>${calc.config.socialSecSource}</td></tr>` : ''}
+                        <tr class="subtotal-row"><td>Social Security Cost (EUR)</td><td>${formatCurrency(calc.socialSecurityCost)}</td></tr>
+                        <tr><td>Social Security Per Day (EUR)</td><td>${formatCurrencyDecimal(calc.socialSecurityCost / calc.totalCalendarDays)}</td></tr>
+                    </table>
+                </div>
             </div>
-            ` : ''}
 
-            <div class="bg-cozm-dark text-white rounded p-4">
-                <h4 class="text-lg font-bold mb-2">GRAND TOTAL</h4>
-                <table class="w-full">
-                    <tr><td class="py-1">Tax Costs</td><td class="text-right">${formatCurrency(calc.taxAmountEUR)}</td></tr>
-                    <tr><td class="py-1">Social Security</td><td class="text-right">${formatCurrency(calc.socialSecurityCost)}</td></tr>
-                    <tr><td class="py-1">Daily Allowances</td><td class="text-right">${formatCurrency(calc.totalAllowances)}</td></tr>
-                    <tr><td class="py-1">Admin Fees</td><td class="text-right">${formatCurrency(calc.totalAdminFees)}</td></tr>
-                    <tr class="border-t border-white/30"><td class="py-2 font-bold text-lg">TOTAL ASSIGNMENT COST</td><td class="text-right font-bold text-lg">${formatCurrency(calc.grandTotal)}</td></tr>
-                    <tr class="bg-cozm-teal rounded"><td class="py-2 font-bold">COST PER DAY</td><td class="text-right font-bold">${formatCurrencyDecimal(calc.costPerDay)}</td></tr>
-                </table>
+            <!-- Collapsible Section: Exchange Rate & Sources -->
+            <div id="accordion-fx" class="accordion-section">
+                <div class="accordion-header" onclick="toggleAccordion('accordion-fx')">
+                    <span class="accordion-title">
+                        <svg class="w-5 h-5 text-cozm-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                        Exchange Rate & Sources
+                    </span>
+                    <svg class="accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </div>
+                <div class="accordion-content">
+                    <table class="workings-table">
+                        <tr class="section-header"><td colspan="2">Currency Conversion</td></tr>
+                        <tr><td>Exchange Rate</td><td>1 EUR = ${calc.exchangeRate.toFixed(3)} ${calc.config.currency}</td></tr>
+                        <tr><td>Source</td><td>${exchangeRatesCache.source}</td></tr>
+                        <tr><td>Rate Date</td><td>${rateDate}</td></tr>
+                        <tr class="section-header"><td colspan="2">Local Currency Values</td></tr>
+                        <tr><td>Gross Salary (${calc.config.currency})</td><td>${formatLocalCurrency(calc.grossSalary * calc.exchangeRate, calc.hostCountry)}</td></tr>
+                        <tr><td>Per Diem (${calc.config.currency})</td><td>${formatLocalCurrency(calc.totalAllowances * calc.exchangeRate, calc.hostCountry)}</td></tr>
+                        <tr class="subtotal-row"><td>Total Income (${calc.config.currency})</td><td>${formatLocalCurrency((calc.grossSalary + calc.totalAllowances) * calc.exchangeRate, calc.hostCountry)}</td></tr>
+                    </table>
+                    ${adminFeesNotes ? `
+                    <div class="note-box mt-4">
+                        <p class="note-box-title">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Admin Fees Taxability Notes
+                        </p>
+                        <ul class="note-box-text list-disc list-inside space-y-1">${adminFeesNotes}</ul>
+                    </div>
+                    ` : ''}
+                </div>
             </div>
         </div>
     `;
@@ -505,33 +680,57 @@ function updateCalculationWorkings(calc) {
     workingsContainer.classList.remove('hidden');
 }
 
-// File upload handling (mock)
+// File upload handling using SheetJS
 function handleFileUpload(event) {
     const file = event.target.files[0];
     if (file) {
-        const mockData = [
-            { name: 'Mikko Virtanen', home: 'Finland', host: 'Brazil', salary: '€7,500', duration: '12 months' },
-            { name: 'João Silva', home: 'Portugal', host: 'USA', salary: '€6,800', duration: '6 months' },
-            { name: 'Antti Korhonen', home: 'Finland', host: 'Germany', salary: '€7,200', duration: '9 months' },
-            { name: 'Maria Santos', home: 'Portugal', host: 'UAE', salary: '€6,500', duration: '12 months' },
-            { name: 'Pekka Nieminen', home: 'Finland', host: 'Singapore', salary: '€8,000', duration: '6 months' },
-        ];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-        const tbody = document.getElementById('bulkPreviewBody');
-        if (tbody) {
-            tbody.innerHTML = mockData.map(row => `
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3">${row.name}</td>
-                    <td class="px-4 py-3">${row.home}</td>
-                    <td class="px-4 py-3">${row.host}</td>
-                    <td class="px-4 py-3 text-right">${row.salary}</td>
-                    <td class="px-4 py-3 text-right">${row.duration}</td>
-                </tr>
-            `).join('');
-        }
+                // Map Excel columns to our internal structure
+                // Expected columns: Name, Home Country, Host Country, Monthly Salary (EUR), Assignment Length (months)
+                const mappedData = jsonData.map(row => ({
+                    name: row['Name'] || row['name'] || 'Unknown',
+                    home: row['Home Country'] || row['Home'] || 'Unknown',
+                    host: row['Host Country'] || row['Host'] || 'Unknown',
+                    salary: typeof row['Monthly Salary (EUR)'] === 'number' ? 
+                           `€${row['Monthly Salary (EUR)'].toLocaleString()}` : 
+                           (row['Monthly Salary (EUR)'] || '0'),
+                    duration: typeof row['Assignment Length (months)'] === 'number' ? 
+                             `${row['Assignment Length (months)']} months` : 
+                             (row['Assignment Length (months)'] || '0')
+                }));
 
-        const previewEl = document.getElementById('bulkPreview');
-        if (previewEl) previewEl.classList.remove('hidden');
+                const tbody = document.getElementById('bulkPreviewBody');
+                if (tbody) {
+                    tbody.innerHTML = mappedData.map(row => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3">${row.name}</td>
+                            <td class="px-4 py-3">${row.home}</td>
+                            <td class="px-4 py-3">${row.host}</td>
+                            <td class="px-4 py-3 text-right">${row.salary}</td>
+                            <td class="px-4 py-3 text-right">${row.duration}</td>
+                        </tr>
+                    `).join('');
+                }
+
+                const previewEl = document.getElementById('bulkPreview');
+                if (previewEl) previewEl.classList.remove('hidden');
+                
+                showToast(`Loaded ${mappedData.length} records`, 'success');
+
+            } catch (error) {
+                console.error('Error reading Excel file:', error);
+                showToast('Error reading file. Please check format.', 'error');
+            }
+        };
+        reader.readAsArrayBuffer(file);
     }
 }
 
@@ -700,8 +899,40 @@ function switchStaffTab(tab) {
 function handleStaffUpload(event) {
     const file = event.target.files[0];
     if (file) {
-        loadedStaffPool = [...sampleStaffPool];
-        showStaffPreview();
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                // Map Excel columns to staff pool structure
+                // Expected columns: Name, Home Country, Skills, Monthly Salary (EUR), Available
+                loadedStaffPool = jsonData.map((row, index) => {
+                    const skillsRaw = row['Skills'] || row['Skills (comma separated)'] || '';
+                    const availableRaw = row['Available'] || row['Available (Yes/No)'] || 'Yes';
+                    
+                    return {
+                        id: Date.now() + index, // Generate temporary ID
+                        name: row['Name'] || 'Unknown',
+                        home: row['Home Country'] || 'Unknown',
+                        skills: typeof skillsRaw === 'string' ? skillsRaw.split(',').map(s => s.trim()) : [],
+                        salary: parseFloat(row['Monthly Salary (EUR)']) || 0,
+                        available: String(availableRaw).toLowerCase().includes('yes') || String(availableRaw).toLowerCase() === 'true'
+                    };
+                });
+
+                showStaffPreview();
+                showToast(`Loaded ${loadedStaffPool.length} engineers`, 'success');
+
+            } catch (error) {
+                console.error('Error reading staff Excel file:', error);
+                showToast('Error reading file. Please check format.', 'error');
+            }
+        };
+        reader.readAsArrayBuffer(file);
     }
 }
 

@@ -14,6 +14,31 @@
     <!-- Auth Check - Redirect if not authenticated -->
     <script>
         (async function() {
+            // DEV MODE: Skip auth check if ?dev=true in URL (localhost only)
+            const urlParams = new URLSearchParams(window.location.search);
+            const isDevMode = urlParams.get('dev') === 'true' &&
+                             (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+            if (isDevMode) {
+                console.log('🔧 DEV MODE: Authentication bypassed for local testing');
+                window.currentUser = { email: 'dev@localhost' };
+                window.currentUserRole = 'superuser';
+                // Wait for DOM to be ready before showing content
+                const showContent = () => {
+                    const appContent = document.getElementById('app-content');
+                    const loadingScreen = document.getElementById('loading-screen');
+                    if (appContent) appContent.style.display = 'block';
+                    if (loadingScreen) loadingScreen.style.display = 'none';
+                    if (window.initApp) window.initApp();
+                };
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', showContent);
+                } else {
+                    showContent();
+                }
+                return;
+            }
+
             // Wait for Supabase to load if needed
             const checkSupabase = setInterval(async () => {
                 if (window.SupabaseConfig) {
@@ -236,15 +261,95 @@
                     </div>
 
                     <div id="summary-view" class="animate-fade-in">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                            <div class="result-card-light"><p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Liability (Tax)</p><p class="text-2xl font-extrabold text-cozm-teal" id="summaryTax">€0</p></div>
-                            <div class="result-card-light"><p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Social Security</p><p class="text-2xl font-extrabold text-cozm-teal" id="summarySocialSec">€0</p></div>
-                            <div class="result-card-light"><p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Per Diem Total</p><p class="text-2xl font-extrabold text-cozm-teal" id="summaryAllowances">€0</p></div>
-                            <div class="result-card-light"><p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Processing Fees</p><p class="text-2xl font-extrabold text-cozm-teal" id="summaryAdminFees">€0</p></div>
+                        <!-- No Treaty Warning Banner (slim, hidden by default) -->
+                        <div id="noTreatyWarning" class="hidden alert-banner warning">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <span id="noTreatyWarningText">Dual social security contributions apply (no Finland-Brazil treaty)</span>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="result-card shadow-lg"><p class="text-xs font-bold opacity-80 uppercase tracking-widest mb-2">Daily Run Rate</p><p class="text-4xl font-extrabold" id="summaryPerDay">€0</p></div>
-                            <div class="result-card shadow-lg"><p class="text-xs font-bold opacity-80 uppercase tracking-widest mb-2">Projected Total Cost</p><p class="text-4xl font-extrabold" id="summaryTotal">€0</p></div>
+
+                        <!-- Hero Total Card with Stacked Bar -->
+                        <div class="hero-total-card">
+                            <div class="flex flex-col md:flex-row md:items-end md:justify-between">
+                                <div>
+                                    <p class="hero-total-label">Total Assignment Cost</p>
+                                    <p class="hero-total-amount" id="summaryTotal">€0</p>
+                                    <p class="hero-daily-rate">Daily rate: <strong id="summaryPerDay">€0</strong>/day</p>
+                                </div>
+                                <div class="mt-6 md:mt-0 md:text-right">
+                                    <p class="text-xs opacity-70 uppercase tracking-widest mb-2" id="summaryAssignmentInfo"></p>
+                                </div>
+                            </div>
+
+                            <!-- Stacked Bar Breakdown -->
+                            <div class="mt-8">
+                                <div class="cost-breakdown-bar" id="costBreakdownBar">
+                                    <div class="segment tax" id="barTax" style="width: 25%;"></div>
+                                    <div class="segment social" id="barSocial" style="width: 25%;"></div>
+                                    <div class="segment perdiem" id="barPerdiem" style="width: 25%;"></div>
+                                    <div class="segment admin" id="barAdmin" style="width: 25%;"></div>
+                                </div>
+                                <div class="cost-breakdown-legend" id="costBreakdownLegend">
+                                    <div class="legend-item">
+                                        <span class="legend-dot tax"></span>
+                                        <span class="legend-label">Tax</span>
+                                        <span class="legend-value" id="legendTax">€0</span>
+                                        <span class="legend-percent" id="legendTaxPct">(0%)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-dot social"></span>
+                                        <span class="legend-label">Social Security</span>
+                                        <span class="legend-value" id="legendSocial">€0</span>
+                                        <span class="legend-percent" id="legendSocialPct">(0%)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-dot perdiem"></span>
+                                        <span class="legend-label">Per Diem</span>
+                                        <span class="legend-value" id="legendPerdiem">€0</span>
+                                        <span class="legend-percent" id="legendPerdiemPct">(0%)</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-dot admin"></span>
+                                        <span class="legend-label">Admin</span>
+                                        <span class="legend-value" id="legendAdmin">€0</span>
+                                        <span class="legend-percent" id="legendAdminPct">(0%)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Component Cards (simplified) -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="result-card-light">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="w-2 h-2 rounded-full" style="background-color: var(--cozm-teal);"></span>
+                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Tax</p>
+                                </div>
+                                <p class="text-xl font-bold text-gray-900" id="summaryTax">€0</p>
+                            </div>
+                            <div class="result-card-light" id="socialSecCard">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="w-2 h-2 rounded-full" style="background-color: var(--cozm-gold);"></span>
+                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Social Security</p>
+                                </div>
+                                <p class="text-xl font-bold text-gray-900" id="summarySocialSec">€0</p>
+                                <p class="text-xs text-cozm-gold mt-1 hidden" id="socialSecWarningNote"></p>
+                            </div>
+                            <div class="result-card-light">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="w-2 h-2 rounded-full" style="background-color: #6366f1;"></span>
+                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Per Diem</p>
+                                </div>
+                                <p class="text-xl font-bold text-gray-900" id="summaryAllowances">€0</p>
+                            </div>
+                            <div class="result-card-light">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="w-2 h-2 rounded-full" style="background-color: var(--grey-400);"></span>
+                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Admin Fees</p>
+                                </div>
+                                <p class="text-xl font-bold text-gray-900" id="summaryAdminFees">€0</p>
+                            </div>
                         </div>
                     </div>
 

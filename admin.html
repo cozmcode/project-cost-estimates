@@ -15,97 +15,108 @@
         }
     </style>
 </head>
-<body>
+<body class="bg-gray-50">
     <div class="admin-container">
         <!-- Header -->
-        <div class="admin-header">
-            <div>
-                <h1 class="admin-title">User Management</h1>
-                <p style="color: var(--grey-600); font-size: 14px; margin-top: 4px;">Manage access to the FSE Cost Calculator</p>
-            </div>
-            <div class="user-info">
-                <div>
-                    <p style="font-size: 14px; font-weight: 500; color: var(--grey-900);" id="user-email"></p>
-                    <p style="font-size: 12px; color: var(--cozm-teal);">Superuser</p>
+        <header class="admin-header">
+            <div class="flex items-center gap-6">
+                <div class="logo-container">
+                    <img src="https://thecozm.com/images/logo/theCozmLogo.png" alt="The Cozm" style="height: 44px;" />
                 </div>
-                <div class="user-avatar" id="user-avatar">B</div>
-                <button class="btn-text" onclick="adminSignOut()">Sign Out</button>
+                <div style="border-left: 1.5px solid var(--grey-200); padding-left: 24px;">
+                    <h1 class="admin-title text-premium">User Management</h1>
+                    <p style="color: var(--grey-500); font-size: 13px; font-weight: 500;">Authorise access to the FSE Cost Calculator</p>
+                </div>
             </div>
-        </div>
+            
+            <div class="flex items-center gap-4">
+                <div style="text-align: right;">
+                    <p style="font-size: 14px; font-weight: 600; color: var(--grey-900);" id="user-email"></p>
+                    <span class="badge badge-info" style="margin-top: 4px;">Superuser</span>
+                </div>
+                <div class="user-avatar" id="user-avatar">-</div>
+                <button class="btn btn-secondary" style="padding: 8px 16px; width: auto; font-size: 13px;" onclick="adminSignOut()">Sign Out</button>
+            </div>
+        </header>
 
         <!-- Message Container -->
-        <div id="message-container" style="margin-bottom: 16px;"></div>
+        <div id="message-container"></div>
 
         <!-- Navigation -->
-        <div style="display: flex; gap: 16px; margin-bottom: 24px;">
-            <a href="app.html" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: white; border-radius: 8px; text-decoration: none; color: var(--grey-700); font-size: 14px; font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div style="margin-bottom: 32px;">
+            <a href="app.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; background: white; border-radius: 12px; text-decoration: none; color: var(--grey-700); font-size: 14px; font-weight: 600; box-shadow: var(--shadow-sm); border: 1px solid var(--grey-200); transition: all 0.2s;">
+                <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>
-                Back to Calculator
+                Return to Calculator
             </a>
         </div>
 
         <!-- Pending Approvals -->
-        <div class="admin-section">
-            <div class="section-header">
-                <h2 class="section-title">Pending Approvals</h2>
+        <section style="margin-bottom: 40px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-left: 8px;">
+                <h2 style="font-size: 18px; font-weight: 700; color: var(--grey-900);">Pending Requests</h2>
                 <span class="badge badge-warning" id="pending-count">0</span>
             </div>
-            <table class="user-table">
-                <thead>
-                    <tr>
-                        <th>Email</th>
-                        <th>Status</th>
-                        <th>Requested</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="pending-users-body">
-                    <tr>
-                        <td colspan="4">
-                            <div class="empty-state">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                <p>No pending requests</p>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+            
+            <div class="table-card">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th>Email Address</th>
+                            <th>Status</th>
+                            <th>Requested On</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pending-users-body">
+                        <tr>
+                            <td colspan="4">
+                                <div class="empty-state">
+                                    <p>Loading requests...</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
         <!-- Approved Users -->
-        <div class="admin-section">
-            <div class="section-header">
-                <h2 class="section-title">Approved Users</h2>
+        <section>
+            <div style="margin-bottom: 16px; padding-left: 8px;">
+                <h2 style="font-size: 18px; font-weight: 700; color: var(--grey-900);">Authorised Users</h2>
             </div>
-            <table class="user-table">
-                <thead>
-                    <tr>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Approved</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="approved-users-body">
-                    <tr>
-                        <td colspan="4">
-                            <div class="empty-state">
-                                <p>Loading users...</p>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+            
+            <div class="table-card">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th>Email Address</th>
+                            <th>Access Role</th>
+                            <th>Member Since</th>
+                            <th style="text-align: right;">Management</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approved-users-body">
+                        <tr>
+                            <td colspan="4">
+                                <div class="empty-state">
+                                    <p>Loading user list...</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
         <!-- Footer -->
-        <p style="text-align: center; color: var(--grey-600); font-size: 12px; margin-top: 32px;">
-            Powered by The Cozm
-        </p>
+        <footer style="text-align: center; margin-top: 64px; padding-bottom: 32px;">
+            <p style="color: var(--grey-400); font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em;">
+                Powered by The Cozm &copy; 2026
+            </p>
+        </footer>
     </div>
 
     <!-- Scripts -->
