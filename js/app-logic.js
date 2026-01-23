@@ -358,6 +358,7 @@ function calculateCosts() {
     setEl('summaryOrigin', homeCountry);
     setEl('summaryDestination', config.name);
     setEl('summarySalary', formatCurrency(monthlySalary) + '/month');
+    setEl('chartPeriodLabel', `(${assignmentLength} months)`);
 
     // Update Summary View - main totals
     setEl('summaryTax', formatCurrency(taxAmountEUR));
@@ -566,7 +567,7 @@ function renderCostChart(tax, social, perdiem, admin, total) {
         labels: ['Tax', 'Social Security', 'Per Diem', 'Admin Fees'],
         datasets: [{
             data: [tax, social, perdiem, admin],
-            backgroundColor: ['#44919c', '#BD8941', '#6366f1', '#7fb3ba'],
+            backgroundColor: ['#181C31', '#3FAFBE', '#83849E', '#BD4040'],
             borderWidth: 0,
             hoverOffset: 8
         }]

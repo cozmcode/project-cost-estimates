@@ -40,35 +40,58 @@
                 return;
             }
 
-            // Wait for Supabase to load if needed
+            // Wait for Supabase to load if needed (with 15 second timeout)
+            let attempts = 0;
+            const maxAttempts = 150; // 15 seconds at 100ms intervals
+
             const checkSupabase = setInterval(async () => {
+                attempts++;
+
+                // Timeout after 15 seconds - redirect to login
+                if (attempts >= maxAttempts) {
+                    clearInterval(checkSupabase);
+                    console.error('Supabase load timeout - redirecting to login');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
                 if (window.SupabaseConfig) {
                     clearInterval(checkSupabase);
-                    const supabase = window.SupabaseConfig.init();
-                    if (!supabase) {
+                    try {
+                        const supabase = window.SupabaseConfig.init();
+                        if (!supabase) {
+                            window.location.href = 'index.html';
+                            return;
+                        }
+                        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                        if (sessionError) {
+                            console.error('Session error:', sessionError);
+                            window.location.href = 'index.html';
+                            return;
+                        }
+                        if (!session) {
+                            window.location.href = 'index.html';
+                            return;
+                        }
+                        const { data: appUser, error } = await supabase
+                            .from('app_users')
+                            .select('approved, role')
+                            .eq('id', session.user.id)
+                            .single();
+                        if (error || !appUser || !appUser.approved) {
+                            window.location.href = 'index.html';
+                            return;
+                        }
+                        window.currentUser = session.user;
+                        window.currentUserRole = appUser.role;
+                        document.getElementById('app-content').style.display = 'block';
+                        document.getElementById('loading-screen').style.display = 'none';
+                        // Trigger custom init if defined in app-logic.js
+                        if (window.initApp) window.initApp();
+                    } catch (err) {
+                        console.error('Auth check error:', err);
                         window.location.href = 'index.html';
-                        return;
                     }
-                    const { data: { session } } = await supabase.auth.getSession();
-                    if (!session) {
-                        window.location.href = 'index.html';
-                        return;
-                    }
-                    const { data: appUser, error } = await supabase
-                        .from('app_users')
-                        .select('approved, role')
-                        .eq('id', session.user.id)
-                        .single();
-                    if (error || !appUser || !appUser.approved) {
-                        window.location.href = 'index.html';
-                        return;
-                    }
-                    window.currentUser = session.user;
-                    window.currentUserRole = appUser.role;
-                    document.getElementById('app-content').style.display = 'block';
-                    document.getElementById('loading-screen').style.display = 'none';
-                    // Trigger custom init if defined in app-logic.js
-                    if (window.initApp) window.initApp();
                 }
             }, 100);
         })();
@@ -303,7 +326,7 @@
                                 <div class="breakdown-group" id="group-tax">
                                     <div class="breakdown-header" onclick="toggleBreakdownGroup('tax')">
                                         <div class="breakdown-header-left">
-                                            <span class="breakdown-dot" style="background: #44919c;"></span>
+                                            <span class="breakdown-dot" style="background: #181C31;"></span>
                                             <span class="breakdown-label">Tax</span>
                                         </div>
                                         <div class="breakdown-header-right">
@@ -331,7 +354,7 @@
                                 <div class="breakdown-group" id="group-social">
                                     <div class="breakdown-header" onclick="toggleBreakdownGroup('social')">
                                         <div class="breakdown-header-left">
-                                            <span class="breakdown-dot" style="background: #BD8941;"></span>
+                                            <span class="breakdown-dot" style="background: #3FAFBE;"></span>
                                             <span class="breakdown-label">Social Security</span>
                                             <span class="breakdown-warning-badge hidden" id="socialSecBadge">No Treaty</span>
                                         </div>
@@ -356,7 +379,7 @@
                                 <div class="breakdown-group" id="group-perdiem">
                                     <div class="breakdown-header" onclick="toggleBreakdownGroup('perdiem')">
                                         <div class="breakdown-header-left">
-                                            <span class="breakdown-dot" style="background: #6366f1;"></span>
+                                            <span class="breakdown-dot" style="background: #83849E;"></span>
                                             <span class="breakdown-label">Per Diem</span>
                                         </div>
                                         <div class="breakdown-header-right">
@@ -384,7 +407,7 @@
                                 <div class="breakdown-group" id="group-admin">
                                     <div class="breakdown-header" onclick="toggleBreakdownGroup('admin')">
                                         <div class="breakdown-header-left">
-                                            <span class="breakdown-dot" style="background: #7fb3ba;"></span>
+                                            <span class="breakdown-dot" style="background: #BD4040;"></span>
                                             <span class="breakdown-label">Admin Fees</span>
                                         </div>
                                         <div class="breakdown-header-right">
@@ -413,7 +436,7 @@
                         <!-- Right Column: Chart Panel -->
                         <div class="results-right-column">
                             <div class="chart-panel">
-                                <p class="chart-total-label">Total Cost</p>
+                                <p class="chart-total-label">Total Cost <span id="chartPeriodLabel">(6 months)</span></p>
                                 <p class="chart-total-amount" id="summaryTotal">€0</p>
                                 <p class="chart-daily-rate">Daily rate: <strong id="summaryPerDay">€0</strong>/day</p>
 
@@ -429,22 +452,22 @@
                                 <!-- Chart Legend -->
                                 <div class="chart-legend">
                                     <div class="chart-legend-item">
-                                        <span class="chart-legend-dot" style="background: #44919c;"></span>
+                                        <span class="chart-legend-dot" style="background: #181C31;"></span>
                                         <span class="chart-legend-label">Tax</span>
                                         <span class="chart-legend-value" id="legendTax">€0</span>
                                     </div>
                                     <div class="chart-legend-item">
-                                        <span class="chart-legend-dot" style="background: #BD8941;"></span>
+                                        <span class="chart-legend-dot" style="background: #3FAFBE;"></span>
                                         <span class="chart-legend-label">Social Security</span>
                                         <span class="chart-legend-value" id="legendSocial">€0</span>
                                     </div>
                                     <div class="chart-legend-item">
-                                        <span class="chart-legend-dot" style="background: #6366f1;"></span>
+                                        <span class="chart-legend-dot" style="background: #83849E;"></span>
                                         <span class="chart-legend-label">Per Diem</span>
                                         <span class="chart-legend-value" id="legendPerdiem">€0</span>
                                     </div>
                                     <div class="chart-legend-item">
-                                        <span class="chart-legend-dot" style="background: #7fb3ba;"></span>
+                                        <span class="chart-legend-dot" style="background: #BD4040;"></span>
                                         <span class="chart-legend-label">Admin Fees</span>
                                         <span class="chart-legend-value" id="legendAdmin">€0</span>
                                     </div>
