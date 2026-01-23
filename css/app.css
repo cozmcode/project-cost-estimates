@@ -1,0 +1,260 @@
+/* FSE Cost Calculator - Main Application Styles */
+
+:root {
+    --cozm-teal: #44919c;
+    --cozm-teal-dark: #3a7d86;
+    --cozm-light-teal: #C7E5E9;
+    --cozm-red: #BD4040;
+    --cozm-gold: #BD8941;
+    --cozm-dark: #1a1a2e;
+    --grey-50: #f9fafb;
+    --grey-100: #f3f4f6;
+    --grey-200: #e5e7eb;
+    --grey-300: #d1d5db;
+    --grey-600: #4b5563;
+    --grey-700: #374151;
+    --grey-900: #111827;
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--grey-50);
+    color: var(--grey-900);
+}
+
+.bg-cozm-teal { background-color: var(--cozm-teal); }
+.bg-cozm-light-teal { background-color: var(--cozm-light-teal); }
+.bg-cozm-dark { background-color: var(--cozm-dark); }
+.text-cozm-teal { color: var(--cozm-teal); }
+.text-cozm-gold { color: var(--cozm-gold); }
+.text-cozm-red { color: var(--cozm-red); }
+.border-cozm-teal { border-color: var(--cozm-teal); }
+
+.tab-active {
+    border-bottom: 3px solid var(--cozm-teal);
+    color: var(--cozm-teal);
+    font-weight: 700;
+}
+
+.tab-inactive {
+    border-bottom: 3px solid transparent;
+    color: var(--grey-600);
+}
+
+.tab-inactive:hover {
+    color: var(--cozm-teal);
+    border-bottom-color: var(--cozm-light-teal);
+}
+
+.card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--grey-200);
+}
+
+.input-field {
+    border: 1.5px solid var(--grey-200);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    transition: all 0.2s;
+    background-color: var(--grey-50);
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: var(--cozm-teal);
+    background-color: white;
+    box-shadow: 0 0 0 4px rgba(68, 145, 156, 0.1);
+}
+
+.btn-primary {
+    background-color: var(--cozm-teal);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 700;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(68, 145, 156, 0.2);
+}
+
+.btn-primary:hover {
+    background-color: var(--cozm-teal-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(68, 145, 156, 0.3);
+}
+
+.btn-secondary {
+    background-color: white;
+    color: var(--cozm-teal);
+    border: 2px solid var(--cozm-teal);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background-color: var(--cozm-light-teal);
+}
+
+.nav-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--grey-600);
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.nav-tab:hover {
+    color: var(--cozm-teal);
+    background-color: white;
+}
+
+.nav-tab-active {
+    background-color: white;
+    color: var(--cozm-teal);
+    box-shadow: var(--shadow-sm);
+}
+
+.result-card {
+    background: linear-gradient(135deg, var(--cozm-teal) 0%, var(--cozm-teal-dark) 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 25px rgba(68, 145, 156, 0.2);
+}
+
+.result-card-light {
+    background: white;
+    border: 1px solid var(--grey-200);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+}
+
+.breakdown-table th {
+    background-color: var(--cozm-dark);
+    color: white;
+    padding: 14px 20px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.breakdown-table td {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--grey-100);
+    font-size: 14px;
+}
+
+.breakdown-table .total-row {
+    background-color: var(--cozm-light-teal);
+    font-weight: 700;
+    color: var(--cozm-teal-dark);
+}
+
+.drop-zone {
+    border: 2px dashed var(--grey-300);
+    border-radius: 16px;
+    padding: 48px;
+    text-align: center;
+    transition: all 0.2s;
+    cursor: pointer;
+    background-color: var(--grey-50);
+}
+
+.drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--cozm-teal);
+    background-color: rgba(68, 145, 156, 0.05);
+}
+
+.currency-input {
+    position: relative;
+}
+
+.currency-input::before {
+    content: '€';
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--grey-500);
+    font-weight: 600;
+}
+
+.currency-input input {
+    padding-left: 32px;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tooltips & Help */
+.help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: var(--grey-200);
+    color: var(--grey-600);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: help;
+    margin-left: 6px;
+}
+
+.help-icon:hover {
+    background-color: var(--cozm-teal);
+    color: white;
+}
+
+/* Modal Premium Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(26, 26, 46, 0.8);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0; visibility: hidden;
+    transition: all 0.3s;
+}
+
+.modal-overlay.active { opacity: 1; visibility: visible; }
+
+.modal-content {
+    background: white;
+    border-radius: 24px;
+    padding: 32px;
+    max-width: 540px;
+    width: 90%;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transform: scale(0.95);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-overlay.active .modal-content { transform: scale(1); }

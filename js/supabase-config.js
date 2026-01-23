@@ -30,12 +30,20 @@ const SUPERUSER_EMAILS = [
     'benjamin@thecozm.com'
 ];
 
-// Initialise Supabase client
+// Initialise Supabase client with persistent sessions
 let supabaseClient;
 
 function initSupabase() {
     if (typeof window !== 'undefined' && window.supabase) {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                persistSession: true,           // Keep session in localStorage
+                autoRefreshToken: true,         // Auto-refresh before expiry
+                detectSessionInUrl: true,       // Handle magic links if used
+                storageKey: 'fse-cost-calc-auth', // Unique storage key
+                storage: window.localStorage    // Use localStorage for persistence
+            }
+        });
         return supabaseClient;
     }
     console.error('Supabase library not loaded');
