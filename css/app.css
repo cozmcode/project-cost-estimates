@@ -1,25 +1,42 @@
-/* FSE Cost Calculator - Premium Corporate Theme */
+/* FSE Cost Calculator - The Cozm Brand Theme */
 
 :root {
-    /* Brand Palette - Deep & Corporate */
-    --cozm-teal: #44919c;
-    --cozm-teal-dark: #2d6169; /* Darker for better contrast/gradients */
-    --cozm-light-teal: #eef7f8; /* Very subtle for backgrounds */
-    --cozm-gold: #c59d5f; /* Muted gold for elegance */
-    --cozm-red: #d14d4d;
-    --cozm-dark: #111827; /* Near black for headers */
-    
-    /* Neutrals - Warm & Clean */
-    --bg-page: #f8fafc; /* Slate-50 */
+    /* ===== THE COZM BRAND PALETTE ===== */
+
+    /* Primary Colours */
+    --cozm-teal: #40AEBC;           /* Teal Blue - primary accent, contrasting */
+    --cozm-teal-dark: #3FAFBE;      /* Gradient Teal (darker end) */
+    --cozm-dark-indigo: #181C31;    /* Dark Indigo - headings, bold text */
+    --cozm-red: #BD4040;            /* Pastel Red - warnings, errors */
+
+    /* Background Colours */
+    --cozm-pastel-blue: #EDF5FF;    /* Pastel Blue - main background */
+    --cozm-light-bg: #F9FBFF;       /* Gradient Light end */
+    --cozm-light-teal: #EDF5FF;     /* Light background tint */
+
+    /* Text Colours */
+    --cozm-light-sky-blue: #83849E; /* Light Sky Blue - paragraphs, secondary text */
+    --cozm-light-gray: #EEEEEE;     /* Light Gray - strokes, borders */
+
+    /* Legacy variable mappings (for backward compatibility) */
+    --cozm-gold: #BD8941;           /* Gold highlight colour */
+    --cozm-dark: #181C31;           /* Same as dark-indigo */
+
+    /* Semantic Variables */
+    --bg-page: #EDF5FF;             /* Pastel Blue background */
     --bg-card: #ffffff;
-    --text-primary: #0f172a; /* Slate-900 */
-    --text-secondary: #64748b; /* Slate-500 */
-    --border-light: #e2e8f0; /* Slate-200 */
-    
-    /* Shadows - Diffused & Premium */
-    --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
-    --shadow-card: 0 10px 15px -3px rgba(68, 145, 156, 0.05), 0 4px 6px -2px rgba(68, 145, 156, 0.02);
-    --shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+    --text-primary: #181C31;        /* Dark Indigo for main text */
+    --text-secondary: #83849E;      /* Light Sky Blue for secondary */
+    --border-light: #EEEEEE;        /* Light Gray borders */
+
+    /* Gradients */
+    --gradient-dark: linear-gradient(135deg, #181C31 0%, #3FAFBE 100%);
+    --gradient-light: linear-gradient(135deg, #EDF5FF 0%, #F9FBFF 100%);
+
+    /* Shadows - Using brand teal */
+    --shadow-soft: 0 4px 6px -1px rgba(24, 28, 49, 0.04), 0 2px 4px -1px rgba(24, 28, 49, 0.02);
+    --shadow-card: 0 10px 15px -3px rgba(64, 174, 188, 0.08), 0 4px 6px -2px rgba(64, 174, 188, 0.04);
+    --shadow-float: 0 20px 25px -5px rgba(24, 28, 49, 0.08), 0 10px 10px -5px rgba(24, 28, 49, 0.04);
 }
 
 body {
@@ -51,7 +68,7 @@ header {
 
 h1, h2, h3 {
     letter-spacing: -0.025em; /* Tighter tracking for headings */
-    color: var(--cozm-dark);
+    color: var(--cozm-dark-indigo);
 }
 
 .text-label {
@@ -65,27 +82,28 @@ h1, h2, h3 {
 .text-value-lg {
     font-size: 1.875rem; /* 30px */
     font-weight: 700;
-    color: var(--cozm-teal-dark);
+    color: var(--cozm-dark-indigo);
     letter-spacing: -0.03em;
 }
 
 /* ===== BUTTONS & INPUTS ===== */
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--cozm-teal) 0%, var(--cozm-teal-dark) 100%);
+    background: var(--gradient-dark);
     color: white;
     padding: 10px 20px;
     border-radius: 8px;
     font-weight: 500;
     font-size: 0.9375rem; /* 15px */
     border: none;
-    box-shadow: 0 4px 6px -1px rgba(68, 145, 156, 0.2);
+    box-shadow: 0 4px 6px -1px rgba(64, 174, 188, 0.25);
     transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 8px -1px rgba(68, 145, 156, 0.3);
+    box-shadow: 0 6px 8px -1px rgba(64, 174, 188, 0.35);
+    background: linear-gradient(135deg, #181C31 0%, #40AEBC 100%);
 }
 
 .btn-secondary {
@@ -134,13 +152,13 @@ h1, h2, h3 {
 }
 
 .nav-tab:hover {
-    color: var(--cozm-dark);
-    background-color: var(--grey-100);
+    color: var(--cozm-dark-indigo);
+    background-color: var(--cozm-pastel-blue);
 }
 
 .nav-tab-active {
-    background-color: var(--cozm-light-teal);
-    color: var(--cozm-teal-dark);
+    background-color: var(--cozm-pastel-blue);
+    color: var(--cozm-dark-indigo);
     font-weight: 600;
 }
 
@@ -259,7 +277,7 @@ h1, h2, h3 {
 
 .currency-toggle {
     display: flex;
-    background: #f1f5f9;
+    background: var(--cozm-light-gray);
     border-radius: 8px;
     padding: 4px;
 }
@@ -278,12 +296,12 @@ h1, h2, h3 {
 
 .currency-btn.active {
     background: white;
-    color: var(--cozm-teal-dark);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    color: var(--cozm-dark-indigo);
+    box-shadow: 0 1px 3px rgba(24, 28, 49, 0.1);
 }
 
 .currency-btn:hover:not(.active) {
-    color: var(--cozm-dark);
+    color: var(--cozm-dark-indigo);
 }
 
 /* Alert Banner */
@@ -299,9 +317,9 @@ h1, h2, h3 {
 }
 
 .alert-banner.warning {
-    background: #fef3c7;
-    border: 1px solid #fcd34d;
-    color: #92400e;
+    background: rgba(189, 64, 64, 0.08);
+    border: 1px solid rgba(189, 64, 64, 0.25);
+    color: var(--cozm-red);
 }
 
 .alert-banner svg {
@@ -456,8 +474,8 @@ h1, h2, h3 {
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 4px;
-    background: #fef3c7;
-    color: #92400e;
+    background: rgba(189, 64, 64, 0.1);
+    color: var(--cozm-red);
 }
 
 .breakdown-chevron {
@@ -510,7 +528,7 @@ h1, h2, h3 {
 }
 
 .detail-value.detail-warning {
-    color: #d97706;
+    color: var(--cozm-red);
 }
 
 /* Right Column - Chart Panel */
@@ -540,7 +558,7 @@ h1, h2, h3 {
 .chart-total-amount {
     font-size: 36px;
     font-weight: 800;
-    color: var(--cozm-teal-dark);
+    color: var(--cozm-dark-indigo);
     letter-spacing: -0.02em;
     margin-bottom: 4px;
 }
@@ -586,7 +604,7 @@ h1, h2, h3 {
     display: block;
     font-size: 18px;
     font-weight: 700;
-    color: var(--cozm-teal-dark);
+    color: var(--cozm-dark-indigo);
 }
 
 /* Chart Legend */
@@ -663,10 +681,11 @@ h1, h2, h3 {
     transition: width 0.5s ease-out;
 }
 
-.cost-breakdown-bar .segment.tax { background-color: var(--cozm-teal); }
-.cost-breakdown-bar .segment.social { background-color: var(--cozm-gold); }
-.cost-breakdown-bar .segment.perdiem { background-color: #6366f1; }
-.cost-breakdown-bar .segment.admin { background-color: #7fb3ba; }
+/* Brand colour segments for cost breakdown */
+.cost-breakdown-bar .segment.tax { background-color: var(--cozm-dark-indigo); }
+.cost-breakdown-bar .segment.social { background-color: var(--cozm-teal); }
+.cost-breakdown-bar .segment.perdiem { background-color: var(--cozm-light-sky-blue); }
+.cost-breakdown-bar .segment.admin { background-color: var(--cozm-red); }
 
 .cost-breakdown-legend {
     display: flex;
@@ -688,10 +707,11 @@ h1, h2, h3 {
     border-radius: 50%;
 }
 
-.legend-dot.tax { background-color: var(--cozm-teal); }
-.legend-dot.social { background-color: var(--cozm-gold); }
-.legend-dot.perdiem { background-color: #6366f1; }
-.legend-dot.admin { background-color: #7fb3ba; }
+/* Brand colour legend dots */
+.legend-dot.tax { background-color: var(--cozm-dark-indigo); }
+.legend-dot.social { background-color: var(--cozm-teal); }
+.legend-dot.perdiem { background-color: var(--cozm-light-sky-blue); }
+.legend-dot.admin { background-color: var(--cozm-red); }
 
 .legend-label {
     color: var(--text-secondary);
@@ -779,7 +799,7 @@ h1, h2, h3 {
 /* Tab styles */
 .tab-active {
     font-weight: 600;
-    color: var(--cozm-teal-dark);
+    color: var(--cozm-dark-indigo);
     border-bottom: 2px solid var(--cozm-teal);
 }
 
@@ -790,7 +810,7 @@ h1, h2, h3 {
 }
 
 .tab-inactive:hover {
-    color: var(--text-primary);
+    color: var(--cozm-dark-indigo);
 }
 
 /* Drop zone */

@@ -14,86 +14,13 @@
 </head>
 
 <body class="min-h-screen bg-gray-50">
-    <!-- Auth Check - Redirect if not authenticated -->
+    <!-- Auth Check - This is the LOGIN page (index.html)
+         If user has valid session and is approved, redirect to app.html
+         Otherwise, show the login form (handled by auth.js) -->
     <script>
-        (async function() {
-            // DEV MODE: Skip auth check if ?dev=true in URL (localhost only)
-            const urlParams = new URLSearchParams(window.location.search);
-            const isDevMode = urlParams.get('dev') === 'true' &&
-                             (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
-            if (isDevMode) {
-                console.log('🔧 DEV MODE: Authentication bypassed for local testing');
-                window.currentUser = { email: 'dev@localhost' };
-                window.currentUserRole = 'superuser';
-                // Wait for DOM to be ready before showing content
-                const showContent = () => {
-                    const appContent = document.getElementById('app-content');
-                    const loadingScreen = document.getElementById('loading-screen');
-                    if (appContent) appContent.style.display = 'block';
-                    if (loadingScreen) loadingScreen.style.display = 'none';
-                    if (window.initApp) window.initApp();
-                };
-                if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', showContent);
-                } else {
-                    showContent();
-                }
-                return;
-            }
-
-            // Wait for Supabase to load if needed
-            const checkSupabase = setInterval(async () => {
-                if (window.SupabaseConfig) {
-                    clearInterval(checkSupabase);
-                    const supabase = window.SupabaseConfig.init();
-                    if (!supabase) {
-                        window.location.href = 'app.html'; // Redirect to auth page (renamed from index.html?) Wait, index.html is likely the main app now based on context. 
-                        // Actually, looking at file structure: index.html is usually the entry. 
-                        // If index.html is the app, then where is the login? 
-                        // The user showed app.html in the file list. 
-                        // Let's assume index.html is the App and there is a separate login page or index.html handles it. 
-                        // In the previous turn, the user showed `app.html` containing the auth page logic.
-                        // Standard pattern: index.html = App, redirect to login if no session.
-                        // Let's assume app.html is the login page for now or vice versa.
-                        // Checking file list: admin.html, app.html, index.html.
-                        // Usually index.html is the landing/login.
-                        // Let's check the previous `read_file` output for `app.html`.
-                        // It seems `app.html` had the auth logic in the previous turn's `read_file` output (although I labeled it index.html in the thought trace, the file path was project-cost-estimates/app.html in the prompt? No, I read index.html and app.html).
-                        // Let's look at the first `read_file` in the chat. `project-cost-estimates/README.md` says "Live URL: .../project-cost-estimates".
-                        // `app.html` content was shown as the auth page in the last turn.
-                        // `index.html` content was shown as the main app in the last turn.
-                        // Wait, if I overwrite `index.html` with the App content, and `app.html` is the Auth page...
-                        // If the user goes to root /, they get index.html.
-                        // If index.html is the App, it should redirect to app.html (Auth) if not logged in.
-                        // My script says `window.location.href = 'index.html';` on failure. That would be a loop if this IS index.html.
-                        // I should probably redirect to `app.html` (Auth) if not logged in.
-                        window.location.href = 'app.html';
-                        return;
-                    }
-                    const { data: { session } } = await supabase.auth.getSession();
-                    if (!session) {
-                        window.location.href = 'app.html';
-                        return;
-                    }
-                    const { data: appUser, error } = await supabase
-                        .from('app_users')
-                        .select('approved, role')
-                        .eq('id', session.user.id)
-                        .single();
-                    if (error || !appUser || !appUser.approved) {
-                        window.location.href = 'app.html';
-                        return;
-                    }
-                    window.currentUser = session.user;
-                    window.currentUserRole = appUser.role;
-                    document.getElementById('app-content').style.display = 'block';
-                    document.getElementById('loading-screen').style.display = 'none';
-                    // Trigger custom init if defined in app-logic.js
-                    if (window.initApp) window.initApp();
-                }
-            }, 100);
-        })();
+        // Clear redirect counter on login page load - user is where they need to be
+        sessionStorage.removeItem('auth_redirect_count');
+        console.log('[AUTH] Login page loaded, redirect counter cleared');
     </script>
 
     <!-- Loading Screen -->

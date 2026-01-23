@@ -15,6 +15,8 @@
     <!-- Auth Check - Redirect if not authenticated -->
     <script>
         (async function() {
+            console.log('[AUTH] Starting auth check on app.html');
+
             // DEV MODE: Skip auth check if ?dev=true in URL (localhost only)
             const urlParams = new URLSearchParams(window.location.search);
             const isDevMode = urlParams.get('dev') === 'true' &&
@@ -40,48 +42,118 @@
                 return;
             }
 
-            // Wait for Supabase to load if needed (with 15 second timeout)
+            // REDIRECT LOOP GUARD: Prevent infinite redirects between pages
+            const redirectCount = parseInt(sessionStorage.getItem('auth_redirect_count') || '0');
+            console.log('[AUTH] Redirect count:', redirectCount);
+
+            if (redirectCount >= 3) {
+                console.error('[AUTH] Redirect loop detected - showing error UI');
+                sessionStorage.removeItem('auth_redirect_count');
+                // Show error UI instead of redirecting
+                const showAuthError = () => {
+                    const loadingScreen = document.getElementById('loading-screen');
+                    if (loadingScreen) {
+                        loadingScreen.innerHTML = `
+                            <div style="text-align: center; padding: 40px; max-width: 400px;">
+                                <svg style="width: 64px; height: 64px; margin: 0 auto 20px; color: #BD4040;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                                <h2 style="font-family: Inter, sans-serif; font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 12px;">Session Error</h2>
+                                <p style="font-family: Inter, sans-serif; font-size: 14px; color: #6b7280; margin-bottom: 24px;">Unable to verify your session. This may be due to a network issue or expired session.</p>
+                                <div style="display: flex; gap: 12px; justify-content: center;">
+                                    <button onclick="sessionStorage.clear(); window.location.reload();" style="padding: 12px 24px; background: #44919c; color: white; border: none; border-radius: 8px; font-family: Inter, sans-serif; font-weight: 600; cursor: pointer;">Retry</button>
+                                    <button onclick="sessionStorage.clear(); window.location.href='index.html';" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-family: Inter, sans-serif; font-weight: 600; cursor: pointer;">Back to Login</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                };
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', showAuthError);
+                } else {
+                    showAuthError();
+                }
+                return;
+            }
+
+            // Helper function for redirecting to login with loop guard
+            function redirectToLogin(reason) {
+                console.log('[AUTH] Redirecting to login:', reason);
+                sessionStorage.setItem('auth_redirect_count', (redirectCount + 1).toString());
+                window.location.href = 'index.html';
+            }
+
+            // Helper function to show timeout error UI
+            function showTimeoutError() {
+                const loadingScreen = document.getElementById('loading-screen');
+                if (loadingScreen) {
+                    loadingScreen.innerHTML = `
+                        <div style="text-align: center; padding: 40px; max-width: 400px;">
+                            <svg style="width: 64px; height: 64px; margin: 0 auto 20px; color: #BD8941;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <h2 style="font-family: Inter, sans-serif; font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 12px;">Connection Timeout</h2>
+                            <p style="font-family: Inter, sans-serif; font-size: 14px; color: #6b7280; margin-bottom: 24px;">Unable to connect to the authentication service. Please check your internet connection and try again.</p>
+                            <div style="display: flex; gap: 12px; justify-content: center;">
+                                <button onclick="window.location.reload();" style="padding: 12px 24px; background: #44919c; color: white; border: none; border-radius: 8px; font-family: Inter, sans-serif; font-weight: 600; cursor: pointer;">Retry</button>
+                                <button onclick="sessionStorage.clear(); window.location.href='index.html';" style="padding: 12px 24px; background: #f3f4f6; color: #374151; border: none; border-radius: 8px; font-family: Inter, sans-serif; font-weight: 600; cursor: pointer;">Back to Login</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            // Wait for Supabase to load with 30 second timeout (increased for slow mobile networks)
             let attempts = 0;
-            const maxAttempts = 150; // 15 seconds at 100ms intervals
+            const maxAttempts = 300; // 30 seconds at 100ms intervals
 
             const checkSupabase = setInterval(async () => {
                 attempts++;
 
-                // Timeout after 15 seconds - redirect to login
+                // Timeout after 30 seconds - show error UI instead of silent redirect
                 if (attempts >= maxAttempts) {
                     clearInterval(checkSupabase);
-                    console.error('Supabase load timeout - redirecting to login');
-                    window.location.href = 'index.html';
+                    console.error('[AUTH] Supabase load timeout after 30s');
+                    showTimeoutError();
                     return;
                 }
 
                 if (window.SupabaseConfig) {
                     clearInterval(checkSupabase);
+                    console.log('[AUTH] SupabaseConfig loaded at attempt', attempts);
                     try {
                         const supabase = window.SupabaseConfig.init();
                         if (!supabase) {
-                            window.location.href = 'index.html';
+                            console.error('[AUTH] Supabase init failed');
+                            redirectToLogin('Supabase init failed');
                             return;
                         }
+                        console.log('[AUTH] Checking session...');
                         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
                         if (sessionError) {
-                            console.error('Session error:', sessionError);
-                            window.location.href = 'index.html';
+                            console.error('[AUTH] Session error:', sessionError);
+                            redirectToLogin('Session error: ' + sessionError.message);
                             return;
                         }
                         if (!session) {
-                            window.location.href = 'index.html';
+                            console.log('[AUTH] No session found');
+                            redirectToLogin('No session');
                             return;
                         }
+                        console.log('[AUTH] Session valid, checking app_users...');
                         const { data: appUser, error } = await supabase
                             .from('app_users')
                             .select('approved, role')
                             .eq('id', session.user.id)
                             .single();
                         if (error || !appUser || !appUser.approved) {
-                            window.location.href = 'index.html';
+                            console.log('[AUTH] User not approved or not found:', error);
+                            redirectToLogin('User not approved');
                             return;
                         }
+                        // SUCCESS: Clear redirect counter and show app
+                        console.log('[AUTH] Auth successful, showing app');
+                        sessionStorage.removeItem('auth_redirect_count');
                         window.currentUser = session.user;
                         window.currentUserRole = appUser.role;
                         document.getElementById('app-content').style.display = 'block';
@@ -89,8 +161,8 @@
                         // Trigger custom init if defined in app-logic.js
                         if (window.initApp) window.initApp();
                     } catch (err) {
-                        console.error('Auth check error:', err);
-                        window.location.href = 'index.html';
+                        console.error('[AUTH] Auth check error:', err);
+                        redirectToLogin('Auth check error: ' + err.message);
                     }
                 }
             }, 100);
