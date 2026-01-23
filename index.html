@@ -9,13 +9,12 @@
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
+<body class="auth-page">
     <div class="auth-container">
-        <div class="auth-card">
+        <div class="premium-card auth-card animate-fade-in">
             <!-- Logo -->
             <div class="auth-logo">
-                <img src="https://thecozm.com/logo.png" alt="The Cozm" onerror="this.style.display='none'">
-                <h2 style="color: #44919c; font-size: 24px; margin-top: 8px;">The Cozm</h2>
+                <img src="https://thecozm.com/images/logo/theCozmLogo.png" alt="The Cozm" onerror="this.style.display='none'">
             </div>
 
             <!-- Message Container -->
@@ -28,22 +27,27 @@
 
                 <form class="auth-form" onsubmit="event.preventDefault(); submitEmail();">
                     <div class="form-group">
-                        <label class="form-label" for="email-input">Email address</label>
-                        <input type="email" id="email-input" class="form-input" placeholder="you@company.com" required autofocus>
+                        <label class="form-label" for="email-input">Work Email Address</label>
+                        <input type="email" id="email-input" class="form-input" placeholder="name@company.com" required autofocus>
                     </div>
 
-                    <button type="submit" class="btn-primary">Continue</button>
+                    <button type="submit" class="btn btn-primary">
+                        <span>Continue</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 18px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </button>
                 </form>
 
                 <div class="auth-footer">
-                    <p>We'll send you a sign-in code via email</p>
+                    <p>We'll send you a secure sign-in code</p>
                 </div>
             </div>
 
             <!-- Step 2: Email Verification -->
             <div id="step-verify" class="hidden">
-                <h1 class="auth-title">Check your email</h1>
-                <p class="auth-subtitle">Enter the 8-digit code we sent you</p>
+                <h1 class="auth-title">Verify Access</h1>
+                <p class="auth-subtitle">Enter the 8-digit code sent to your email</p>
 
                 <form class="auth-form" onsubmit="event.preventDefault(); verifyCode();">
                     <div class="otp-container">
@@ -57,30 +61,32 @@
                         <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
                     </div>
 
-                    <button type="submit" class="btn-primary">Verify Code</button>
+                    <button type="submit" class="btn btn-primary">Verify Identity</button>
                 </form>
 
                 <div class="auth-footer">
-                    <p>Didn't receive the code? <a href="#" onclick="resendCode()">Resend</a></p>
+                    <p>Didn't receive the code? <a href="#" onclick="resendCode()">Resend Code</a></p>
                 </div>
             </div>
 
             <!-- Step 3: Pending Approval -->
             <div id="step-pending" class="hidden">
-                <div style="text-align: center; padding: 20px 0;">
-                    <svg style="width: 64px; height: 64px; color: #BD8941; margin-bottom: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <h1 class="auth-title">Awaiting approval</h1>
-                    <p class="auth-subtitle">Your account is pending approval from an administrator. You'll receive an email once your access has been granted.</p>
-                    <button class="btn-secondary" style="margin-top: 24px;" onclick="signOut()">Sign Out</button>
+                <div style="text-align: center; padding: 10px 0;">
+                    <div style="width: 80px; height: 80px; background: #fffbeb; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+                        <svg style="width: 40px; height: 40px; color: var(--cozm-gold);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h1 class="auth-title">Awaiting Approval</h1>
+                    <p class="auth-subtitle">Your account is pending review. You'll receive an email once access is granted by an administrator.</p>
+                    <button class="btn btn-secondary" onclick="signOut()">Sign Out</button>
                 </div>
             </div>
         </div>
 
         <!-- Powered by -->
-        <p style="text-align: center; color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 24px;">
-            Powered by The Cozm
+        <p style="text-align: center; color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 32px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;">
+            Developed by The Cozm &copy; 2026
         </p>
     </div>
 
