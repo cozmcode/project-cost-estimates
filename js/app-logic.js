@@ -11,6 +11,13 @@ let exchangeRatesCache = {
     source: 'ECB via Frankfurter API'
 };
 
+// Chart instance (for cleanup/re-render)
+let costChartInstance = null;
+
+// Current currency display
+let currentDisplayCurrency = 'EUR';
+let lastCalculationData = null;
+
 // Finnish 2025 per diem rates by country (locked as per requirements)
 const finnishPerDiemRates = {
     Brazil: 66,
@@ -319,55 +326,107 @@ function calculateCosts() {
     const grandTotal = taxAmountEUR + socialSecurityCost + totalAllowances + totalAdminFees;
     const costPerDay = grandTotal / totalCalendarDays;
 
-    // Update Summary View
-    document.getElementById('summaryTax').textContent = formatCurrency(taxAmountEUR);
-    document.getElementById('summarySocialSec').textContent = formatCurrency(socialSecurityCost);
-    document.getElementById('summaryAllowances').textContent = formatCurrency(totalAllowances);
-    document.getElementById('summaryAdminFees').textContent = formatCurrency(totalAdminFees);
-    document.getElementById('summaryPerDay').textContent = formatCurrencyDecimal(costPerDay);
-    document.getElementById('summaryTotal').textContent = formatCurrency(grandTotal);
+    // Store calculation data for currency switching
+    lastCalculationData = {
+        taxAmountEUR,
+        socialSecurityCost,
+        totalAllowances,
+        totalAdminFees,
+        grandTotal,
+        costPerDay,
+        monthlySalary,
+        assignmentLength,
+        dailyAllowance,
+        totalWorkingDays,
+        totalCalendarDays,
+        effectiveTaxRate,
+        taxCalculationMethod,
+        config,
+        hostCountry
+    };
 
-    // Update assignment info
-    const assignmentInfo = document.getElementById('summaryAssignmentInfo');
-    if (assignmentInfo) {
-        assignmentInfo.textContent = `${assignmentLength} months · ${totalCalendarDays} days · ${config.name}`;
+    // Get home country for display
+    const homeCountry = document.getElementById('homeCountry').value;
+
+    // Update Assignment Summary Card
+    const setEl = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+    };
+
+    setEl('summaryDuration', `${assignmentLength} months`);
+    setEl('summaryOrigin', homeCountry);
+    setEl('summaryDestination', config.name);
+    setEl('summarySalary', formatCurrency(monthlySalary) + '/month');
+
+    // Update Summary View - main totals
+    setEl('summaryTax', formatCurrency(taxAmountEUR));
+    setEl('summarySocialSec', formatCurrency(socialSecurityCost));
+    setEl('summaryAllowances', formatCurrency(totalAllowances));
+    setEl('summaryAdminFees', formatCurrency(totalAdminFees));
+    setEl('summaryPerDay', formatCurrencyDecimal(costPerDay));
+    setEl('summaryTotal', formatCurrency(grandTotal));
+    setEl('chartCenterTotal', formatCurrency(grandTotal));
+
+    // Update chart legend values
+    setEl('legendTax', formatCurrency(taxAmountEUR));
+    setEl('legendSocial', formatCurrency(socialSecurityCost));
+    setEl('legendPerdiem', formatCurrency(totalAllowances));
+    setEl('legendAdmin', formatCurrency(totalAdminFees));
+
+    // Update breakdown group details
+    // Tax details
+    setEl('detailTaxRate', effectiveTaxRate.toFixed(1) + '%');
+    setEl('detailTaxMethod', taxCalculationMethod);
+    const taxSourceEl = document.getElementById('detailTaxSource');
+    if (taxSourceEl) {
+        const sourceName = countryTaxRules ? countryTaxRules.taxSource : 'Default rates';
+        taxSourceEl.textContent = sourceName.length > 30 ? sourceName.substring(0, 30) + '...' : sourceName;
     }
 
-    // Update stacked bar breakdown
-    updateCostBreakdownBar(taxAmountEUR, socialSecurityCost, totalAllowances, totalAdminFees, grandTotal);
+    // Social Security details
+    setEl('detailSocialRate', (config.socialSec * 100).toFixed(1) + '%');
+    const socialWarningEl = document.getElementById('detailSocialWarning');
+    const socialWarningRow = document.getElementById('detailSocialWarningRow');
+    if (config.noTreatyWarning) {
+        if (socialWarningEl) socialWarningEl.textContent = 'No Treaty ⚠️';
+        if (socialWarningRow) socialWarningRow.style.display = 'flex';
+    } else {
+        if (socialWarningRow) socialWarningRow.style.display = 'none';
+    }
+
+    // Per Diem details
+    setEl('detailPerDiemRate', formatCurrency(dailyAllowance));
+    setEl('detailWorkingDays', totalWorkingDays.toString());
+
+    // Admin fee details
+    setEl('detailVisaFee', formatCurrency(visaFee));
+    setEl('detailWorkPermit', formatCurrency(workPermitFee));
+
+    // Render donut chart
+    renderCostChart(taxAmountEUR, socialSecurityCost, totalAllowances, totalAdminFees, grandTotal);
 
     // Show/hide no-treaty warning banner (slim style)
     const noTreatyWarning = document.getElementById('noTreatyWarning');
     const noTreatyWarningText = document.getElementById('noTreatyWarningText');
-    const socialSecWarningNote = document.getElementById('socialSecWarningNote');
-    const socialSecCard = document.getElementById('socialSecCard');
+    const socialSecBadge = document.getElementById('socialSecBadge');
 
     if (config.noTreatyWarning) {
         if (noTreatyWarning) {
             noTreatyWarning.classList.remove('hidden');
             if (noTreatyWarningText) {
-                // Shortened warning text for slim banner
                 noTreatyWarningText.textContent = `Dual social security contributions apply (no Finland-${config.name} treaty)`;
             }
         }
-        if (socialSecWarningNote) {
-            socialSecWarningNote.textContent = 'Dual contributions';
-            socialSecWarningNote.classList.remove('hidden');
-        }
-        if (socialSecCard) {
-            socialSecCard.classList.add('border-l-4');
-            socialSecCard.style.borderLeftColor = 'var(--cozm-gold)';
+        if (socialSecBadge) {
+            socialSecBadge.classList.remove('hidden');
         }
     } else {
         if (noTreatyWarning) noTreatyWarning.classList.add('hidden');
-        if (socialSecWarningNote) socialSecWarningNote.classList.add('hidden');
-        if (socialSecCard) {
-            socialSecCard.classList.remove('border-l-4');
-            socialSecCard.style.borderLeftColor = '';
-        }
+        if (socialSecBadge) socialSecBadge.classList.add('hidden');
     }
 
-    // Update Detailed View (with null checks for optional elements)
+    // Legacy detailed view elements (for backward compatibility - these IDs may still exist)
     const setElementText = (id, text) => {
         const el = document.getElementById(id);
         if (el) el.textContent = text;
@@ -380,10 +439,6 @@ function calculateCosts() {
     setElementText('detailTaxableBRL', formatLocalCurrency(taxableIncomeLocal, hostCountry));
     setElementText('detailTaxTotal', formatCurrency(taxAmountEUR));
     setElementText('detailSocialSecTotal', formatCurrency(socialSecurityCost));
-
-    // Update table headers to show selected country
-    const tableHeader = document.querySelector('.breakdown-table thead th');
-    if (tableHeader) tableHeader.textContent = `Tax Calculation - ${config.name}`;
 
     // Exchange rate with source and date
     const rateDate = exchangeRatesCache.date || 'static fallback';
@@ -400,14 +455,7 @@ function calculateCosts() {
         setElementText('detailDeduction', config.deduction > 0 ? formatLocalCurrency(-config.deduction, hostCountry) : 'N/A');
     }
 
-    // Admin fees per day with taxability notes (optional elements)
-    setElementText('detailWorkPermitPerDay', formatCurrencyDecimal(workPermitFee / totalCalendarDays));
-    setElementText('detailVisaPerDay', formatCurrencyDecimal(visaFee / totalCalendarDays));
-    setElementText('detailRegPerDay', formatCurrencyDecimal(taxSocialSecReg / totalCalendarDays));
-    setElementText('detailAdminTotal', formatCurrency(totalAdminFees));
-    setElementText('detailAdminPerDay', formatCurrencyDecimal(totalAdminFees / totalCalendarDays));
-
-    // Grand totals in detailed view (optional elements)
+    // Grand totals (optional elements)
     setElementText('grandTax', formatCurrency(taxAmountEUR));
     setElementText('grandSocialSec', formatCurrency(socialSecurityCost));
     setElementText('grandAllowances', formatCurrency(totalAllowances));
@@ -493,6 +541,135 @@ function toggleAccordion(sectionId) {
     if (section) {
         section.classList.toggle('open');
     }
+}
+
+// Toggle breakdown group (expandable cards in new layout)
+function toggleBreakdownGroup(groupId) {
+    const group = document.getElementById('group-' + groupId);
+    if (group) {
+        group.classList.toggle('expanded');
+    }
+}
+
+// Render donut chart using Chart.js
+function renderCostChart(tax, social, perdiem, admin, total) {
+    const ctx = document.getElementById('costChart');
+    if (!ctx) return;
+
+    // Destroy existing chart if present
+    if (costChartInstance) {
+        costChartInstance.destroy();
+    }
+
+    // Chart data
+    const data = {
+        labels: ['Tax', 'Social Security', 'Per Diem', 'Admin Fees'],
+        datasets: [{
+            data: [tax, social, perdiem, admin],
+            backgroundColor: ['#44919c', '#BD8941', '#6366f1', '#7fb3ba'],
+            borderWidth: 0,
+            hoverOffset: 8
+        }]
+    };
+
+    // Chart options
+    const options = {
+        cutout: '65%',
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false // We use custom legend
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                titleFont: {
+                    size: 13,
+                    weight: '600'
+                },
+                bodyFont: {
+                    size: 13
+                },
+                callbacks: {
+                    label: function(context) {
+                        const value = context.raw;
+                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                        return `€${value.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} (${percentage}%)`;
+                    }
+                }
+            }
+        },
+        animation: {
+            animateRotate: true,
+            animateScale: true,
+            duration: 800,
+            easing: 'easeOutQuart'
+        }
+    };
+
+    // Create chart
+    costChartInstance = new Chart(ctx.getContext('2d'), {
+        type: 'doughnut',
+        data: data,
+        options: options
+    });
+}
+
+// Switch currency display (EUR/GBP)
+function switchCurrency(currency) {
+    currentDisplayCurrency = currency;
+
+    // Update toggle buttons
+    document.querySelectorAll('.currency-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    const activeBtn = document.getElementById('currency-' + currency.toLowerCase());
+    if (activeBtn) activeBtn.classList.add('active');
+
+    // Re-render with last calculation data if available
+    if (lastCalculationData) {
+        updateDisplayValues(lastCalculationData);
+    }
+}
+
+// Update display values based on currency
+function updateDisplayValues(calc) {
+    const conversionRate = currentDisplayCurrency === 'GBP' ? 0.86 : 1;
+    const symbol = currentDisplayCurrency === 'GBP' ? '£' : '€';
+
+    // Recalculate values
+    const tax = calc.taxAmountEUR * conversionRate;
+    const social = calc.socialSecurityCost * conversionRate;
+    const perdiem = calc.totalAllowances * conversionRate;
+    const admin = calc.totalAdminFees * conversionRate;
+    const total = calc.grandTotal * conversionRate;
+    const perDay = calc.costPerDay * conversionRate;
+
+    // Update summary totals
+    const setEl = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+    };
+
+    setEl('summaryTotal', formatCurrency(total, symbol));
+    setEl('chartCenterTotal', formatCurrency(total, symbol));
+    setEl('summaryPerDay', formatCurrencyDecimal(perDay, symbol));
+
+    // Update breakdown values
+    setEl('summaryTax', formatCurrency(tax, symbol));
+    setEl('summarySocialSec', formatCurrency(social, symbol));
+    setEl('summaryAllowances', formatCurrency(perdiem, symbol));
+    setEl('summaryAdminFees', formatCurrency(admin, symbol));
+
+    // Update chart legend
+    setEl('legendTax', formatCurrency(tax, symbol));
+    setEl('legendSocial', formatCurrency(social, symbol));
+    setEl('legendPerdiem', formatCurrency(perdiem, symbol));
+    setEl('legendAdmin', formatCurrency(admin, symbol));
+
+    // Re-render chart with converted values
+    renderCostChart(tax, social, perdiem, admin, total);
 }
 
 // Update the detailed calculation workings display with collapsible sections
@@ -677,7 +854,8 @@ function updateCalculationWorkings(calc) {
         </div>
     `;
 
-    workingsContainer.classList.remove('hidden');
+    // Keep workings container hidden - the new UI shows breakdown in expandable groups
+    // workingsContainer.classList.remove('hidden');
 }
 
 // File upload handling using SheetJS

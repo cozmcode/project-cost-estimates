@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/app.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body class="min-h-screen bg-gray-50">
@@ -252,140 +253,224 @@
 
                 <!-- Results -->
                 <div id="resultsSection" class="hidden animate-fade-in">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-extrabold text-gray-900 tracking-tight">Intelligence Report</h2>
-                        <div class="view-toggle flex bg-gray-100 p-1 rounded-xl">
-                            <button id="view-summary" class="active px-4 py-2 rounded-lg text-sm font-bold" onclick="switchView('summary')">Executive Summary</button>
-                            <button id="view-detailed" class="px-4 py-2 rounded-lg text-sm font-bold" onclick="switchView('detailed')">Technical Breakdown</button>
+                    <!-- Header with Currency Toggle -->
+                    <div class="results-header">
+                        <h2 class="text-xl font-extrabold text-gray-900 tracking-tight">Cost Estimate</h2>
+                        <div class="currency-toggle">
+                            <button id="currency-eur" class="currency-btn active" onclick="switchCurrency('EUR')">EUR</button>
+                            <button id="currency-gbp" class="currency-btn" onclick="switchCurrency('GBP')">GBP</button>
                         </div>
                     </div>
 
-                    <div id="summary-view" class="animate-fade-in">
-                        <!-- No Treaty Warning Banner (slim, hidden by default) -->
-                        <div id="noTreatyWarning" class="hidden alert-banner warning">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                            </svg>
-                            <span id="noTreatyWarningText">Dual social security contributions apply (no Finland-Brazil treaty)</span>
-                        </div>
+                    <!-- No Treaty Warning Banner (slim, hidden by default) -->
+                    <div id="noTreatyWarning" class="hidden alert-banner warning">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <span id="noTreatyWarningText">Dual social security contributions apply (no Finland-Brazil treaty)</span>
+                    </div>
 
-                        <!-- Hero Total Card with Stacked Bar -->
-                        <div class="hero-total-card">
-                            <div class="flex flex-col md:flex-row md:items-end md:justify-between">
-                                <div>
-                                    <p class="hero-total-label">Total Assignment Cost</p>
-                                    <p class="hero-total-amount" id="summaryTotal">€0</p>
-                                    <p class="hero-daily-rate">Daily rate: <strong id="summaryPerDay">€0</strong>/day</p>
-                                </div>
-                                <div class="mt-6 md:mt-0 md:text-right">
-                                    <p class="text-xs opacity-70 uppercase tracking-widest mb-2" id="summaryAssignmentInfo"></p>
-                                </div>
-                            </div>
-
-                            <!-- Stacked Bar Breakdown -->
-                            <div class="mt-8">
-                                <div class="cost-breakdown-bar" id="costBreakdownBar">
-                                    <div class="segment tax" id="barTax" style="width: 25%;"></div>
-                                    <div class="segment social" id="barSocial" style="width: 25%;"></div>
-                                    <div class="segment perdiem" id="barPerdiem" style="width: 25%;"></div>
-                                    <div class="segment admin" id="barAdmin" style="width: 25%;"></div>
-                                </div>
-                                <div class="cost-breakdown-legend" id="costBreakdownLegend">
-                                    <div class="legend-item">
-                                        <span class="legend-dot tax"></span>
-                                        <span class="legend-label">Tax</span>
-                                        <span class="legend-value" id="legendTax">€0</span>
-                                        <span class="legend-percent" id="legendTaxPct">(0%)</span>
+                    <!-- Two-Column Results Layout -->
+                    <div class="results-container">
+                        <!-- Left Column: Assignment Summary + Breakdown Groups -->
+                        <div class="results-left-column">
+                            <!-- Assignment Summary Card -->
+                            <div class="assignment-summary-card">
+                                <h3 class="summary-card-title">Assignment Summary</h3>
+                                <div class="summary-details">
+                                    <div class="summary-row">
+                                        <span class="summary-label">Duration</span>
+                                        <span class="summary-value" id="summaryDuration">6 months</span>
                                     </div>
-                                    <div class="legend-item">
-                                        <span class="legend-dot social"></span>
-                                        <span class="legend-label">Social Security</span>
-                                        <span class="legend-value" id="legendSocial">€0</span>
-                                        <span class="legend-percent" id="legendSocialPct">(0%)</span>
+                                    <div class="summary-row">
+                                        <span class="summary-label">Origin</span>
+                                        <span class="summary-value" id="summaryOrigin">Finland</span>
                                     </div>
-                                    <div class="legend-item">
-                                        <span class="legend-dot perdiem"></span>
-                                        <span class="legend-label">Per Diem</span>
-                                        <span class="legend-value" id="legendPerdiem">€0</span>
-                                        <span class="legend-percent" id="legendPerdiemPct">(0%)</span>
+                                    <div class="summary-row">
+                                        <span class="summary-label">Destination</span>
+                                        <span class="summary-value" id="summaryDestination">Brazil</span>
                                     </div>
-                                    <div class="legend-item">
-                                        <span class="legend-dot admin"></span>
-                                        <span class="legend-label">Admin</span>
-                                        <span class="legend-value" id="legendAdmin">€0</span>
-                                        <span class="legend-percent" id="legendAdminPct">(0%)</span>
+                                    <div class="summary-row">
+                                        <span class="summary-label">Salary</span>
+                                        <span class="summary-value" id="summarySalary">€7,000/month</span>
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Breakdown Groups (Expandable) -->
+                            <div class="breakdown-groups">
+                                <!-- Tax Group -->
+                                <div class="breakdown-group" id="group-tax">
+                                    <div class="breakdown-header" onclick="toggleBreakdownGroup('tax')">
+                                        <div class="breakdown-header-left">
+                                            <span class="breakdown-dot" style="background: #44919c;"></span>
+                                            <span class="breakdown-label">Tax</span>
+                                        </div>
+                                        <div class="breakdown-header-right">
+                                            <span class="breakdown-value" id="summaryTax">€0</span>
+                                            <svg class="breakdown-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="breakdown-details" id="details-tax">
+                                        <div class="detail-row">
+                                            <span class="detail-label">Effective Rate</span>
+                                            <span class="detail-value" id="detailTaxRate">25.0%</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Method</span>
+                                            <span class="detail-value" id="detailTaxMethod">Non-resident flat rate</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Source</span>
+                                            <span class="detail-value detail-link" id="detailTaxSource">Brazilian Federal</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Social Security Group -->
+                                <div class="breakdown-group" id="group-social">
+                                    <div class="breakdown-header" onclick="toggleBreakdownGroup('social')">
+                                        <div class="breakdown-header-left">
+                                            <span class="breakdown-dot" style="background: #BD8941;"></span>
+                                            <span class="breakdown-label">Social Security</span>
+                                            <span class="breakdown-warning-badge hidden" id="socialSecBadge">No Treaty</span>
+                                        </div>
+                                        <div class="breakdown-header-right">
+                                            <span class="breakdown-value" id="summarySocialSec">€0</span>
+                                            <svg class="breakdown-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="breakdown-details" id="details-social">
+                                        <div class="detail-row">
+                                            <span class="detail-label">Rate</span>
+                                            <span class="detail-value" id="detailSocialRate">35.0%</span>
+                                        </div>
+                                        <div class="detail-row" id="detailSocialWarningRow">
+                                            <span class="detail-label">Warning</span>
+                                            <span class="detail-value detail-warning" id="detailSocialWarning">No Treaty ⚠️</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Per Diem Group -->
+                                <div class="breakdown-group" id="group-perdiem">
+                                    <div class="breakdown-header" onclick="toggleBreakdownGroup('perdiem')">
+                                        <div class="breakdown-header-left">
+                                            <span class="breakdown-dot" style="background: #6366f1;"></span>
+                                            <span class="breakdown-label">Per Diem</span>
+                                        </div>
+                                        <div class="breakdown-header-right">
+                                            <span class="breakdown-value" id="summaryAllowances">€0</span>
+                                            <svg class="breakdown-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="breakdown-details" id="details-perdiem">
+                                        <div class="detail-row">
+                                            <span class="detail-label">Daily Rate</span>
+                                            <span class="detail-value" id="detailPerDiemRate">€66</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Working Days</span>
+                                            <span class="detail-value" id="detailWorkingDays">132</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Source</span>
+                                            <span class="detail-value detail-link" id="detailPerDiemSource">Finnish Tax Admin 2025</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Admin Fees Group -->
+                                <div class="breakdown-group" id="group-admin">
+                                    <div class="breakdown-header" onclick="toggleBreakdownGroup('admin')">
+                                        <div class="breakdown-header-left">
+                                            <span class="breakdown-dot" style="background: #7fb3ba;"></span>
+                                            <span class="breakdown-label">Admin Fees</span>
+                                        </div>
+                                        <div class="breakdown-header-right">
+                                            <span class="breakdown-value" id="summaryAdminFees">€0</span>
+                                            <svg class="breakdown-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="breakdown-details" id="details-admin">
+                                        <div class="detail-row">
+                                            <span class="detail-label">Includes</span>
+                                            <span class="detail-value">Visa, permits, filings</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Visa Fee</span>
+                                            <span class="detail-value" id="detailVisaFee">€200</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Work Permit</span>
+                                            <span class="detail-value" id="detailWorkPermit">€1,000</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Component Cards (simplified) -->
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div class="result-card-light">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="w-2 h-2 rounded-full" style="background-color: var(--cozm-teal);"></span>
-                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Tax</p>
+                        <!-- Right Column: Chart Panel -->
+                        <div class="results-right-column">
+                            <div class="chart-panel">
+                                <p class="chart-total-label">Total Cost</p>
+                                <p class="chart-total-amount" id="summaryTotal">€0</p>
+                                <p class="chart-daily-rate">Daily rate: <strong id="summaryPerDay">€0</strong>/day</p>
+
+                                <!-- Donut Chart -->
+                                <div class="chart-wrapper">
+                                    <canvas id="costChart"></canvas>
+                                    <div class="chart-center-text">
+                                        <span class="chart-center-label">Total</span>
+                                        <span class="chart-center-value" id="chartCenterTotal">€0</span>
+                                    </div>
                                 </div>
-                                <p class="text-xl font-bold text-gray-900" id="summaryTax">€0</p>
-                            </div>
-                            <div class="result-card-light" id="socialSecCard">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="w-2 h-2 rounded-full" style="background-color: var(--cozm-gold);"></span>
-                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Social Security</p>
+
+                                <!-- Chart Legend -->
+                                <div class="chart-legend">
+                                    <div class="chart-legend-item">
+                                        <span class="chart-legend-dot" style="background: #44919c;"></span>
+                                        <span class="chart-legend-label">Tax</span>
+                                        <span class="chart-legend-value" id="legendTax">€0</span>
+                                    </div>
+                                    <div class="chart-legend-item">
+                                        <span class="chart-legend-dot" style="background: #BD8941;"></span>
+                                        <span class="chart-legend-label">Social Security</span>
+                                        <span class="chart-legend-value" id="legendSocial">€0</span>
+                                    </div>
+                                    <div class="chart-legend-item">
+                                        <span class="chart-legend-dot" style="background: #6366f1;"></span>
+                                        <span class="chart-legend-label">Per Diem</span>
+                                        <span class="chart-legend-value" id="legendPerdiem">€0</span>
+                                    </div>
+                                    <div class="chart-legend-item">
+                                        <span class="chart-legend-dot" style="background: #7fb3ba;"></span>
+                                        <span class="chart-legend-label">Admin Fees</span>
+                                        <span class="chart-legend-value" id="legendAdmin">€0</span>
+                                    </div>
                                 </div>
-                                <p class="text-xl font-bold text-gray-900" id="summarySocialSec">€0</p>
-                                <p class="text-xs text-cozm-gold mt-1 hidden" id="socialSecWarningNote"></p>
-                            </div>
-                            <div class="result-card-light">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="w-2 h-2 rounded-full" style="background-color: #6366f1;"></span>
-                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Per Diem</p>
+
+                                <!-- Action Buttons -->
+                                <div class="chart-actions">
+                                    <button class="btn-secondary chart-action-btn">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                        Save
+                                    </button>
+                                    <button class="btn-secondary chart-action-btn">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                                        Share
+                                    </button>
+                                    <button class="btn-primary chart-action-btn">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        Approve
+                                    </button>
                                 </div>
-                                <p class="text-xl font-bold text-gray-900" id="summaryAllowances">€0</p>
-                            </div>
-                            <div class="result-card-light">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="w-2 h-2 rounded-full" style="background-color: var(--grey-400);"></span>
-                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Admin Fees</p>
-                                </div>
-                                <p class="text-xl font-bold text-gray-900" id="summaryAdminFees">€0</p>
                             </div>
                         </div>
                     </div>
 
-                    <div id="detailed-view" class="hidden animate-fade-in">
-                        <div class="space-y-8">
-                            <div class="card overflow-hidden"><table class="w-full breakdown-table"><thead><tr><th colspan="4">Tax Intelligence Report</th></tr></thead><tbody class="divide-y divide-gray-100">
-                                <tr><td class="font-bold">Base Remuneration</td><td></td><td class="text-right font-medium" id="detailGrossSalary">€0</td><td></td></tr>
-                                <tr><td class="font-bold">Subsistence Allowances</td><td class="text-gray-400 text-xs font-medium" id="detailDaysCalc"></td><td class="text-right font-medium" id="detailAllowances">€0</td><td></td></tr>
-                                <tr class="bg-gray-50"><td class="font-extrabold">Taxable Base (EUR)</td><td></td><td class="text-right font-extrabold" id="detailTaxableEUR">€0</td><td></td></tr>
-                                <tr><td class="font-bold">Forex Valuation</td><td class="text-gray-400 text-xs font-medium" id="exchangeRateInfo"></td><td></td><td></td></tr>
-                                <tr><td class="font-bold">Local Valuation</td><td></td><td class="text-right font-medium" id="detailTaxableBRL"></td><td></td></tr>
-                                <tr><td class="font-bold">Statutory Deductions</td><td></td><td class="text-right font-medium text-red-600" id="detailDeduction"></td><td></td></tr>
-                                <tr><td class="font-bold">Effective Tax Protocol</td><td class="text-gray-400 text-xs font-medium" id="taxRateInfo"></td><td class="text-right font-extrabold text-cozm-teal" id="taxRateValue"></td><td></td></tr>
-                                <tr class="total-row"><td class="font-extrabold">Net Tax Obligation (EUR)</td><td></td><td class="text-right font-extrabold" id="detailTaxTotal">€0</td><td></td></tr>
-                            </tbody></table></div>
-                            <!-- Additional detailed tables would go here -->
-                        </div>
-                    </div>
-
-                    <div class="mt-10 space-y-6">
-                        <button class="flex items-center gap-3 text-sm font-bold text-gray-700 group" onclick="toggleWorkings()"><svg id="workingsArrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg> Inspection Protocol & Data Sources</button>
-                        <div id="calculationWorkings" class="hidden"></div>
-                        
-                        <button class="flex items-center gap-3 text-sm font-bold text-gray-700 group" onclick="toggleAssumptions()"><svg id="assumptionsArrow" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg> Model Logic Assumptions</button>
-                        <div id="assumptionsPanel" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-8"><div class="flex items-start gap-6"><svg class="w-6 h-6 text-amber-500 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><ul class="space-y-4 text-[13px] text-amber-900 font-medium leading-relaxed">
-                            <li><strong>Sovereign Liability:</strong> The enterprise absorbs host nation tax obligations; individual maintains home nation compliance.</li>
-                            <li><strong>Per Diem Protocol:</strong> Synchronised with Finnish Tax Administration 2025 directives (Non-negotiable).</li>
-                            <li><strong>Residency Threshold:</strong> Engagements &ge;183 days trigger domestic tax residency protocols.</li>
-                            <li><strong>Forex Engine:</strong> Real-time valuation via ECB/Frankfurter API (Synchronised every 24h).</li>
-                        </ul></div></div>
-                    </div>
-
-                    <div class="mt-12 flex justify-end gap-4">
-                        <button class="btn-secondary px-8" style="width: auto;">Export Dossier (PDF)</button>
-                        <button class="btn-secondary px-8" style="width: auto;">Export Workbook (XLSX)</button>
-                    </div>
+                    <!-- Hidden container for legacy workings data (used by JS) -->
+                    <div id="calculationWorkings" class="hidden"></div>
                 </div>
             </div>
 

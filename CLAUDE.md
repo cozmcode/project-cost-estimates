@@ -66,6 +66,35 @@ Pre-approved users and superusers are defined in `js/supabase-config.js`:
 | Red | `#BD4040` | `--cozm-red` |
 | Gold | `#BD8941` | `--cozm-gold` |
 
+## UI Components
+
+### Tooltips / Help Text
+Form labels have help icons (small "i" badges) that show tooltip text on hover. Structure:
+```html
+<label class="form-label">
+  Label Text
+  <span class="tooltip-wrapper">
+    <span class="help-icon">i</span>
+    <span class="tooltip-content">Help text shown on hover</span>
+  </span>
+</label>
+```
+- `.tooltip-content` is `display: none` by default
+- Shows on `.tooltip-wrapper:hover`
+- If tooltips appear inline (not hidden), check CSS is loading properly
+
+### Results Layout
+Two-column layout with donut chart:
+- Left column (60%): Assignment Summary + expandable breakdown groups
+- Right column (40%): Total cost + Chart.js donut chart + legend + action buttons
+- Mobile: stacks vertically at <1024px breakpoint
+
+### Expandable Breakdown Groups
+Cost categories (Tax, Social Security, Per Diem, Admin Fees) use expandable cards:
+- Click header to expand/collapse details
+- Uses `toggleBreakdownGroup(groupId)` function
+- Styled with `.breakdown-group` and `.expanded` state
+
 ## Language & Style
 
 - British English throughout (organisation, authorise, colour)
