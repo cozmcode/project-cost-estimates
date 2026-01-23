@@ -34,6 +34,11 @@ const SUPERUSER_EMAILS = [
 let supabaseClient;
 
 function initSupabase() {
+    // Return existing client if already initialised
+    if (supabaseClient) {
+        return supabaseClient;
+    }
+
     if (typeof window !== 'undefined' && window.supabase) {
         supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             auth: {
@@ -41,7 +46,8 @@ function initSupabase() {
                 autoRefreshToken: true,         // Auto-refresh before expiry
                 detectSessionInUrl: true,       // Handle magic links if used
                 storageKey: 'fse-cost-calc-auth', // Unique storage key
-                storage: window.localStorage    // Use localStorage for persistence
+                storage: window.localStorage,   // Use localStorage for persistence
+                flowType: 'pkce'                // More secure auth flow
             }
         });
         return supabaseClient;

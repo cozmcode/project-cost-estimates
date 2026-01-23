@@ -30,7 +30,7 @@ const perDiemSourceUrl = 'https://www.veronmaksajat.fi/neuvot/henkiloverotus/tyo
 
 // Country tax configurations (fallback static rates)
 const countryConfig = {
-    Brazil: { taxRate: 0.275, currency: 'BRL', exchangeRate: 6.187, currencySymbol: 'R$', deduction: 16754.34, socialSec: 0, name: 'Brazil' },
+    Brazil: { taxRate: 0.25, currency: 'BRL', exchangeRate: 6.187, currencySymbol: 'R$', deduction: 0, socialSec: 0, name: 'Brazil', taxSource: 'Receita Federal (Decree 9,580/2018, Art. 682)', taxSourceUrl: 'https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/decreto/d9580.htm', taxNote: 'Non-resident flat rate (25%)' },
     USA: { taxRate: 0.37, currency: 'USD', exchangeRate: 1.08, currencySymbol: '$', deduction: 13850, socialSec: 0.0765, name: 'United States' },
     Germany: { taxRate: 0.45, currency: 'EUR', exchangeRate: 1.0, currencySymbol: '€', deduction: 10908, socialSec: 0.205, name: 'Germany' },
     UK: { taxRate: 0.45, currency: 'GBP', exchangeRate: 0.86, currencySymbol: '£', deduction: 12570, socialSec: 0.138, name: 'United Kingdom' },

@@ -8,8 +8,8 @@
       { "min": 55976.17, "max": null, "rate": 0.275 }
     ],
     "nonResidentRate": 0.25,
-    "taxSource": "Brazilian Federal Revenue (Receita Federal)",
-    "taxSourceUrl": "https://www.gov.br/receitafederal/pt-br/",
+    "taxSource": "Brazilian Federal Revenue (Decree 9,580/2018, Art. 682)",
+    "taxSourceUrl": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/decreto/d9580.htm",
     "visaFeesTaxable": false,
     "visaFeesNote": "Direct employer payments to immigration authorities are business expenses",
     "visaFeesSource": "Brazilian Federal Revenue Service",

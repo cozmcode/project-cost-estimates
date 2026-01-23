@@ -15,8 +15,24 @@ class AuthManager {
             return false;
         }
 
+        // Set up auth state change listener for session refresh
+        this.supabase.auth.onAuthStateChange((event, session) => {
+            console.log('Auth state changed:', event);
+            if (event === 'SIGNED_OUT') {
+                this.currentUser = null;
+            } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                this.currentUser = session?.user || null;
+            }
+        });
+
         // Check for existing session
-        const { data: { session } } = await this.supabase.auth.getSession();
+        const { data: { session }, error } = await this.supabase.auth.getSession();
+
+        if (error) {
+            console.error('Session check error:', error);
+            return false;
+        }
+
         if (session) {
             this.currentUser = session.user;
             return await this.checkUserAccess();
