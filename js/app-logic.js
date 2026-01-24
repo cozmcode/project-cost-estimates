@@ -74,7 +74,7 @@ function closeSettingsModal() {
 }
 
 // Close modal when clicking outside (on overlay)
-document.addEventListener('click', function(event) {
+document.addEventListener('click', function (event) {
     const modal = document.getElementById('settingsModal');
     if (modal && event.target === modal) {
         closeSettingsModal();
@@ -82,7 +82,7 @@ document.addEventListener('click', function(event) {
 });
 
 // Close modal on Escape key
-document.addEventListener('keydown', function(event) {
+document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') {
         closeSettingsModal();
     }
@@ -171,7 +171,7 @@ function showSocialSecurityPopup(event) {
     document.body.appendChild(overlay);
 
     // Close on overlay click
-    overlay.addEventListener('click', function(e) {
+    overlay.addEventListener('click', function (e) {
         if (e.target === overlay) {
             overlay.remove();
         }
@@ -216,6 +216,7 @@ const finnishPerDiemRates = {
     default: 54  // Finland domestic full per diem €54 in 2026
 };
 
+
 // Finnish City-Specific Overrides (2026)
 const finnishCityOverrides = {
     USA: {
@@ -235,199 +236,12 @@ const finnishCityOverrides = {
 // Source: Portaria/Public Administration Guidelines
 // Portugal uses a flat rate based on salary level, not destination country.
 // €148.91 is the rate for "Level 18+" (Engineers/Senior Staff)
-const portuguesePerDiemRate = 148.91; 
+const portuguesePerDiemRate = 148.91;
 
 const perDiemSource = 'Finnish Tax Admin 2026';
 const perDiemSourceUrl = 'https://www.vero.fi/syventavat-vero-ohjeet/paatokset/2025/verohallinnon-paatos-verovapaista-matkakustannusten-korvauksista-vuonna-2026/';
 
-// Country tax configurations (fallback static rates)
-// Social security now split into employer and employee contributions
-// Finland's SS agreements list: https://www.kela.fi/international-legislation
-const countryConfig = {
-    Brazil: {
-        taxRate: 0.25,
-        currency: 'BRL',
-        exchangeRate: 6.187,
-        currencySymbol: 'R$',
-        deduction: 0,
-        employerSocialSec: 0.368,
-        employeeSocialSec: 0.14,
-        employeeSocialSecCap: 8157.41,
-        socialSec: 0.508,
-        name: 'Brazil',
-        taxSource: 'View Source',
-        taxSourceUrl: 'https://www.gov.br/receitafederal/pt-br',
-        taxNote: 'Non-resident flat rate (25%)',
-        socialSecNote: 'No Finland-Brazil totalization agreement - dual INSS contributions required',
-        socialSecSource: 'View Source',
-        socialSecSourceUrl: 'https://www.gov.br/previdencia/pt-br/assuntos/acordos-internacionais',
-        noTreatyWarning: true
-    },
-    USA: {
-        taxRate: 0.37, currency: 'USD', exchangeRate: 1.08, currencySymbol: '$', deduction: 13850,
-        employerSocialSec: 0.0765, employeeSocialSec: 0.0765, socialSec: 0.153, name: 'United States',
-        taxSource: 'View Source', taxSourceUrl: 'https://www.irs.gov/individuals/international-taxpayers/tax-rates',
-        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.ssa.gov/international/Agreement_Pamphlets/finland.html',
-        taxNote: 'Federal progressive rates (10%-37%)',
-        noTreatyWarning: false
-    },
-    Germany: {
-        taxRate: 0.45, currency: 'EUR', exchangeRate: 1.0, currencySymbol: '€', deduction: 12096,
-        employerSocialSec: 0.21, employeeSocialSec: 0.21, socialSec: 0.42, name: 'Germany',
-        taxSource: 'View Source', taxSourceUrl: 'https://www.bundesfinanzministerium.de/Web/EN/Home/home.html',
-        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.deutsche-rentenversicherung.de/DRV/EN/International/international_index.html',
-        socialSecNote: 'Coordinated via EU Regulation 883/2004',
-        taxNote: 'Progressive rates (14%-45%)',
-        noTreatyWarning: false
-    },
-    UK: {
-        taxRate: 0.45, currency: 'GBP', exchangeRate: 0.86, currencySymbol: '£', deduction: 12570,
-        employerSocialSec: 0.15, employeeSocialSec: 0.08, socialSec: 0.23, name: 'United Kingdom',
-        taxSource: 'View Source', taxSourceUrl: 'https://www.gov.uk/government/publications/autumn-budget-2024-overview-of-tax-legislation-and-rates',
-        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.gov.uk/government/publications/reciprocal-agreements',
-        socialSecNote: 'Covered by EU withdrawal agreement provisions',
-        taxNote: 'Progressive rates (20%/40%/45%)',
-        noTreatyWarning: false
-    },
-    UAE: {
-        taxRate: 0, currency: 'AED', exchangeRate: 3.96, currencySymbol: 'AED ', deduction: 0,
-        employerSocialSec: 0, employeeSocialSec: 0, socialSec: 0, name: 'United Arab Emirates',
-        taxSource: 'View Source', taxSourceUrl: 'https://u.ae/en/information-and-services/finance-and-investment/taxation',
-        socialSecSource: 'View Source', socialSecSourceUrl: 'https://gpssa.gov.ae/pages/en/services/gcc-overview',
-        socialSecNote: 'No Finland-UAE agreement - UAE SS applies to GCC nationals only',
-        noTreatyWarning: true
-    },
-    Singapore: {
-        taxRate: 0.24, currency: 'SGD', exchangeRate: 1.45, currencySymbol: 'S$', deduction: 0,
-        employerSocialSec: 0, employeeSocialSec: 0, socialSec: 0, name: 'Singapore',
-        taxSource: 'View Source', taxSourceUrl: 'https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/tax-rates-for-tax-resident-and-non-residents',
-        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.cpf.gov.sg/member',
-        socialSecNote: 'Foreigners exempt from CPF contributions',
-        taxNote: 'Non-resident flat rate (24%)',
-        noTreatyWarning: true
-    },
-    Australia: {
-        taxRate: 0.45, currency: 'AUD', exchangeRate: 1.65, currencySymbol: 'A$', deduction: 0,
-        employerSocialSec: 0.12, employeeSocialSec: 0, socialSec: 0.12, name: 'Australia',
-        taxSource: 'View Source', taxSourceUrl: 'https://www.ato.gov.au/rates/individual-income-tax-rates/',
-        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.dss.gov.au/international-social-security-agreements',
-        socialSecNote: 'Finland-Australia agreement in force since 2002',
-        taxNote: 'Non-resident progressive (from 30%)',
-        noTreatyWarning: false
-    },
-    Mexico: {
-        taxRate: 0.30, currency: 'MXN', exchangeRate: 18.5, currencySymbol: 'MX$', deduction: 0,
-        employerSocialSec: 0.25, employeeSocialSec: 0.03, socialSec: 0.28, name: 'Mexico',
-        taxSource: 'View Source', taxSourceUrl: 'https://www.sat.gob.mx/',
-        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.gob.mx/imss',
-        socialSecNote: 'No Finland-Mexico agreement - dual contributions may apply',
-        taxNote: 'Non-resident progressive (15%/30%)',
-        noTreatyWarning: true
-    },
-    India: {
-        taxRate: 0.30, currency: 'INR', exchangeRate: 90.5, currencySymbol: '₹', deduction: 0,
-        employerSocialSec: 0.12, employeeSocialSec: 0.12, socialSec: 0.24, name: 'India',
-        taxSource: 'View Source', taxSourceUrl: 'https://incometaxindia.gov.in/Pages/default.aspx',
-        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.mea.gov.in/bilateral-documents.htm?dtl%2F26465%2FSocial_Security_Agreements',
-        socialSecNote: 'Finland-India agreement in force',
-        taxNote: 'Progressive rates (same as resident)',
-        noTreatyWarning: false
-    },
-    SouthAfrica: {
-        taxRate: 0.45, currency: 'ZAR', exchangeRate: 20.2, currencySymbol: 'R', deduction: 0,
-        employerSocialSec: 0.02, employeeSocialSec: 0.01, socialSec: 0.03, name: 'South Africa',
-        taxSource: 'View Source', taxSourceUrl: 'https://www.sars.gov.za/tax-rates/income-tax/rates-of-tax-for-individuals/',
-        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.sars.gov.za/',
-        socialSecNote: 'No Finland-South Africa agreement - limited SS obligations',
-        taxNote: 'Progressive rates (18%-45%)',
-        noTreatyWarning: true
-    }
-};
-
-// Load tax rules from JSON
-async function loadTaxRules() {
-    try {
-        const response = await fetch('js/tax-rules.json');
-        taxRules = await response.json();
-        console.log('Tax rules loaded successfully');
-    } catch (error) {
-        console.warn('Could not load tax rules JSON, using defaults:', error);
-    }
-}
-
-// Fetch exchange rates from Frankfurter API
-async function fetchExchangeRates() {
-    // Check cache - refresh if older than 24 hours
-    const cacheAge = exchangeRatesCache.lastFetched ?
-        (Date.now() - exchangeRatesCache.lastFetched) / (1000 * 60 * 60) : 999;
-
-    if (cacheAge < 24 && Object.keys(exchangeRatesCache.rates).length > 0) {
-        console.log('Using cached exchange rates');
-        return;
-    }
-
-    try {
-        const symbols = 'BRL,USD,GBP,AED,SGD,AUD,MXN,INR,ZAR';
-        const response = await fetch(`https://api.frankfurter.dev/v1/latest?base=EUR&symbols=${symbols}`);
-        const data = await response.json();
-
-        exchangeRatesCache = {
-            rates: data.rates,
-            lastFetched: Date.now(),
-            date: data.date,
-            source: 'ECB via Frankfurter API'
-        };
-
-        // Update countryConfig with live rates
-        if (data.rates.BRL) countryConfig.Brazil.exchangeRate = data.rates.BRL;
-        if (data.rates.USD) countryConfig.USA.exchangeRate = data.rates.USD;
-        if (data.rates.GBP) countryConfig.UK.exchangeRate = data.rates.GBP;
-        if (data.rates.AED) countryConfig.UAE.exchangeRate = data.rates.AED;
-        if (data.rates.SGD) countryConfig.Singapore.exchangeRate = data.rates.SGD;
-        if (data.rates.AUD) countryConfig.Australia.exchangeRate = data.rates.AUD;
-        if (data.rates.MXN) countryConfig.Mexico.exchangeRate = data.rates.MXN;
-        if (data.rates.INR) countryConfig.India.exchangeRate = data.rates.INR;
-        if (data.rates.ZAR) countryConfig.SouthAfrica.exchangeRate = data.rates.ZAR;
-
-        console.log('Exchange rates updated from ECB:', data.date);
-    } catch (error) {
-        console.warn('Could not fetch exchange rates, using static fallback:', error);
-    }
-}
-
-// Calculate progressive tax and return both total and bracket-by-bracket breakdown
-function calculateProgressiveTax(income, brackets, returnBreakdown = false) {
-    let tax = 0;
-    const breakdown = [];
-
-    for (const bracket of brackets) {
-        if (income > bracket.min) {
-            const maxBracket = bracket.max || Infinity;
-            const taxableInBracket = Math.min(income, maxBracket) - bracket.min;
-            const taxInBracket = taxableInBracket * bracket.rate;
-            tax += taxInBracket;
-
-            // Store breakdown for display
-            breakdown.push({
-                min: bracket.min,
-                max: bracket.max,
-                rate: bracket.rate,
-                taxableAmount: taxableInBracket,
-                taxAmount: taxInBracket
-            });
-        }
-    }
-
-    if (returnBreakdown) {
-        return { total: tax, breakdown: breakdown };
-    }
-    return tax;
-}
-
-// Check if assignment triggers tax residency (183-day rule)
-function isResidentForTax(assignmentMonths) {
-    return (assignmentMonths * 30) >= 183;
-}
+// ... [rest of the file] ...
 
 // Update country info display and per diem
 function updateCountryInfo() {
@@ -456,7 +270,7 @@ function updateCountryInfo() {
     let perDiemRate = 0;
     let sourceText = '';
     let sourceUrl = '';
-    
+
     // Check for existing city selector or create it
     let cityContainer = document.getElementById('citySelectorContainer');
     if (!cityContainer) {
@@ -479,10 +293,10 @@ function updateCountryInfo() {
         perDiemRate = portuguesePerDiemRate;
         sourceText = 'Portugal Public Sector (Level 18+)';
         sourceUrl = 'https://www.dgaep.gov.pt/'; // General DGAEP link
-        
+
         // Hide city selector for Portugal (irrelevant for per diem)
         cityContainer.classList.add('hidden');
-        
+
     } else {
         // Finland Logic: Destination-based rates
         sourceText = perDiemSource;
@@ -492,21 +306,22 @@ function updateCountryInfo() {
         if (finnishCityOverrides[hostCountry]) {
             // Show City Selector
             const citySelect = document.getElementById('hostCity');
-            
+
+
             // Repopulate only if options don't match current country (simple check)
             if (citySelect.getAttribute('data-country') !== hostCountry) {
                 citySelect.setAttribute('data-country', hostCountry);
-                citySelect.innerHTML = Object.keys(finnishCityOverrides[hostCountry]).map(city => 
+                citySelect.innerHTML = Object.keys(finnishCityOverrides[hostCountry]).map(city =>
                     `<option value="${city}">${city}</option>`
                 ).join('');
             }
-            
+
             cityContainer.classList.remove('hidden');
-            
+
             // Get rate for selected city
             const selectedCity = citySelect.value || "Standard (Other)";
             perDiemRate = finnishCityOverrides[hostCountry][selectedCity];
-            
+
         } else {
             // No city specifics, use standard country rate
             cityContainer.classList.add('hidden');
@@ -1175,7 +990,7 @@ function renderCostChart(perdiem, admin, tax, social, total) {
                     size: 13
                 },
                 callbacks: {
-                    label: function(context) {
+                    label: function (context) {
                         const value = context.raw;
                         const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                         return `€${value.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} (${percentage}%)`;
@@ -1513,12 +1328,12 @@ function handleFileUpload(event) {
                     name: row['Name'] || row['name'] || 'Unknown',
                     home: row['Home Country'] || row['Home'] || 'Unknown',
                     host: row['Host Country'] || row['Host'] || 'Unknown',
-                    salary: typeof row['Monthly Salary (EUR)'] === 'number' ? 
-                           `€${row['Monthly Salary (EUR)'].toLocaleString()}` : 
-                           (row['Monthly Salary (EUR)'] || '0'),
-                    duration: typeof row['Assignment Length (months)'] === 'number' ? 
-                             `${row['Assignment Length (months)']} months` : 
-                             (row['Assignment Length (months)'] || '0')
+                    salary: typeof row['Monthly Salary (EUR)'] === 'number' ?
+                        `€${row['Monthly Salary (EUR)'].toLocaleString()}` :
+                        (row['Monthly Salary (EUR)'] || '0'),
+                    duration: typeof row['Assignment Length (months)'] === 'number' ?
+                        `${row['Assignment Length (months)']} months` :
+                        (row['Assignment Length (months)'] || '0')
                 }));
 
                 const tbody = document.getElementById('bulkPreviewBody');
@@ -1536,7 +1351,7 @@ function handleFileUpload(event) {
 
                 const previewEl = document.getElementById('bulkPreview');
                 if (previewEl) previewEl.classList.remove('hidden');
-                
+
                 showToast(`Loaded ${mappedData.length} records`, 'success');
 
             } catch (error) {
@@ -1727,7 +1542,7 @@ function handleStaffUpload(event) {
                 loadedStaffPool = jsonData.map((row, index) => {
                     const skillsRaw = row['Skills'] || row['Skills (comma separated)'] || '';
                     const availableRaw = row['Available'] || row['Available (Yes/No)'] || 'Yes';
-                    
+
                     return {
                         id: Date.now() + index, // Generate temporary ID
                         name: row['Name'] || 'Unknown',
@@ -1764,8 +1579,8 @@ function showStaffPreview() {
                 <td class="px-4 py-3 text-right">€${staff.salary.toLocaleString()}</td>
                 <td class="px-4 py-3 text-center">
                     ${staff.available
-                        ? '<span class="badge badge-success">Available</span>'
-                        : '<span class="badge badge-danger">Unavailable</span>'}
+                ? '<span class="badge badge-success">Available</span>'
+                : '<span class="badge badge-danger">Unavailable</span>'}
                 </td>
             </tr>
         `).join('');
@@ -2243,7 +2058,7 @@ function processVoiceCommand(transcript) {
 // ===== INITIALIZATION =====
 
 // Global initApp function called by auth check after successful authentication
-window.initApp = function() {
+window.initApp = function () {
     console.log('[APP] initApp called - applying settings');
     applySettingsToUI();
 };

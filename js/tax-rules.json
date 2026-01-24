@@ -1,15 +1,15 @@
 {
   "Brazil": {
     "taxBrackets": [
-      { "min": 0, "max": 26963.88, "rate": 0 },
-      { "min": 26963.89, "max": 33919.80, "rate": 0.075 },
-      { "min": 33919.81, "max": 45012.60, "rate": 0.15 },
-      { "min": 45012.61, "max": 55976.16, "rate": 0.225 },
-      { "min": 55976.17, "max": null, "rate": 0.275 }
+      { "min": 0, "max": 2259.20, "rate": 0 },
+      { "min": 2259.21, "max": 2826.65, "rate": 0.075 },
+      { "min": 2826.66, "max": 3751.05, "rate": 0.15 },
+      { "min": 3751.06, "max": 4664.68, "rate": 0.225 },
+      { "min": 4664.69, "max": null, "rate": 0.275 }
     ],
     "nonResidentRate": 0.25,
-    "taxSource": "Brazilian Federal Revenue (Decree 9,580/2018, Art. 682)",
-    "taxSourceUrl": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/decreto/d9580.htm",
+    "taxSource": "Brazilian Federal Revenue (2025)",
+    "taxSourceUrl": "https://www.gov.br/receitafederal/pt-br/assuntos/orientacao-tributaria/tributos/irpf-imposto-de-renda-pessoa-fisica",
     "visaFeesTaxable": false,
     "visaFeesNote": "Direct employer payments to immigration authorities are business expenses",
     "visaFeesSource": "Brazilian Federal Revenue Service",
@@ -25,17 +25,17 @@
   },
   "USA": {
     "taxBrackets": [
-      { "min": 0, "max": 11600, "rate": 0.10 },
-      { "min": 11600, "max": 47150, "rate": 0.12 },
-      { "min": 47150, "max": 100525, "rate": 0.22 },
-      { "min": 100525, "max": 191950, "rate": 0.24 },
-      { "min": 191950, "max": 243725, "rate": 0.32 },
-      { "min": 243725, "max": 609350, "rate": 0.35 },
-      { "min": 609350, "max": null, "rate": 0.37 }
+      { "min": 0, "max": 11925, "rate": 0.10 },
+      { "min": 11925, "max": 48475, "rate": 0.12 },
+      { "min": 48475, "max": 103350, "rate": 0.22 },
+      { "min": 103350, "max": 197300, "rate": 0.24 },
+      { "min": 197300, "max": 250525, "rate": 0.32 },
+      { "min": 250525, "max": 626350, "rate": 0.35 },
+      { "min": 626350, "max": null, "rate": 0.37 }
     ],
-    "nonResidentRate": 0.30,
-    "taxSource": "IRS Revenue Procedure 2024-40",
-    "taxSourceUrl": "https://www.irs.gov/",
+    "useResidentBracketsForNonResident": true,
+    "taxSource": "IRS Revenue Procedure 2024-40 (2025 Tax Brackets)",
+    "taxSourceUrl": "https://www.irs.gov/pub/irs-drop/rp-24-40.pdf",
     "visaFeesTaxable": true,
     "visaFeesNote": "Visa costs are taxable fringe benefits (IRS)",
     "visaFeesSource": "IRS Publication 54",
@@ -52,15 +52,15 @@
   },
   "Germany": {
     "taxBrackets": [
-      { "min": 0, "max": 11604, "rate": 0 },
-      { "min": 11604, "max": 17005, "rate": 0.14 },
-      { "min": 17005, "max": 66760, "rate": 0.2397 },
-      { "min": 66760, "max": 277826, "rate": 0.42 },
+      { "min": 0, "max": 12096, "rate": 0 },
+      { "min": 12096, "max": 17400, "rate": 0.14 },
+      { "min": 17400, "max": 68400, "rate": 0.2397 },
+      { "min": 68400, "max": 277826, "rate": 0.42 },
       { "min": 277826, "max": null, "rate": 0.45 }
     ],
-    "nonResidentRate": 0.25,
-    "taxSource": "German Income Tax Act (EStG) 2024",
-    "taxSourceUrl": "https://www.gesetze-im-internet.de/estg/",
+    "useResidentBracketsForNonResident": true,
+    "taxSource": "German Income Tax Act (EStG) 2025",
+    "taxSourceUrl": "https://www.bundesfinanzministerium.de/Content/DE/Gesetzestexte/Gesetze_Gesetzesvorhaben/Abteilungen/Abteilung_IV/20_Legislaturperiode/2024-07-24-Steuerfortentwicklungsgesetz/0-Gesetz.html",
     "visaFeesTaxable": false,
     "visaFeesNote": "Direct employer payments are deductible business expenses",
     "visaFeesSource": "German Income Tax Act (EStG) section 9",
@@ -82,9 +82,9 @@
       { "min": 50270, "max": 125140, "rate": 0.40 },
       { "min": 125140, "max": null, "rate": 0.45 }
     ],
-    "nonResidentRate": 0.20,
-    "taxSource": "HMRC Income Tax Rates 2024/25",
-    "taxSourceUrl": "https://www.gov.uk/income-tax-rates",
+    "useResidentBracketsForNonResident": true,
+    "taxSource": "HMRC Income Tax Rates 2025/26 (Autumn Budget 2024)",
+    "taxSourceUrl": "https://www.gov.uk/government/publications/autumn-budget-2024-overview-of-tax-legislation-and-rates",
     "visaFeesTaxable": false,
     "visaFeesNote": "Direct payments to UKVI are business expenses",
     "visaFeesSource": "HMRC Employment Income Manual",
@@ -136,7 +136,7 @@
       { "min": 1000000, "max": null, "rate": 0.24 }
     ],
     "nonResidentRate": 0.24,
-    "taxSource": "IRAS Tax Rates 2024",
+    "taxSource": "IRAS Tax Rates 2025",
     "taxSourceUrl": "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/tax-residency-and-tax-rates/individual-income-tax-rates",
     "visaFeesTaxable": false,
     "visaFeesNote": "Work pass costs are employer business expenses",
@@ -159,8 +159,12 @@
       { "min": 135000, "max": 190000, "rate": 0.37 },
       { "min": 190000, "max": null, "rate": 0.45 }
     ],
-    "nonResidentRate": 0.325,
-    "taxSource": "ATO Tax Rates 2024-25",
+    "nonResidentBrackets": [
+      { "min": 0, "max": 135000, "rate": 0.30 },
+      { "min": 135000, "max": 190000, "rate": 0.37 },
+      { "min": 190000, "max": null, "rate": 0.45 }
+    ],
+    "taxSource": "ATO Tax Rates 2025-26",
     "taxSourceUrl": "https://www.ato.gov.au/rates/individual-income-tax-rates/",
     "visaFeesTaxable": false,
     "visaFeesNote": "Generally not FBT liable when employer pays directly",
@@ -189,8 +193,12 @@
       { "min": 1503902.46, "max": 4511707.37, "rate": 0.34 },
       { "min": 4511707.37, "max": null, "rate": 0.35 }
     ],
-    "nonResidentRate": 0.25,
-    "taxSource": "SAT Tax Tables 2024",
+    "nonResidentBrackets": [
+      { "min": 0, "max": 125900, "rate": 0 },
+      { "min": 125900, "max": 1000000, "rate": 0.15 },
+      { "min": 1000000, "max": null, "rate": 0.30 }
+    ],
+    "taxSource": "SAT Tax Tables 2025",
     "taxSourceUrl": "https://www.sat.gob.mx/",
     "visaFeesTaxable": false,
     "visaFeesNote": "Business expenses for non-residents",
@@ -216,8 +224,8 @@
       { "min": 2000000, "max": 2400000, "rate": 0.25 },
       { "min": 2400000, "max": null, "rate": 0.30 }
     ],
-    "nonResidentRate": 0.30,
-    "taxSource": "Income Tax Act 1961 (New Regime FY 2024-25)",
+    "useResidentBracketsForNonResident": true,
+    "taxSource": "Income Tax Act 1961 (New Regime FY 2025-26)",
     "taxSourceUrl": "https://incometaxindia.gov.in/",
     "visaFeesTaxable": false,
     "visaFeesNote": "Employer direct payments are business expenses",
@@ -242,9 +250,9 @@
       { "min": 857900, "max": 1817000, "rate": 0.41 },
       { "min": 1817000, "max": null, "rate": 0.45 }
     ],
-    "nonResidentRate": 0.25,
-    "taxSource": "SARS Tax Tables 2024/25",
-    "taxSourceUrl": "https://www.sars.gov.za/",
+    "useResidentBracketsForNonResident": true,
+    "taxSource": "SARS Tax Tables 2025/26",
+    "taxSourceUrl": "https://www.sars.gov.za/tax-rates/income-tax/rates-of-tax-for-individuals/",
     "visaFeesTaxable": false,
     "visaFeesNote": "Employer direct payments are business expenses",
     "visaFeesSource": "SARS",
@@ -259,19 +267,19 @@
     "perDiemSource": "SARS Allowances Guide",
     "perDiemUrl": "https://www.sars.gov.za/wp-content/uploads/Ops/Guides/PAYE-GEN-01-G03-Guide-for-Employers-in-respect-of-Allowances-External-Guide.pdf"
   },
-  "perDiemRates2025": {
-    "_source": "Finnish Tax Administration 2025",
-    "_sourceUrl": "https://www.veronmaksajat.fi/neuvot/henkiloverotus/tyo-elaka-ja-etuudet/paivarahat-ja-kilometrikorvaukset/2024/ulkomaan-paivarahat-2025/",
-    "Brazil": 66,
-    "USA": 75,
-    "Germany": 62,
-    "UK": 83,
-    "UAE": 74,
-    "Singapore": 88,
+  "perDiemRates2026": {
+    "_source": "Finnish Tax Administration 2026",
+    "_sourceUrl": "https://www.vero.fi/syventavat-vero-ohjeet/paatokset/2025/verohallinnon-paatos-verovapaista-matkakustannusten-korvauksista-vuonna-2026/",
+    "Brazil": 72,
+    "USA": 86,
+    "Germany": 78,
+    "UK": 84,
+    "UAE": 69,
+    "Singapore": 79,
     "Australia": 72,
-    "Mexico": 51,
-    "India": 55,
-    "SouthAfrica": 52,
-    "default": 52
+    "Mexico": 74,
+    "India": 57,
+    "SouthAfrica": 53,
+    "default": 54
   }
 }
