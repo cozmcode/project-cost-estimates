@@ -4,6 +4,78 @@
 // Tax rules loaded from JSON (will be fetched on page load)
 let taxRules = null;
 
+// ===== SETTINGS MANAGEMENT =====
+// Settings persist to localStorage and affect SS calculations globally
+
+const SETTINGS_STORAGE_KEY = 'fse-calculator-settings';
+
+// Default settings
+const defaultSettings = {
+    includeSSNoAgreement: true,   // Include host SS when NO reciprocal agreement (default: ON)
+    includeSSWithAgreement: false // Include host SS when agreement EXISTS (default: OFF)
+};
+
+// Load settings from localStorage
+function loadSettings() {
+    try {
+        const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            return { ...defaultSettings, ...parsed };
+        }
+    } catch (e) {
+        console.warn('Failed to load settings:', e);
+    }
+    return { ...defaultSettings };
+}
+
+// Save settings to localStorage
+function saveSettings() {
+    try {
+        const settings = {
+            includeSSNoAgreement: document.getElementById('settingSSNoAgreement')?.checked ?? defaultSettings.includeSSNoAgreement,
+            includeSSWithAgreement: document.getElementById('settingSSWithAgreement')?.checked ?? defaultSettings.includeSSWithAgreement
+        };
+        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+        console.log('[SETTINGS] Saved:', settings);
+    } catch (e) {
+        console.warn('Failed to save settings:', e);
+    }
+}
+
+// Apply saved settings to UI toggles
+function applySettingsToUI() {
+    const settings = loadSettings();
+    const noAgreementToggle = document.getElementById('settingSSNoAgreement');
+    const withAgreementToggle = document.getElementById('settingSSWithAgreement');
+
+    if (noAgreementToggle) noAgreementToggle.checked = settings.includeSSNoAgreement;
+    if (withAgreementToggle) withAgreementToggle.checked = settings.includeSSWithAgreement;
+
+    console.log('[SETTINGS] Applied to UI:', settings);
+}
+
+// Toggle settings panel open/closed
+function toggleSettingsPanel() {
+    const panel = document.getElementById('settingsPanel');
+    if (panel) {
+        panel.classList.toggle('expanded');
+    }
+}
+
+// Re-calculate if results are currently displayed
+function recalculateIfNeeded() {
+    const resultsSection = document.getElementById('resultsSection');
+    if (resultsSection && !resultsSection.classList.contains('hidden')) {
+        calculateCosts();
+    }
+}
+
+// Get current settings for use in calculations
+function getSettings() {
+    return loadSettings();
+}
+
 // Show social security popup when "No Reciprocal Agreement" badge is clicked
 function showSocialSecurityPopup(event) {
     event.stopPropagation(); // Prevent accordion toggle
@@ -527,33 +599,52 @@ function calculateCosts() {
     // ===== STEP 8: CALCULATE SOCIAL SECURITY ON SALARY ONLY =====
     // Per diem is NOT subject to social security when properly documented
     // Social security is calculated separately for employer and employee
+    // SETTINGS: User can toggle whether to include host SS based on agreement status
 
     let employerSocialSec = 0;
     let employeeSocialSec = 0;
+    let socialSecIncluded = true; // Track whether SS is included in calculation
+    let socialSecExclusionReason = null;
 
-    if (config.employerSocialSec !== undefined) {
-        // Use new separate rates
-        // Employer SS: typically uncapped
-        employerSocialSec = grossSalary * config.employerSocialSec;
+    // Check settings to determine if host SS should be included
+    const settings = getSettings();
+    const hasAgreement = !config.noTreatyWarning; // noTreatyWarning=true means NO agreement
 
-        // Employee SS: may be capped (e.g., Brazil INSS capped at BRL 8,157.41/month)
-        if (config.employeeSocialSecCap) {
-            // Calculate monthly employee SS with cap
-            const monthlySalaryLocal = monthlySalary * exchangeRate;
-            const cappedMonthlySS = Math.min(
-                monthlySalaryLocal * config.employeeSocialSec,
-                config.employeeSocialSecCap
-            );
-            // Convert back to EUR and multiply by assignment length
-            employeeSocialSec = (cappedMonthlySS / exchangeRate) * assignmentLength;
+    if (hasAgreement && !settings.includeSSWithAgreement) {
+        // Agreement exists, but user has toggled OFF host SS for agreement countries
+        socialSecIncluded = false;
+        socialSecExclusionReason = 'Excluded (A1/CoC exemption assumed)';
+    } else if (!hasAgreement && !settings.includeSSNoAgreement) {
+        // No agreement, but user has toggled OFF host SS for non-agreement countries
+        socialSecIncluded = false;
+        socialSecExclusionReason = 'Excluded by user setting';
+    }
+
+    if (socialSecIncluded) {
+        if (config.employerSocialSec !== undefined) {
+            // Use new separate rates
+            // Employer SS: typically uncapped
+            employerSocialSec = grossSalary * config.employerSocialSec;
+
+            // Employee SS: may be capped (e.g., Brazil INSS capped at BRL 8,157.41/month)
+            if (config.employeeSocialSecCap) {
+                // Calculate monthly employee SS with cap
+                const monthlySalaryLocal = monthlySalary * exchangeRate;
+                const cappedMonthlySS = Math.min(
+                    monthlySalaryLocal * config.employeeSocialSec,
+                    config.employeeSocialSecCap
+                );
+                // Convert back to EUR and multiply by assignment length
+                employeeSocialSec = (cappedMonthlySS / exchangeRate) * assignmentLength;
+            } else {
+                employeeSocialSec = grossSalary * config.employeeSocialSec;
+            }
         } else {
-            employeeSocialSec = grossSalary * config.employeeSocialSec;
+            // Fallback to old combined rate (split 50/50 for display)
+            const totalSS = grossSalary * config.socialSec;
+            employerSocialSec = totalSS * 0.7; // Employer typically pays more
+            employeeSocialSec = totalSS * 0.3;
         }
-    } else {
-        // Fallback to old combined rate (split 50/50 for display)
-        const totalSS = grossSalary * config.socialSec;
-        employerSocialSec = totalSS * 0.7; // Employer typically pays more
-        employeeSocialSec = totalSS * 0.3;
     }
 
     const totalSocialSecurity = employerSocialSec + employeeSocialSec;
@@ -612,6 +703,11 @@ function calculateCosts() {
         hostCountry,
         countryTaxRules,
         isResident,
+
+        // Social Security settings status
+        socialSecIncluded,
+        socialSecExclusionReason,
+        hasAgreement,
 
         // Legacy compatibility
         socialSecurityCost,
@@ -705,12 +801,25 @@ function calculateCosts() {
     // Social Security warning with clickable link to source
     const socialWarningEl = document.getElementById('detailSocialWarning');
     const socialWarningRow = document.getElementById('detailSocialWarningRow');
-    if (config.noTreatyWarning) {
+
+    // Show exclusion reason if SS was excluded by settings
+    if (!socialSecIncluded && socialSecExclusionReason) {
+        if (socialWarningEl) {
+            socialWarningEl.innerHTML = `<span class="text-gray-500">${socialSecExclusionReason}</span>`;
+        }
+        if (socialWarningRow) socialWarningRow.style.display = 'flex';
+        // Update the label to show "Status" instead of "Warning"
+        const warningLabel = socialWarningRow?.querySelector('.detail-label');
+        if (warningLabel) warningLabel.textContent = 'Status';
+    } else if (config.noTreatyWarning) {
         if (socialWarningEl) {
             const ssSourceUrl = config.socialSecSourceUrl || 'https://www.kela.fi/international-legislation';
             socialWarningEl.innerHTML = `<a href="${ssSourceUrl}" target="_blank" class="text-amber-600 hover:underline">No Reciprocal Agreement ⚠️</a>`;
         }
         if (socialWarningRow) socialWarningRow.style.display = 'flex';
+        // Reset label to "Warning"
+        const warningLabel = socialWarningRow?.querySelector('.detail-label');
+        if (warningLabel) warningLabel.textContent = 'Warning';
     } else {
         if (socialWarningRow) socialWarningRow.style.display = 'none';
     }
@@ -1979,6 +2088,12 @@ function processVoiceCommand(transcript) {
 
 // ===== INITIALIZATION =====
 
+// Global initApp function called by auth check after successful authentication
+window.initApp = function() {
+    console.log('[APP] initApp called - applying settings');
+    applySettingsToUI();
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
     const today = new Date().toISOString().split('T')[0];
     const startDateInput = document.getElementById('startDate');
@@ -1989,6 +2104,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const adminBtn = document.getElementById('admin-btn');
         if (adminBtn) adminBtn.style.display = 'flex';
     }
+
+    // Load and apply user settings from localStorage
+    applySettingsToUI();
 
     await loadTaxRules();
     await fetchExchangeRates();
