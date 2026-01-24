@@ -480,18 +480,14 @@ function calculateCosts() {
     let taxCalculationMethod = '';
     let effectiveTaxRate = 0;
 
-    if (countryTaxRules && countryTaxRules.taxBrackets && isResident) {
-        // Use progressive tax brackets for residents
+    if (countryTaxRules && countryTaxRules.taxBrackets) {
+        // Use progressive tax brackets for both residents and non-residents
+        // No simplification - apply actual progressive rates
         taxAmountLocal = calculateProgressiveTax(taxableIncomeLocal, countryTaxRules.taxBrackets);
-        taxCalculationMethod = 'Progressive brackets (resident)';
+        taxCalculationMethod = isResident ? 'Progressive brackets (resident)' : 'Progressive brackets (non-resident)';
         effectiveTaxRate = taxableIncomeLocal > 0 ? (taxAmountLocal / taxableIncomeLocal) * 100 : 0;
-    } else if (countryTaxRules && countryTaxRules.nonResidentRate && !isResident) {
-        // Use flat non-resident rate for short assignments
-        taxAmountLocal = taxableIncomeLocal * countryTaxRules.nonResidentRate;
-        taxCalculationMethod = `Non-resident flat rate (${(countryTaxRules.nonResidentRate * 100).toFixed(0)}%)`;
-        effectiveTaxRate = countryTaxRules.nonResidentRate * 100;
     } else {
-        // Fallback to flat rate
+        // Fallback to flat rate only if no brackets defined
         taxAmountLocal = taxableIncomeLocal * config.taxRate;
         taxCalculationMethod = `Flat rate (${(config.taxRate * 100).toFixed(0)}%)`;
         effectiveTaxRate = config.taxRate * 100;

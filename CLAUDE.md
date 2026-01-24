@@ -95,6 +95,22 @@ Cost categories (Tax, Social Security, Per Diem, Admin Fees) use expandable card
 - Uses `toggleBreakdownGroup(groupId)` function
 - Styled with `.breakdown-group` and `.expanded` state
 
+## Tax & Calculation Rules
+
+**CRITICAL: No simplifications allowed.** This calculator must apply granular, accurate tax rules:
+
+- **Never use flat rates as shortcuts** - Always apply progressive tax brackets for both residents AND non-residents where applicable
+- **Non-resident taxation** - Use actual progressive brackets, not simplified flat rates (e.g., UK non-residents should use 20%/40%/45% brackets, not a blanket 20%)
+- **Source all rates** - Every tax rate, social security rate, and per diem must link to an official government source
+- **Keep rates current** - Update to latest tax year rates annually (e.g., 2025/26 rates for UK)
+- **Document assumptions** - If any estimation is unavoidable, clearly label it in the UI and explain the limitation
+
+### Tax Rules JSON (`js/tax-rules.json`)
+Contains progressive tax brackets and non-resident rates for each country. When updating:
+1. Verify against official government sources
+2. Update the `taxSource` and `taxSourceUrl` fields
+3. Test calculations against manual calculations
+
 ## Language & Style
 
 - British English throughout (organisation, authorise, colour)
