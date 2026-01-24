@@ -103,22 +103,23 @@ let costChartInstance = null;
 let currentDisplayCurrency = 'EUR';
 let lastCalculationData = null;
 
-// Finnish 2025 per diem rates by country (locked as per requirements)
+// Finnish 2026 per diem rates by country (tax-free daily allowances)
+// Source: https://www.vero.fi/en/About-us/newsroom/news/uutiset/2025/tax-exempt-allowances-in-2026-for-business-travel/
 const finnishPerDiemRates = {
-    Brazil: 66,
-    USA: 75,
-    Germany: 62,
-    UK: 83,
-    UAE: 74,
-    Singapore: 88,
-    Australia: 72,
-    Mexico: 51,
-    India: 55,
-    SouthAfrica: 52,
-    default: 52
+    Brazil: 68,
+    USA: 77,
+    Germany: 64,
+    UK: 85,
+    UAE: 76,
+    Singapore: 90,
+    Australia: 74,
+    Mexico: 53,
+    India: 57,
+    SouthAfrica: 54,
+    default: 54  // Finland domestic full per diem €54 in 2026
 };
-const perDiemSource = 'Finnish Tax Administration 2025';
-const perDiemSourceUrl = 'https://www.veronmaksajat.fi/neuvot/henkiloverotus/tyo-elaka-ja-etuudet/paivarahat-ja-kilometrikorvaukset/2024/ulkomaan-paivarahat-2025/';
+const perDiemSource = 'Finnish Tax Admin 2026';
+const perDiemSourceUrl = 'https://www.vero.fi/en/About-us/newsroom/news/uutiset/2025/tax-exempt-allowances-in-2026-for-business-travel/';
 
 // Country tax configurations (fallback static rates)
 // Social security now split into employer and employee contributions
@@ -539,11 +540,16 @@ function calculateCosts() {
     const totalAllowances = totalPerDiem; // Rename for legacy compatibility
 
     // ===== STEP 9: GRAND TOTALS =====
-    // Total = Salary + Per Diem + Admin Fees + Tax + Social Security
+    // Grand Total = Salary + Per Diem + Admin Fees + Tax + Social Security (full cost)
     const grandTotal = grossSalary + totalPerDiem + totalAdminFees + taxAmountEUR + totalSocialSecurity;
 
+    // Additional Cost Total = Per Diem + Admin Fees + Tax + Social Security (excludes salary)
+    // This is the incremental cost due to the international assignment
+    const additionalCostTotal = totalPerDiem + totalAdminFees + taxAmountEUR + totalSocialSecurity;
+
     // ===== STEP 10: DAILY COST =====
-    const costPerDay = grandTotal / totalCalendarDays;
+    // Daily additional cost (not including salary)
+    const costPerDay = additionalCostTotal / totalCalendarDays;
 
     // Store calculation data for currency switching and display
     lastCalculationData = {
@@ -556,6 +562,7 @@ function calculateCosts() {
         employerSocialSec,
         employeeSocialSec,
         grandTotal,
+        additionalCostTotal,
         costPerDay,
 
         // Input values
@@ -613,15 +620,15 @@ function calculateCosts() {
     setEl('summaryAllowances', formatCurrency(totalAllowances));
     setEl('summaryAdminFees', formatCurrency(totalAdminFees));
     setEl('summaryPerDay', formatCurrencyDecimal(costPerDay));
-    setEl('summaryTotal', formatCurrency(grandTotal));
-    setEl('chartCenterTotal', formatCurrency(grandTotal));
+    // Show additional cost (excludes salary) as the main total
+    setEl('summaryTotal', formatCurrency(additionalCostTotal));
+    setEl('chartCenterTotal', formatCurrency(additionalCostTotal));
 
-    // Update chart legend values (all 5 components)
-    setEl('legendSalary', formatCurrency(grossSalary));
-    setEl('legendTax', formatCurrency(taxAmountEUR));
-    setEl('legendSocial', formatCurrency(socialSecurityCost));
+    // Update chart legend values (4 additional cost components - excludes salary)
     setEl('legendPerdiem', formatCurrency(totalAllowances));
     setEl('legendAdmin', formatCurrency(totalAdminFees));
+    setEl('legendTax', formatCurrency(taxAmountEUR));
+    setEl('legendSocial', formatCurrency(socialSecurityCost));
 
     // Update breakdown group details
     // Tax details
@@ -665,8 +672,8 @@ function calculateCosts() {
     setEl('detailVisaFee', formatCurrency(visaFee));
     setEl('detailWorkPermit', formatCurrency(workPermitFee));
 
-    // Render donut chart with all 5 components
-    renderCostChart(grossSalary, totalPerDiem, totalAdminFees, taxAmountEUR, totalSocialSecurity, grandTotal);
+    // Render donut chart with 4 additional cost components (excludes salary)
+    renderCostChart(totalPerDiem, totalAdminFees, taxAmountEUR, totalSocialSecurity, additionalCostTotal);
 
     // Show/hide social security badge based on treaty status
     const socialSecBadge = document.getElementById('socialSecBadge');
@@ -808,8 +815,8 @@ function toggleBreakdownGroup(groupId) {
 }
 
 // Render donut chart using Chart.js
-// Updated to show 5 components: Salary, Per Diem, Admin Fees, Tax, Social Security
-function renderCostChart(salary, perdiem, admin, tax, social, total) {
+// Shows 4 additional cost components: Per Diem, Admin Fees, Tax, Social Security (excludes salary)
+function renderCostChart(perdiem, admin, tax, social, total) {
     const ctx = document.getElementById('costChart');
     if (!ctx) return;
 
@@ -818,13 +825,12 @@ function renderCostChart(salary, perdiem, admin, tax, social, total) {
         costChartInstance.destroy();
     }
 
-    // Chart data - 5 components in logical order
+    // Chart data - 4 additional cost components (salary excluded)
     const data = {
-        labels: ['Salary', 'Per Diem', 'Admin Fees', 'Tax', 'Social Security'],
+        labels: ['Per Diem', 'Admin Fees', 'Tax', 'Social Security'],
         datasets: [{
-            data: [salary, perdiem, admin, tax, social],
+            data: [perdiem, admin, tax, social],
             backgroundColor: [
-                '#44919c', // Salary - Cozm Teal
                 '#83849E', // Per Diem - Grey
                 '#BD8941', // Admin Fees - Gold
                 '#181C31', // Tax - Dark Navy
@@ -930,13 +936,14 @@ function updateDisplayValues(calc) {
         symbol = '€';
     }
 
-    // Recalculate values with new 5-component structure
+    // Recalculate values with currency conversion
     const salary = calc.grossSalary * conversionRate;
     const perdiem = (calc.totalPerDiem || calc.totalAllowances) * conversionRate;
     const admin = calc.totalAdminFees * conversionRate;
     const tax = calc.taxAmountEUR * conversionRate;
     const social = (calc.totalSocialSecurity || calc.socialSecurityCost) * conversionRate;
-    const total = calc.grandTotal * conversionRate;
+    // Additional cost total (excludes salary)
+    const additionalTotal = calc.additionalCostTotal * conversionRate;
     const perDay = calc.costPerDay * conversionRate;
 
     // Update summary totals
@@ -945,8 +952,9 @@ function updateDisplayValues(calc) {
         if (el) el.textContent = text;
     };
 
-    setEl('summaryTotal', formatCurrency(total, symbol));
-    setEl('chartCenterTotal', formatCurrency(total, symbol));
+    // Show additional cost (excludes salary) as the main total
+    setEl('summaryTotal', formatCurrency(additionalTotal, symbol));
+    setEl('chartCenterTotal', formatCurrency(additionalTotal, symbol));
     setEl('summaryPerDay', formatCurrencyDecimal(perDay, symbol));
 
     // Update breakdown values
@@ -956,15 +964,14 @@ function updateDisplayValues(calc) {
     setEl('summaryAllowances', formatCurrency(perdiem, symbol));
     setEl('summaryAdminFees', formatCurrency(admin, symbol));
 
-    // Update chart legend
-    setEl('legendSalary', formatCurrency(salary, symbol));
+    // Update chart legend (only 4 additional cost components)
     setEl('legendTax', formatCurrency(tax, symbol));
     setEl('legendSocial', formatCurrency(social, symbol));
     setEl('legendPerdiem', formatCurrency(perdiem, symbol));
     setEl('legendAdmin', formatCurrency(admin, symbol));
 
-    // Re-render chart with converted values (5 components)
-    renderCostChart(salary, perdiem, admin, tax, social, total);
+    // Re-render chart with 4 additional cost components (excludes salary)
+    renderCostChart(perdiem, admin, tax, social, additionalTotal);
 }
 
 // Update the detailed calculation workings display with collapsible sections
