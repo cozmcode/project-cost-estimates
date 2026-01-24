@@ -467,7 +467,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
                             <div>
                                 <label class="form-label">Home Country <span class="tooltip-wrapper"><span class="help-icon">i</span><span class="tooltip-content">The engineer's country of tax residence and employment contract</span></span></label>
-                                <select id="homeCountry" class="input-field w-full">
+                                <select id="homeCountry" class="input-field w-full" onchange="updateCountryInfo()">
                                     <option value="Finland">Finland</option>
                                     <option value="Portugal">Portugal</option>
                                 </select>
@@ -1070,7 +1070,7 @@
     <!-- NOTE: Supabase scripts are loaded in <head> to prevent race condition with auth check -->
     <script src="js/mock-data.js"></script>
     <script src="js/staffing-engine.js"></script>
-    <script src="js/app-logic.js?v=1.0.3"></script>
+    <script src="js/app-logic.js?v=1.0.4"></script>
 
     <!-- Staffing UI Interaction Script -->
     <script>
