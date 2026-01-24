@@ -215,6 +215,28 @@ const finnishPerDiemRates = {
     SouthAfrica: 53,
     default: 54  // Finland domestic full per diem €54 in 2026
 };
+
+// Finnish City-Specific Overrides (2026)
+const finnishCityOverrides = {
+    USA: {
+        "Standard (Other)": 86,
+        "New York": 122,
+        "Los Angeles": 122,
+        "Washington D.C.": 122
+    },
+    UK: {
+        "Standard (Other)": 84,
+        "London": 89,
+        "Edinburgh": 89
+    }
+};
+
+// Portuguese Per Diem Rates (2024/2025 Reference)
+// Source: Portaria/Public Administration Guidelines
+// Portugal uses a flat rate based on salary level, not destination country.
+// €148.91 is the rate for "Level 18+" (Engineers/Senior Staff)
+const portuguesePerDiemRate = 148.91; 
+
 const perDiemSource = 'Finnish Tax Admin 2026';
 const perDiemSourceUrl = 'https://www.vero.fi/syventavat-vero-ohjeet/paatokset/2025/verohallinnon-paatos-verovapaista-matkakustannusten-korvauksista-vuonna-2026/';
 
@@ -409,13 +431,16 @@ function isResidentForTax(assignmentMonths) {
 
 // Update country info display and per diem
 function updateCountryInfo() {
+    const homeCountryEl = document.getElementById('homeCountry');
     const countryEl = document.getElementById('hostCountry');
-    if (!countryEl) return;
+    if (!countryEl || !homeCountryEl) return;
 
-    const country = countryEl.value;
-    const config = countryConfig[country];
+    const homeCountry = homeCountryEl.value;
+    const hostCountry = countryEl.value;
+    const config = countryConfig[hostCountry];
     if (!config) return;
 
+    // 1. Update Tax Info Text
     const taxPercent = (config.taxRate * 100).toFixed(0);
     const infoEl = document.getElementById('countryTaxInfo');
 
@@ -427,18 +452,79 @@ function updateCountryInfo() {
         }
     }
 
-    // Auto-populate and lock per diem rate
-    const perDiemRate = finnishPerDiemRates[country] || finnishPerDiemRates.default;
+    // 2. Determine Per Diem Rate based on Home Country
+    let perDiemRate = 0;
+    let sourceText = '';
+    let sourceUrl = '';
+    
+    // Check for existing city selector or create it
+    let cityContainer = document.getElementById('citySelectorContainer');
+    if (!cityContainer) {
+        // Create container after host country select
+        const hostParent = countryEl.parentElement;
+        cityContainer = document.createElement('div');
+        cityContainer.id = 'citySelectorContainer';
+        cityContainer.className = 'mt-3 hidden animate-fade-in';
+        cityContainer.innerHTML = `
+            <label class="form-label text-xs">Destination City (Affects Allowance)</label>
+            <select id="hostCity" class="input-field w-full text-sm" onchange="updateCountryInfo()">
+                <!-- Options populated dynamically -->
+            </select>
+        `;
+        hostParent.appendChild(cityContainer);
+    }
+
+    if (homeCountry === 'Portugal') {
+        // Portugal Logic: Flat rate regardless of destination
+        perDiemRate = portuguesePerDiemRate;
+        sourceText = 'Portugal Public Sector (Level 18+)';
+        sourceUrl = 'https://www.dgaep.gov.pt/'; // General DGAEP link
+        
+        // Hide city selector for Portugal (irrelevant for per diem)
+        cityContainer.classList.add('hidden');
+        
+    } else {
+        // Finland Logic: Destination-based rates
+        sourceText = perDiemSource;
+        sourceUrl = perDiemSourceUrl;
+
+        // Check if Host Country has city specifics
+        if (finnishCityOverrides[hostCountry]) {
+            // Show City Selector
+            const citySelect = document.getElementById('hostCity');
+            
+            // Repopulate only if options don't match current country (simple check)
+            if (citySelect.getAttribute('data-country') !== hostCountry) {
+                citySelect.setAttribute('data-country', hostCountry);
+                citySelect.innerHTML = Object.keys(finnishCityOverrides[hostCountry]).map(city => 
+                    `<option value="${city}">${city}</option>`
+                ).join('');
+            }
+            
+            cityContainer.classList.remove('hidden');
+            
+            // Get rate for selected city
+            const selectedCity = citySelect.value || "Standard (Other)";
+            perDiemRate = finnishCityOverrides[hostCountry][selectedCity];
+            
+        } else {
+            // No city specifics, use standard country rate
+            cityContainer.classList.add('hidden');
+            perDiemRate = finnishPerDiemRates[hostCountry] || finnishPerDiemRates.default;
+        }
+    }
+
+    // 3. Update Input Field
     const perDiemInput = document.getElementById('dailyAllowance');
     if (perDiemInput) {
         perDiemInput.value = perDiemRate;
-        perDiemInput.disabled = true;
+        perDiemInput.disabled = true; // Always auto-calculated
     }
 
-    // Update per diem info text
+    // 4. Update Source Link
     const perDiemInfo = document.getElementById('perDiemInfo');
     if (perDiemInfo) {
-        perDiemInfo.innerHTML = `<a href="${perDiemSourceUrl}" target="_blank" class="text-cozm-teal hover:underline">${perDiemSource}</a>`;
+        perDiemInfo.innerHTML = `<a href="${sourceUrl}" target="_blank" class="text-cozm-teal hover:underline">${sourceText}</a>`;
     }
 
     // Update local currency label in toggle button
