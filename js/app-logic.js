@@ -55,13 +55,38 @@ function applySettingsToUI() {
     console.log('[SETTINGS] Applied to UI:', settings);
 }
 
-// Toggle settings panel open/closed
-function toggleSettingsPanel() {
-    const panel = document.getElementById('settingsPanel');
-    if (panel) {
-        panel.classList.toggle('expanded');
+// Open settings modal
+function openSettingsModal() {
+    const modal = document.getElementById('settingsModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        // Apply current settings to UI when modal opens
+        applySettingsToUI();
     }
 }
+
+// Close settings modal
+function closeSettingsModal() {
+    const modal = document.getElementById('settingsModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+// Close modal when clicking outside (on overlay)
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('settingsModal');
+    if (modal && event.target === modal) {
+        closeSettingsModal();
+    }
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeSettingsModal();
+    }
+});
 
 // Re-calculate if results are currently displayed
 function recalculateIfNeeded() {
@@ -176,22 +201,22 @@ let currentDisplayCurrency = 'EUR';
 let lastCalculationData = null;
 
 // Finnish 2026 per diem rates by country (tax-free daily allowances)
-// Source: https://www.vero.fi/en/About-us/newsroom/news/uutiset/2025/tax-exempt-allowances-in-2026-for-business-travel/
+// Source: https://www.vero.fi/syventavat-vero-ohjeet/paatokset/2025/verohallinnon-paatos-verovapaista-matkakustannusten-korvauksista-vuonna-2026/
 const finnishPerDiemRates = {
-    Brazil: 68,
-    USA: 77,
-    Germany: 64,
-    UK: 85,
-    UAE: 76,
-    Singapore: 90,
-    Australia: 74,
-    Mexico: 53,
+    Brazil: 72,
+    USA: 86,
+    Germany: 78,
+    UK: 84,
+    UAE: 69,
+    Singapore: 79,
+    Australia: 72,
+    Mexico: 74,
     India: 57,
-    SouthAfrica: 54,
+    SouthAfrica: 53,
     default: 54  // Finland domestic full per diem €54 in 2026
 };
 const perDiemSource = 'Finnish Tax Admin 2026';
-const perDiemSourceUrl = 'https://www.vero.fi/en/About-us/newsroom/news/uutiset/2025/tax-exempt-allowances-in-2026-for-business-travel/';
+const perDiemSourceUrl = 'https://www.vero.fi/syventavat-vero-ohjeet/paatokset/2025/verohallinnon-paatos-verovapaista-matkakustannusten-korvauksista-vuonna-2026/';
 
 // Country tax configurations (fallback static rates)
 // Social security now split into employer and employee contributions
@@ -209,11 +234,11 @@ const countryConfig = {
         socialSec: 0.508,
         name: 'Brazil',
         taxSource: 'View Source',
-        taxSourceUrl: 'https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/decreto/d9580.htm',
+        taxSourceUrl: 'https://www.gov.br/receitafederal/pt-br',
         taxNote: 'Non-resident flat rate (25%)',
         socialSecNote: 'No Finland-Brazil totalization agreement - dual INSS contributions required',
         socialSecSource: 'View Source',
-        socialSecSourceUrl: 'https://www.gov.br/previdencia/pt-br/assuntos/acordos-internacionais/pagina-antiga/acordos-internacionais/international-agreements-on-social-security',
+        socialSecSourceUrl: 'https://www.gov.br/previdencia/pt-br/assuntos/acordos-internacionais',
         noTreatyWarning: true
     },
     USA: {
@@ -221,22 +246,25 @@ const countryConfig = {
         employerSocialSec: 0.0765, employeeSocialSec: 0.0765, socialSec: 0.153, name: 'United States',
         taxSource: 'View Source', taxSourceUrl: 'https://www.irs.gov/individuals/international-taxpayers/tax-rates',
         socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.ssa.gov/international/Agreement_Pamphlets/finland.html',
+        taxNote: 'Federal progressive rates (10%-37%)',
         noTreatyWarning: false
     },
     Germany: {
-        taxRate: 0.45, currency: 'EUR', exchangeRate: 1.0, currencySymbol: '€', deduction: 10908,
-        employerSocialSec: 0.205, employeeSocialSec: 0.205, socialSec: 0.41, name: 'Germany',
+        taxRate: 0.45, currency: 'EUR', exchangeRate: 1.0, currencySymbol: '€', deduction: 12096,
+        employerSocialSec: 0.21, employeeSocialSec: 0.21, socialSec: 0.42, name: 'Germany',
         taxSource: 'View Source', taxSourceUrl: 'https://www.bundesfinanzministerium.de/Web/EN/Home/home.html',
         socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.deutsche-rentenversicherung.de/DRV/EN/International/international_index.html',
         socialSecNote: 'Coordinated via EU Regulation 883/2004',
+        taxNote: 'Progressive rates (14%-45%)',
         noTreatyWarning: false
     },
     UK: {
         taxRate: 0.45, currency: 'GBP', exchangeRate: 0.86, currencySymbol: '£', deduction: 12570,
-        employerSocialSec: 0.138, employeeSocialSec: 0.12, socialSec: 0.258, name: 'United Kingdom',
-        taxSource: 'View Source', taxSourceUrl: 'https://www.gov.uk/income-tax-rates',
+        employerSocialSec: 0.15, employeeSocialSec: 0.08, socialSec: 0.23, name: 'United Kingdom',
+        taxSource: 'View Source', taxSourceUrl: 'https://www.gov.uk/government/publications/autumn-budget-2024-overview-of-tax-legislation-and-rates',
         socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.gov.uk/government/publications/reciprocal-agreements',
         socialSecNote: 'Covered by EU withdrawal agreement provisions',
+        taxNote: 'Progressive rates (20%/40%/45%)',
         noTreatyWarning: false
     },
     UAE: {
@@ -248,43 +276,48 @@ const countryConfig = {
         noTreatyWarning: true
     },
     Singapore: {
-        taxRate: 0.22, currency: 'SGD', exchangeRate: 1.45, currencySymbol: 'S$', deduction: 0,
-        employerSocialSec: 0.17, employeeSocialSec: 0.20, socialSec: 0.37, name: 'Singapore',
+        taxRate: 0.24, currency: 'SGD', exchangeRate: 1.45, currencySymbol: 'S$', deduction: 0,
+        employerSocialSec: 0, employeeSocialSec: 0, socialSec: 0, name: 'Singapore',
         taxSource: 'View Source', taxSourceUrl: 'https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/tax-rates-for-tax-resident-and-non-residents',
         socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.cpf.gov.sg/member',
-        socialSecNote: 'No Finland-Singapore agreement - CPF applies to Singapore citizens/PRs only',
+        socialSecNote: 'Foreigners exempt from CPF contributions',
+        taxNote: 'Non-resident flat rate (24%)',
         noTreatyWarning: true
     },
     Australia: {
-        taxRate: 0.45, currency: 'AUD', exchangeRate: 1.65, currencySymbol: 'A$', deduction: 18200,
-        employerSocialSec: 0.115, employeeSocialSec: 0, socialSec: 0.115, name: 'Australia',
-        taxSource: 'View Source', taxSourceUrl: 'https://www.ato.gov.au/individuals-and-families/coming-to-australia-or-going-overseas/your-tax-residency',
+        taxRate: 0.45, currency: 'AUD', exchangeRate: 1.65, currencySymbol: 'A$', deduction: 0,
+        employerSocialSec: 0.12, employeeSocialSec: 0, socialSec: 0.12, name: 'Australia',
+        taxSource: 'View Source', taxSourceUrl: 'https://www.ato.gov.au/rates/individual-income-tax-rates/',
         socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.dss.gov.au/international-social-security-agreements',
         socialSecNote: 'Finland-Australia agreement in force since 2002',
+        taxNote: 'Non-resident progressive (from 30%)',
         noTreatyWarning: false
     },
     Mexico: {
-        taxRate: 0.35, currency: 'MXN', exchangeRate: 18.5, currencySymbol: 'MX$', deduction: 0,
-        employerSocialSec: 0.0625, employeeSocialSec: 0.025, socialSec: 0.0875, name: 'Mexico',
+        taxRate: 0.30, currency: 'MXN', exchangeRate: 18.5, currencySymbol: 'MX$', deduction: 0,
+        employerSocialSec: 0.25, employeeSocialSec: 0.03, socialSec: 0.28, name: 'Mexico',
         taxSource: 'View Source', taxSourceUrl: 'https://www.sat.gob.mx/',
         socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.gob.mx/imss',
         socialSecNote: 'No Finland-Mexico agreement - dual contributions may apply',
+        taxNote: 'Non-resident progressive (15%/30%)',
         noTreatyWarning: true
     },
     India: {
-        taxRate: 0.30, currency: 'INR', exchangeRate: 90.5, currencySymbol: '₹', deduction: 250000,
+        taxRate: 0.30, currency: 'INR', exchangeRate: 90.5, currencySymbol: '₹', deduction: 0,
         employerSocialSec: 0.12, employeeSocialSec: 0.12, socialSec: 0.24, name: 'India',
         taxSource: 'View Source', taxSourceUrl: 'https://incometaxindia.gov.in/Pages/default.aspx',
         socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.mea.gov.in/bilateral-documents.htm?dtl%2F26465%2FSocial_Security_Agreements',
         socialSecNote: 'Finland-India agreement in force',
+        taxNote: 'Progressive rates (same as resident)',
         noTreatyWarning: false
     },
     SouthAfrica: {
-        taxRate: 0.45, currency: 'ZAR', exchangeRate: 20.2, currencySymbol: 'R', deduction: 87300,
-        employerSocialSec: 0.01, employeeSocialSec: 0.01, socialSec: 0.02, name: 'South Africa',
-        taxSource: 'View Source', taxSourceUrl: 'https://www.sars.gov.za/individuals/tax-rates/',
-        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.sassa.gov.za/',
-        socialSecNote: 'No Finland-South Africa agreement - limited SS obligations for non-residents',
+        taxRate: 0.45, currency: 'ZAR', exchangeRate: 20.2, currencySymbol: 'R', deduction: 0,
+        employerSocialSec: 0.02, employeeSocialSec: 0.01, socialSec: 0.03, name: 'South Africa',
+        taxSource: 'View Source', taxSourceUrl: 'https://www.sars.gov.za/tax-rates/income-tax/rates-of-tax-for-individuals/',
+        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.sars.gov.za/',
+        socialSecNote: 'No Finland-South Africa agreement - limited SS obligations',
+        taxNote: 'Progressive rates (18%-45%)',
         noTreatyWarning: true
     }
 };
@@ -569,24 +602,59 @@ function calculateCosts() {
     let effectiveTaxRate = 0;
     let taxBracketBreakdown = []; // Detailed bracket-by-bracket breakdown
 
-    if (countryTaxRules && countryTaxRules.taxBrackets) {
-        // Use progressive tax brackets for both residents and non-residents
-        // No simplification - apply actual progressive rates with full breakdown
-        const taxResult = calculateProgressiveTax(taxableIncomeLocal, countryTaxRules.taxBrackets, true);
+    // Determine which rule to apply
+    let bracketsToUse = null;
+    let flatRateToUse = null;
+
+    if (countryTaxRules) {
+        if (isResident) {
+            if (countryTaxRules.taxBrackets) {
+                bracketsToUse = countryTaxRules.taxBrackets;
+                taxCalculationMethod = 'Progressive brackets (Resident)';
+            } else {
+                // Resident but no brackets? Fallback to config flat rate (unlikely for these countries)
+                flatRateToUse = config.taxRate;
+                taxCalculationMethod = `Flat rate (${(flatRateToUse * 100).toFixed(0)}%)`;
+            }
+        } else {
+            // Non-Resident
+            if (countryTaxRules.nonResidentBrackets) {
+                bracketsToUse = countryTaxRules.nonResidentBrackets;
+                taxCalculationMethod = 'Progressive brackets (Non-Resident)';
+            } else if (countryTaxRules.useResidentBracketsForNonResident && countryTaxRules.taxBrackets) {
+                bracketsToUse = countryTaxRules.taxBrackets;
+                taxCalculationMethod = 'Progressive brackets (Non-Resident - Same as Resident)';
+            } else if (countryTaxRules.nonResidentRate !== undefined) {
+                flatRateToUse = countryTaxRules.nonResidentRate;
+                taxCalculationMethod = `Non-Resident Flat Rate (${(flatRateToUse * 100).toFixed(0)}%)`;
+            } else if (countryTaxRules.taxBrackets) {
+                // Fallback: If only taxBrackets exist and nothing else specified, assume they apply?
+                // Or assume flat rate from config?
+                // The safest fallback for our updated JSON structure is to use config.taxRate if we don't match above
+                flatRateToUse = config.taxRate;
+                taxCalculationMethod = `Flat rate (${(flatRateToUse * 100).toFixed(0)}%)`;
+            } else {
+                flatRateToUse = config.taxRate;
+                taxCalculationMethod = `Flat rate (${(flatRateToUse * 100).toFixed(0)}%)`;
+            }
+        }
+    } else {
+        flatRateToUse = config.taxRate;
+        taxCalculationMethod = `Flat rate (${(flatRateToUse * 100).toFixed(0)}%)`;
+    }
+
+    if (bracketsToUse) {
+        const taxResult = calculateProgressiveTax(taxableIncomeLocal, bracketsToUse, true);
         taxAmountLocal = taxResult.total;
         taxBracketBreakdown = taxResult.breakdown;
-        taxCalculationMethod = isResident ? 'Progressive brackets (resident)' : 'Progressive brackets (non-resident)';
         effectiveTaxRate = taxableIncomeLocal > 0 ? (taxAmountLocal / taxableIncomeLocal) * 100 : 0;
     } else {
-        // Fallback to flat rate only if no brackets defined
-        taxAmountLocal = taxableIncomeLocal * config.taxRate;
-        taxCalculationMethod = `Flat rate (${(config.taxRate * 100).toFixed(0)}%)`;
-        effectiveTaxRate = config.taxRate * 100;
-        // Create single-bracket breakdown for flat rate
+        taxAmountLocal = taxableIncomeLocal * flatRateToUse;
+        effectiveTaxRate = flatRateToUse * 100;
         taxBracketBreakdown = [{
             min: 0,
             max: null,
-            rate: config.taxRate,
+            rate: flatRateToUse,
             taxableAmount: taxableIncomeLocal,
             taxAmount: taxAmountLocal
         }];
