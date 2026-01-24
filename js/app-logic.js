@@ -4,6 +4,91 @@
 // Tax rules loaded from JSON (will be fetched on page load)
 let taxRules = null;
 
+// Show social security popup when "No Reciprocal Agreement" badge is clicked
+function showSocialSecurityPopup(event) {
+    event.stopPropagation(); // Prevent accordion toggle
+
+    // Get current host country from calculation data or default
+    const hostCountry = document.getElementById('hostCountry')?.value || 'Brazil';
+    const config = countryConfig[hostCountry] || countryConfig.Brazil;
+    const countryName = config.name || hostCountry;
+
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'socialSecurityModal';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 16px;
+    `;
+
+    // Create modal content
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        max-width: 400px;
+        width: 100%;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        font-family: 'Inter', sans-serif;
+    `;
+
+    modal.innerHTML = `
+        <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
+            <div style="flex-shrink: 0; width: 40px; height: 40px; background: #FEF3C7; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg style="width: 20px; height: 20px; color: #D97706;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0;">No Reciprocal Agreement</h3>
+                <p style="font-size: 14px; color: #6b7280; margin: 0; line-height: 1.5;">
+                    Dual social security contributions apply (no Finland-${countryName} social security reciprocal agreement)
+                </p>
+            </div>
+        </div>
+        <button onclick="document.getElementById('socialSecurityModal').remove();" style="
+            width: 100%;
+            padding: 12px;
+            background: #44919c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        ">Understood</button>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // Close on overlay click
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            overlay.remove();
+        }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function escHandler(e) {
+        if (e.key === 'Escape') {
+            overlay.remove();
+            document.removeEventListener('keydown', escHandler);
+        }
+    });
+}
+
 // Exchange rates cache
 let exchangeRatesCache = {
     rates: {},
@@ -390,7 +475,7 @@ function calculateCosts() {
     const socialWarningEl = document.getElementById('detailSocialWarning');
     const socialWarningRow = document.getElementById('detailSocialWarningRow');
     if (config.noTreatyWarning) {
-        if (socialWarningEl) socialWarningEl.textContent = 'No Treaty ⚠️';
+        if (socialWarningEl) socialWarningEl.textContent = 'No Reciprocal Agreement ⚠️';
         if (socialWarningRow) socialWarningRow.style.display = 'flex';
     } else {
         if (socialWarningRow) socialWarningRow.style.display = 'none';
@@ -416,7 +501,7 @@ function calculateCosts() {
         if (noTreatyWarning) {
             noTreatyWarning.classList.remove('hidden');
             if (noTreatyWarningText) {
-                noTreatyWarningText.textContent = `Dual social security contributions apply (no Finland-${config.name} treaty)`;
+                noTreatyWarningText.textContent = `Dual social security contributions apply (no Finland-${config.name} social security reciprocal agreement)`;
             }
         }
         if (socialSecBadge) {
@@ -788,7 +873,7 @@ function updateCalculationWorkings(calc) {
                     <span class="accordion-title">
                         <svg class="w-5 h-5 text-cozm-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                         Social Security Details
-                        ${calc.config.noTreatyWarning ? '<span class="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded">No Treaty</span>' : ''}
+                        ${calc.config.noTreatyWarning ? '<span class="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded cursor-pointer" onclick="showSocialSecurityPopup(event)">No Reciprocal Agreement</span>' : ''}
                     </span>
                     <svg class="accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </div>

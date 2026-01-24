@@ -835,3 +835,507 @@ h1, h2, h3 {
     align-items: center;
     gap: 8px;
 }
+
+/* ===== MOBILE RESPONSIVE STYLES ===== */
+
+/* Tablet breakpoint */
+@media (max-width: 768px) {
+    /* Header adjustments */
+    header .max-w-7xl {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    header .flex.items-center.justify-between {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    header .flex.items-center.gap-8 {
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+        text-align: center;
+    }
+
+    header .flex.items-center.gap-8 > div[style*="border-left"] {
+        border-left: none !important;
+        padding-left: 0 !important;
+    }
+
+    /* Hide text labels on nav tabs, show icons only */
+    .nav-tab {
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+
+    .nav-tab svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* Header right side buttons */
+    header .flex.items-center.gap-4 {
+        border-left: none !important;
+        padding-left: 0 !important;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    /* Main content padding */
+    main.max-w-7xl {
+        padding-left: 16px;
+        padding-right: 16px;
+        padding-top: 24px;
+        padding-bottom: 24px;
+    }
+
+    /* Card padding */
+    .card.p-8 {
+        padding: 20px !important;
+    }
+
+    /* Form grid - stack on mobile */
+    .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3 {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+
+    /* Results header */
+    .results-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .currency-toggle {
+        align-self: center;
+    }
+
+    /* Results container - already handled at 1024px but reinforce */
+    .results-container {
+        grid-template-columns: 1fr !important;
+        gap: 20px;
+    }
+
+    /* Chart panel */
+    .chart-panel {
+        padding: 20px;
+        position: static !important;
+    }
+
+    .chart-total-amount {
+        font-size: 28px;
+    }
+
+    .chart-wrapper {
+        max-width: 200px;
+    }
+
+    /* Chart actions - stack on small screens */
+    .chart-actions {
+        flex-direction: column;
+    }
+
+    .chart-action-btn {
+        width: 100%;
+    }
+
+    /* Assignment summary card */
+    .assignment-summary-card {
+        padding: 16px 20px;
+    }
+
+    /* Breakdown groups */
+    .breakdown-header {
+        padding: 14px 16px;
+    }
+
+    .breakdown-details {
+        padding: 0 16px 14px;
+    }
+
+    /* Buttons */
+    .btn-primary,
+    .btn-secondary {
+        padding: 12px 16px;
+        font-size: 14px;
+        width: 100%;
+    }
+
+    /* Form button alignment */
+    .mt-10.flex.justify-end {
+        justify-content: stretch;
+    }
+
+    .mt-10.flex.justify-end .btn-primary {
+        width: 100%;
+    }
+
+    /* Tab buttons */
+    .flex.border-b-2 {
+        flex-direction: row;
+        width: 100%;
+    }
+
+    .flex.border-b-2 button {
+        flex: 1;
+        text-align: center;
+        padding: 12px 8px;
+        font-size: 13px;
+    }
+
+    /* Section title and tab header */
+    .card .flex.items-center.justify-between.mb-8 {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    /* Breakdown table - make scrollable */
+    .card.overflow-hidden {
+        overflow-x: auto;
+    }
+
+    .breakdown-table td,
+    .breakdown-table th {
+        padding: 12px 16px;
+        font-size: 13px;
+    }
+
+    /* Export buttons */
+    .mt-12.flex.justify-end.gap-4 {
+        flex-direction: column;
+    }
+
+    .mt-12.flex.justify-end.gap-4 .btn-secondary {
+        width: 100%;
+    }
+
+    /* Alert banner */
+    .alert-banner {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+
+    /* View toggle */
+    .view-toggle {
+        width: 100%;
+    }
+
+    .view-toggle button {
+        flex: 1;
+        padding: 10px 8px;
+        font-size: 12px;
+    }
+
+    /* Result cards grid */
+    .grid.grid-cols-2.md\\:grid-cols-4 {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    .result-card-light {
+        padding: 14px;
+    }
+
+    .result-card-light p.text-xl {
+        font-size: 18px;
+    }
+
+    /* Drop zone */
+    .drop-zone {
+        padding: 32px 20px;
+    }
+
+    .drop-zone svg {
+        width: 48px;
+        height: 48px;
+    }
+
+    .drop-zone p.text-lg {
+        font-size: 16px;
+    }
+
+    /* Hero total card */
+    .hero-total-card {
+        padding: 20px;
+    }
+
+    .hero-total-amount {
+        font-size: 32px;
+    }
+
+    /* Legend wrapping */
+    .cost-breakdown-legend {
+        gap: 12px;
+    }
+
+    .legend-item {
+        font-size: 12px;
+    }
+
+    /* Tooltip - position below on mobile */
+    .tooltip-content {
+        bottom: auto;
+        top: 100%;
+        margin-top: 4px;
+        margin-bottom: 0;
+        max-width: 250px;
+        white-space: normal;
+        text-align: left;
+    }
+}
+
+/* Small mobile breakpoint */
+@media (max-width: 480px) {
+    /* Even smaller padding */
+    header .max-w-7xl {
+        padding: 12px;
+    }
+
+    main.max-w-7xl {
+        padding: 12px;
+    }
+
+    .card.p-8 {
+        padding: 16px !important;
+    }
+
+    /* Logo sizing */
+    .logo-container img {
+        height: 36px !important;
+    }
+
+    /* Title sizing */
+    header h1 {
+        font-size: 16px !important;
+    }
+
+    header p.text-\\[13px\\] {
+        font-size: 11px !important;
+    }
+
+    /* Hide nav tab text on very small screens */
+    .nav-tab span:not(.nav-tab svg) {
+        display: none;
+    }
+
+    /* Smaller chart */
+    .chart-wrapper {
+        max-width: 160px;
+    }
+
+    .chart-total-amount {
+        font-size: 24px;
+    }
+
+    .chart-center-value {
+        font-size: 14px;
+    }
+
+    /* Result cards - single column */
+    .grid.grid-cols-2.md\\:grid-cols-4 {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Breakdown values */
+    .breakdown-value {
+        font-size: 14px;
+    }
+
+    .breakdown-label {
+        font-size: 14px;
+    }
+
+    /* Legend - 2 columns on very small */
+    .chart-legend {
+        gap: 8px;
+    }
+
+    .chart-legend-item {
+        font-size: 12px;
+    }
+
+    /* Input fields */
+    .input-field {
+        padding: 12px;
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+
+    select.input-field {
+        font-size: 16px; /* Prevents iOS zoom */
+    }
+
+    /* Buttons larger touch targets */
+    .btn-primary,
+    .btn-secondary {
+        padding: 14px 16px;
+        min-height: 48px;
+    }
+
+    /* Workings/assumptions toggles */
+    .mt-10.space-y-6 button {
+        font-size: 13px;
+    }
+
+    /* Staffing section */
+    #section-staffing .card {
+        padding: 32px 20px !important;
+    }
+
+    #section-staffing h2 {
+        font-size: 20px;
+    }
+
+    #section-staffing p {
+        font-size: 14px;
+    }
+}
+
+/* iOS-specific fixes */
+@supports (-webkit-touch-callout: none) {
+    /* Prevent input zoom on iOS */
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="password"],
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+
+    /* Better touch scrolling */
+    .breakdown-table {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Safe area insets for notched phones */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    body {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    header {
+        padding-top: env(safe-area-inset-top);
+    }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 896px) and (orientation: landscape) {
+    header .flex.items-center.justify-between {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .chart-wrapper {
+        max-width: 150px;
+    }
+
+    .results-container {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Additional mobile refinements */
+@media (max-width: 768px) {
+    /* Results container - use flexbox on mobile for better ordering */
+    .results-container {
+        display: flex !important;
+        flex-direction: column-reverse !important;
+    }
+
+    /* Chart panel sticky positioning disabled on mobile */
+    .results-right-column {
+        position: static !important;
+    }
+
+    /* Chart centered on mobile */
+    .chart-wrapper {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Summary card compact */
+    .summary-card-title {
+        font-size: 13px;
+    }
+
+    .summary-row {
+        padding: 8px 0;
+    }
+
+    .summary-label,
+    .summary-value {
+        font-size: 13px;
+    }
+
+    /* Breakdown groups compact */
+    .breakdown-groups {
+        gap: 8px;
+    }
+
+    .breakdown-group {
+        border-radius: 10px;
+    }
+
+    /* Detail rows in breakdown */
+    .detail-row {
+        padding: 6px 0;
+    }
+
+    .detail-label,
+    .detail-value {
+        font-size: 12px;
+    }
+
+    /* Ensure touch-friendly tap targets */
+    .breakdown-header {
+        min-height: 48px;
+        cursor: pointer;
+    }
+
+    /* Form labels */
+    .form-label {
+        font-size: 12px;
+    }
+
+    /* Currency toggle */
+    .currency-toggle {
+        padding: 3px;
+    }
+
+    .currency-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
+
+/* Very small screens - further refinements */
+@media (max-width: 360px) {
+    .chart-total-amount {
+        font-size: 22px !important;
+    }
+
+    .chart-wrapper {
+        max-width: 140px !important;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        font-size: 13px;
+        padding: 12px 14px;
+    }
+
+    .nav-tab {
+        padding: 8px 10px;
+    }
+
+    .nav-tab svg {
+        width: 16px;
+        height: 16px;
+    }
+}
