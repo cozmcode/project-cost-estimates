@@ -13,6 +13,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/app.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- CRITICAL: Load Supabase BEFORE auth check runs -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="window.supabaseLoadFailed=true;"></script>
+    <script src="js/supabase-config.js" onerror="window.configLoadFailed=true;"></script>
     <style>
         /* Mobile-specific inline overrides */
         @media (max-width: 768px) {
@@ -44,6 +47,7 @@
 <body class="min-h-screen bg-gray-50">
     <!-- Auth Check - Redirect if not authenticated -->
     <!-- MOBILE FIX: Uses Promise.race() timeout to prevent getSession() hanging on Safari/mobile -->
+    <!-- SCRIPT LOAD FIX: Supabase scripts now load in <head> before this runs -->
     <script>
         (async function() {
             console.log('[AUTH] Starting auth check on app.html');
@@ -72,12 +76,12 @@
                 return;
             }
 
-            // REDIRECT LOOP GUARD
+            // REDIRECT LOOP GUARD - Lower threshold to 2 for faster loop detection
             const redirectCount = parseInt(sessionStorage.getItem('auth_redirect_count') || '0');
             console.log('[AUTH] Redirect count:', redirectCount);
 
-            if (redirectCount >= 3) {
-                console.error('[AUTH] Redirect loop detected - showing error UI');
+            if (redirectCount >= 2) {
+                console.error('[AUTH] Redirect loop detected (count=' + redirectCount + ') - showing error UI');
                 sessionStorage.removeItem('auth_redirect_count');
                 const showAuthError = () => {
                     const loadingScreen = document.getElementById('loading-screen');
@@ -147,6 +151,24 @@
                 }
             }
 
+            function showCDNError() {
+                const loadingScreen = document.getElementById('loading-screen');
+                if (loadingScreen) {
+                    loadingScreen.innerHTML = `
+                        <div style="text-align: center; padding: 40px; max-width: 400px;">
+                            <svg style="width: 64px; height: 64px; margin: 0 auto 20px; color: #BD4040;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"/>
+                            </svg>
+                            <h2 style="font-family: Inter, sans-serif; font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 12px;">Connection Failed</h2>
+                            <p style="font-family: Inter, sans-serif; font-size: 14px; color: #6b7280; margin-bottom: 24px;">Unable to load required scripts. Please check your internet connection and try again.</p>
+                            <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
+                                <button onclick="window.location.reload();" style="padding: 12px 24px; background: #40AEBC; color: white; border: none; border-radius: 8px; font-family: Inter, sans-serif; font-weight: 600; cursor: pointer; width: 200px;">Retry</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
             // MOBILE FIX: Promise with timeout to prevent getSession() hanging
             function withTimeout(promise, ms, errorMsg) {
                 return Promise.race([
@@ -169,16 +191,32 @@
                 }
             }
 
-            // Wait for Supabase scripts to load
+            // Check for CDN load failure (set by onerror handlers in <head>)
+            if (window.supabaseLoadFailed || window.configLoadFailed) {
+                console.error('[AUTH] CDN scripts failed to load');
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', showCDNError);
+                } else {
+                    showCDNError();
+                }
+                return;
+            }
+
+            // Wait for Supabase scripts to load - increased to 30 seconds for slow mobile
             let attempts = 0;
-            const maxAttempts = 200; // 20 seconds at 100ms intervals
+            const maxAttempts = 300; // 30 seconds at 100ms intervals
 
             const checkSupabase = setInterval(async () => {
                 attempts++;
 
+                // Log progress every 5 seconds
+                if (attempts % 50 === 0) {
+                    console.log('[AUTH] Still waiting for SupabaseConfig... attempt', attempts);
+                }
+
                 if (attempts >= maxAttempts) {
                     clearInterval(checkSupabase);
-                    console.error('[AUTH] Supabase load timeout after 20s');
+                    console.error('[AUTH] Supabase load timeout after 30s');
                     showTimeoutError();
                     return;
                 }
@@ -200,14 +238,14 @@
                             return;
                         }
 
-                        // MOBILE FIX: Use Promise.race with 8 second timeout for getSession
-                        // This prevents the hanging issue on Safari/mobile
+                        // MOBILE FIX: Use Promise.race with 10 second timeout for getSession
+                        // Increased from 8s for slower mobile networks
                         console.log('[AUTH] Checking session with timeout...');
                         let sessionResult;
                         try {
                             sessionResult = await withTimeout(
                                 supabase.auth.getSession(),
-                                8000,
+                                10000,
                                 'Session check timed out'
                             );
                         } catch (timeoutErr) {
@@ -217,7 +255,7 @@
                             try {
                                 const userResult = await withTimeout(
                                     supabase.auth.getUser(),
-                                    5000,
+                                    8000,
                                     'User check timed out'
                                 );
                                 if (userResult.data?.user) {
@@ -248,7 +286,7 @@
 
                         console.log('[AUTH] Session valid, checking app_users...');
 
-                        // Also add timeout to database query
+                        // Also add timeout to database query - increased for mobile
                         let appUserResult;
                         try {
                             appUserResult = await withTimeout(
@@ -257,7 +295,7 @@
                                     .select('approved, role')
                                     .eq('id', session.user.id)
                                     .single(),
-                                5000,
+                                8000,
                                 'Database query timed out'
                             );
                         } catch (dbErr) {
@@ -521,19 +559,14 @@
                 <div id="resultsSection" class="hidden animate-fade-in">
                     <!-- Header with Currency Toggle - Mobile: Stack vertically -->
                     <div class="results-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 md:mb-6">
-                        <h2 class="text-lg md:text-xl font-extrabold text-gray-900 tracking-tight text-center sm:text-left">Cost Estimate</h2>
+                        <div class="text-center sm:text-left">
+                            <h2 class="text-lg md:text-xl font-extrabold text-gray-900 tracking-tight">Additional Cost Estimate</h2>
+                            <p class="text-xs text-gray-500 mt-1">Incremental costs beyond base salary for this international deployment</p>
+                        </div>
                         <div class="currency-toggle mx-auto sm:mx-0">
                             <button id="currency-eur" class="currency-btn active" onclick="switchCurrency('EUR')">EUR</button>
-                            <button id="currency-gbp" class="currency-btn" onclick="switchCurrency('GBP')">GBP</button>
+                            <button id="currency-local" class="currency-btn" onclick="switchCurrency('LOCAL')"><span id="localCurrencyLabel">BRL</span></button>
                         </div>
-                    </div>
-
-                    <!-- No Treaty Warning Banner (slim, hidden by default) -->
-                    <div id="noTreatyWarning" class="hidden alert-banner warning text-xs md:text-sm">
-                        <svg class="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                        </svg>
-                        <span id="noTreatyWarningText">Dual social security contributions apply (no Finland-Brazil social security reciprocal agreement)</span>
                     </div>
 
                     <!-- Two-Column Results Layout - Mobile: single column, reversed order (chart first) -->
@@ -563,67 +596,51 @@
                                 </div>
                             </div>
 
-                            <!-- Breakdown Groups (Expandable) -->
+                            <!-- Breakdown Groups (Expandable) - Order: Salary, Per Diem, Admin, Tax, SS -->
                             <div class="breakdown-groups">
-                                <!-- Tax Group -->
-                                <div class="breakdown-group" id="group-tax">
-                                    <div class="breakdown-header" onclick="toggleBreakdownGroup('tax')">
+                                <!-- 1. Salary Group -->
+                                <div class="breakdown-group" id="group-salary">
+                                    <div class="breakdown-header" onclick="toggleBreakdownGroup('salary')">
                                         <div class="breakdown-header-left">
-                                            <span class="breakdown-dot" style="background: #181C31;"></span>
-                                            <span class="breakdown-label">Tax</span>
+                                            <span class="breakdown-dot" style="background: #44919c;"></span>
+                                            <span class="breakdown-label">Salary (Base)</span>
+                                            <span class="tooltip-wrapper" onclick="event.stopPropagation()">
+                                                <span class="help-icon">i</span>
+                                                <span class="tooltip-content">The employee's gross salary is shown here as the base for tax and social security calculations. Note: This is NOT an additional cost—you would pay this salary regardless of deployment location.</span>
+                                            </span>
                                         </div>
                                         <div class="breakdown-header-right">
-                                            <span class="breakdown-value" id="summaryTax">€0</span>
+                                            <span class="breakdown-value" id="summaryGrossSalary">€0</span>
                                             <svg class="breakdown-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                         </div>
                                     </div>
-                                    <div class="breakdown-details" id="details-tax">
+                                    <div class="breakdown-details" id="details-salary">
                                         <div class="detail-row">
-                                            <span class="detail-label">Effective Rate</span>
-                                            <span class="detail-value" id="detailTaxRate">25.0%</span>
+                                            <span class="detail-label">Monthly Rate</span>
+                                            <span class="detail-value" id="detailMonthlySalary">€7,000</span>
                                         </div>
                                         <div class="detail-row">
-                                            <span class="detail-label">Method</span>
-                                            <span class="detail-value" id="detailTaxMethod">Non-resident flat rate</span>
+                                            <span class="detail-label">Duration</span>
+                                            <span class="detail-value" id="detailSalaryDuration">6 months</span>
                                         </div>
                                         <div class="detail-row">
-                                            <span class="detail-label">Source</span>
-                                            <span class="detail-value detail-link" id="detailTaxSource">Brazilian Federal</span>
+                                            <span class="detail-label">Note</span>
+                                            <span class="detail-value" style="font-size: 11px; color: #6b7280;">Base for tax & SS calculations (not an additional cost)</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Social Security Group -->
-                                <div class="breakdown-group" id="group-social">
-                                    <div class="breakdown-header" onclick="toggleBreakdownGroup('social')">
-                                        <div class="breakdown-header-left">
-                                            <span class="breakdown-dot" style="background: #3FAFBE;"></span>
-                                            <span class="breakdown-label">Social Security</span>
-                                            <span class="breakdown-warning-badge hidden" id="socialSecBadge" onclick="showSocialSecurityPopup(event)" style="cursor: pointer;">No Reciprocal Agreement</span>
-                                        </div>
-                                        <div class="breakdown-header-right">
-                                            <span class="breakdown-value" id="summarySocialSec">€0</span>
-                                            <svg class="breakdown-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                        </div>
-                                    </div>
-                                    <div class="breakdown-details" id="details-social">
-                                        <div class="detail-row">
-                                            <span class="detail-label">Rate</span>
-                                            <span class="detail-value" id="detailSocialRate">35.0%</span>
-                                        </div>
-                                        <div class="detail-row" id="detailSocialWarningRow">
-                                            <span class="detail-label">Warning</span>
-                                            <span class="detail-value detail-warning" id="detailSocialWarning" onclick="showSocialSecurityPopup(event)" style="cursor: pointer;">No Reciprocal Agreement ⚠️</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Per Diem Group -->
+                                <!-- 2. Per Diem Group -->
                                 <div class="breakdown-group" id="group-perdiem">
                                     <div class="breakdown-header" onclick="toggleBreakdownGroup('perdiem')">
                                         <div class="breakdown-header-left">
                                             <span class="breakdown-dot" style="background: #83849E;"></span>
                                             <span class="breakdown-label">Per Diem</span>
+                                            <span class="breakdown-exempt-badge">Tax Exempt</span>
+                                            <span class="tooltip-wrapper" onclick="event.stopPropagation()">
+                                                <span class="help-icon">i</span>
+                                                <span class="tooltip-content">Daily subsistence allowance paid to the employee to cover meals and incidentals whilst deployed abroad. This is an ADDITIONAL cost on top of salary, set by Finnish Tax Administration rates.</span>
+                                            </span>
                                         </div>
                                         <div class="breakdown-header-right">
                                             <span class="breakdown-value" id="summaryAllowances">€0</span>
@@ -643,15 +660,23 @@
                                             <span class="detail-label">Source</span>
                                             <span class="detail-value detail-link" id="detailPerDiemSource">Finnish Tax Admin 2025</span>
                                         </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Note</span>
+                                            <span class="detail-value" style="font-size: 11px; color: #6b7280;">Not subject to tax or social security</span>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- Admin Fees Group -->
+                                <!-- 3. Admin Fees Group -->
                                 <div class="breakdown-group" id="group-admin">
                                     <div class="breakdown-header" onclick="toggleBreakdownGroup('admin')">
                                         <div class="breakdown-header-left">
-                                            <span class="breakdown-dot" style="background: #BD4040;"></span>
+                                            <span class="breakdown-dot" style="background: #BD8941;"></span>
                                             <span class="breakdown-label">Admin Fees</span>
+                                            <span class="tooltip-wrapper" onclick="event.stopPropagation()">
+                                                <span class="help-icon">i</span>
+                                                <span class="tooltip-content">One-time administrative costs for visa applications, work permits, and government filings required for international deployment. These are ADDITIONAL costs that would not exist for a domestic assignment.</span>
+                                            </span>
                                         </div>
                                         <div class="breakdown-header-right">
                                             <span class="breakdown-value" id="summaryAdminFees">€0</span>
@@ -673,15 +698,100 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- 4. Tax Group -->
+                                <div class="breakdown-group" id="group-tax">
+                                    <div class="breakdown-header" onclick="toggleBreakdownGroup('tax')">
+                                        <div class="breakdown-header-left">
+                                            <span class="breakdown-dot" style="background: #181C31;"></span>
+                                            <span class="breakdown-label">Host Country Tax</span>
+                                            <span class="tooltip-wrapper" onclick="event.stopPropagation()">
+                                                <span class="help-icon">i</span>
+                                                <span class="tooltip-content">Income tax liability in the host country. This is an ADDITIONAL cost—whilst you may pay Finnish tax on domestic work, this is the extra tax burden created by the international deployment.</span>
+                                            </span>
+                                        </div>
+                                        <div class="breakdown-header-right">
+                                            <span class="breakdown-value" id="summaryTax">€0</span>
+                                            <svg class="breakdown-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="breakdown-details" id="details-tax">
+                                        <div class="detail-row">
+                                            <span class="detail-label">Effective Rate</span>
+                                            <span class="detail-value" id="detailTaxRate">25.0%</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Method</span>
+                                            <span class="detail-value" id="detailTaxMethod">Non-resident flat rate</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Taxable Base</span>
+                                            <span class="detail-value" style="font-size: 11px;">Salary only (per diem exempt)</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Source</span>
+                                            <span class="detail-value detail-link" id="detailTaxSource">Brazilian Federal</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 5. Social Security Group -->
+                                <div class="breakdown-group" id="group-social">
+                                    <div class="breakdown-header" onclick="toggleBreakdownGroup('social')">
+                                        <div class="breakdown-header-left">
+                                            <span class="breakdown-dot" style="background: #3FAFBE;"></span>
+                                            <span class="breakdown-label">Host Country Social Security</span>
+                                            <span class="tooltip-wrapper" onclick="event.stopPropagation()">
+                                                <span class="help-icon">i</span>
+                                                <span class="tooltip-content">Social security contributions required in the host country (employer + employee portions). This is an ADDITIONAL cost—where no reciprocal agreement exists with Finland, you may need to pay into both systems simultaneously.</span>
+                                            </span>
+                                            <a class="breakdown-warning-badge hidden" id="socialSecBadge" href="https://www.kela.fi/international-legislation" target="_blank" onclick="event.stopPropagation()">No Reciprocal Agreement</a>
+                                        </div>
+                                        <div class="breakdown-header-right">
+                                            <span class="breakdown-value" id="summarySocialSec">€0</span>
+                                            <svg class="breakdown-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        </div>
+                                    </div>
+                                    <div class="breakdown-details" id="details-social">
+                                        <div class="detail-row">
+                                            <span class="detail-label">Combined Rate</span>
+                                            <span class="detail-value" id="detailSocialRate">50.8%</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Employer (<span id="detailEmployerSSRate">36.8%</span>)</span>
+                                            <span class="detail-value" id="detailEmployerSS">€0</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Employee (<span id="detailEmployeeSSRate">14.0%</span>)</span>
+                                            <span class="detail-value" id="detailEmployeeSS">€0</span>
+                                        </div>
+                                        <div class="detail-row" id="detailSocialWarningRow">
+                                            <span class="detail-label">Warning</span>
+                                            <span class="detail-value detail-warning" id="detailSocialWarning" onclick="showSocialSecurityPopup(event)" style="cursor: pointer;">No Reciprocal Agreement ⚠️</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Right Column: Chart Panel - Mobile: appears first due to flex-col-reverse -->
                         <div class="results-right-column order-1 lg:order-2">
                             <div class="chart-panel p-4 md:p-6">
-                                <p class="chart-total-label text-xs md:text-sm">Total Cost <span id="chartPeriodLabel">(6 months)</span></p>
+                                <p class="chart-total-label text-xs md:text-sm">
+                                    Total Additional Cost <span id="chartPeriodLabel">(6 months)</span>
+                                    <span class="tooltip-wrapper">
+                                        <span class="help-icon">i</span>
+                                        <span class="tooltip-content">This is the incremental cost incurred specifically due to this international deployment, beyond what you would normally pay for a Finland-based employee. It includes host country taxes, social security, per diem allowances, and admin fees—but NOT the base salary which you would pay regardless of location.</span>
+                                    </span>
+                                </p>
                                 <p class="chart-total-amount text-2xl md:text-3xl" id="summaryTotal">€0</p>
-                                <p class="chart-daily-rate text-xs md:text-sm">Daily rate: <strong id="summaryPerDay">€0</strong>/day</p>
+                                <p class="chart-daily-rate text-xs md:text-sm">
+                                    Daily additional cost: <strong id="summaryPerDay">€0</strong>/day
+                                    <span class="tooltip-wrapper">
+                                        <span class="help-icon">i</span>
+                                        <span class="tooltip-content">The average extra cost per working day for this deployment. Example: If your FSE normally costs €350/day in Finland, and the daily additional cost here is €379, the total loaded cost would be €729/day during the assignment.</span>
+                                    </span>
+                                </p>
 
                                 <!-- Donut Chart -->
                                 <div class="chart-wrapper">
@@ -692,8 +802,23 @@
                                     </div>
                                 </div>
 
-                                <!-- Chart Legend -->
+                                <!-- Chart Legend - 5 Components -->
                                 <div class="chart-legend">
+                                    <div class="chart-legend-item">
+                                        <span class="chart-legend-dot" style="background: #44919c;"></span>
+                                        <span class="chart-legend-label">Salary</span>
+                                        <span class="chart-legend-value" id="legendSalary">€0</span>
+                                    </div>
+                                    <div class="chart-legend-item">
+                                        <span class="chart-legend-dot" style="background: #83849E;"></span>
+                                        <span class="chart-legend-label">Per Diem</span>
+                                        <span class="chart-legend-value" id="legendPerdiem">€0</span>
+                                    </div>
+                                    <div class="chart-legend-item">
+                                        <span class="chart-legend-dot" style="background: #BD8941;"></span>
+                                        <span class="chart-legend-label">Admin Fees</span>
+                                        <span class="chart-legend-value" id="legendAdmin">€0</span>
+                                    </div>
                                     <div class="chart-legend-item">
                                         <span class="chart-legend-dot" style="background: #181C31;"></span>
                                         <span class="chart-legend-label">Tax</span>
@@ -703,16 +828,6 @@
                                         <span class="chart-legend-dot" style="background: #3FAFBE;"></span>
                                         <span class="chart-legend-label">Social Security</span>
                                         <span class="chart-legend-value" id="legendSocial">€0</span>
-                                    </div>
-                                    <div class="chart-legend-item">
-                                        <span class="chart-legend-dot" style="background: #83849E;"></span>
-                                        <span class="chart-legend-label">Per Diem</span>
-                                        <span class="chart-legend-value" id="legendPerdiem">€0</span>
-                                    </div>
-                                    <div class="chart-legend-item">
-                                        <span class="chart-legend-dot" style="background: #BD4040;"></span>
-                                        <span class="chart-legend-label">Admin Fees</span>
-                                        <span class="chart-legend-value" id="legendAdmin">€0</span>
                                     </div>
                                 </div>
 
@@ -755,8 +870,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase-config.js"></script>
+    <!-- NOTE: Supabase scripts are loaded in <head> to prevent race condition with auth check -->
     <script src="js/app-logic.js"></script>
 </body>
 

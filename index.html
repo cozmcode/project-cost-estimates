@@ -18,6 +18,7 @@
          If user has valid session and is approved, redirect to app.html
          Otherwise, show the login form (handled by auth.js) -->
     <!-- MOBILE FIX: Uses timeout protection for session check -->
+    <!-- LOOP FIX: Clear redirect counter and only redirect on confirmed valid session -->
     <script>
         // Clear redirect counter on login page load - user is where they need to be
         sessionStorage.removeItem('auth_redirect_count');
@@ -39,41 +40,50 @@
             }
         };
 
+        // Show login form helper
+        function showLoginForm() {
+            const loadingScreen = document.getElementById('loading-screen');
+            const appContent = document.getElementById('app-content');
+            if (loadingScreen) loadingScreen.style.display = 'none';
+            if (appContent) appContent.style.display = 'block';
+        }
+
         // Check if user already has valid session - redirect to app.html if so
         // This prevents showing login form unnecessarily
+        // IMPORTANT: On ANY error or timeout, show login form (never redirect on failure)
         (async function checkExistingSession() {
             console.log('[AUTH] Checking for existing session on login page...');
 
-            // Wait for Supabase to load with short timeout (5 seconds max)
+            // Wait for Supabase to load with short timeout (8 seconds max for slow mobile)
             let attempts = 0;
-            const maxAttempts = 50; // 5 seconds
+            const maxAttempts = 80; // 8 seconds
 
             const checkInterval = setInterval(async () => {
                 attempts++;
 
                 if (attempts >= maxAttempts) {
                     clearInterval(checkInterval);
-                    console.log('[AUTH] No session check possible, showing login form');
-                    document.getElementById('loading-screen').style.display = 'none';
-                    document.getElementById('app-content').style.display = 'block';
+                    console.log('[AUTH] Supabase load timeout, showing login form');
+                    showLoginForm();
                     return;
                 }
 
                 if (window.SupabaseConfig) {
                     clearInterval(checkInterval);
+                    console.log('[AUTH] SupabaseConfig loaded at attempt', attempts);
 
                     try {
                         const supabase = window.SupabaseConfig.init();
                         if (!supabase) {
-                            document.getElementById('loading-screen').style.display = 'none';
-                            document.getElementById('app-content').style.display = 'block';
+                            console.log('[AUTH] Supabase init failed, showing login form');
+                            showLoginForm();
                             return;
                         }
 
-                        // Quick session check with 5 second timeout to prevent hanging
+                        // Quick session check with 8 second timeout to prevent hanging
                         const sessionPromise = supabase.auth.getSession();
                         const timeoutPromise = new Promise((_, reject) =>
-                            setTimeout(() => reject(new Error('timeout')), 5000)
+                            setTimeout(() => reject(new Error('timeout')), 8000)
                         );
 
                         let sessionResult;
@@ -81,8 +91,7 @@
                             sessionResult = await Promise.race([sessionPromise, timeoutPromise]);
                         } catch (timeoutErr) {
                             console.log('[AUTH] Session check timed out, showing login form');
-                            document.getElementById('loading-screen').style.display = 'none';
-                            document.getElementById('app-content').style.display = 'block';
+                            showLoginForm();
                             return;
                         }
 
@@ -90,19 +99,19 @@
 
                         if (error || !session) {
                             console.log('[AUTH] No valid session, showing login form');
-                            document.getElementById('loading-screen').style.display = 'none';
-                            document.getElementById('app-content').style.display = 'block';
+                            showLoginForm();
                             return;
                         }
 
                         // Session exists - check if user is approved (quick check)
+                        console.log('[AUTH] Session found, checking approval status...');
                         const appUserPromise = supabase
                             .from('app_users')
                             .select('approved')
                             .eq('id', session.user.id)
                             .single();
                         const appUserTimeout = new Promise((_, reject) =>
-                            setTimeout(() => reject(new Error('timeout')), 3000)
+                            setTimeout(() => reject(new Error('timeout')), 5000)
                         );
 
                         let appUserResult;
@@ -110,26 +119,27 @@
                             appUserResult = await Promise.race([appUserPromise, appUserTimeout]);
                         } catch (e) {
                             console.log('[AUTH] User check timed out, showing login form');
-                            document.getElementById('loading-screen').style.display = 'none';
-                            document.getElementById('app-content').style.display = 'block';
+                            showLoginForm();
                             return;
                         }
 
-                        if (appUserResult.data?.approved) {
-                            console.log('[AUTH] User already approved, redirecting to app');
+                        // ONLY redirect if user is CONFIRMED approved
+                        if (appUserResult.data?.approved === true) {
+                            console.log('[AUTH] User confirmed approved, redirecting to app');
+                            // Clear any stale redirect counter before redirecting
+                            sessionStorage.removeItem('auth_redirect_count');
                             window.location.href = 'app.html';
                             return;
                         }
 
-                        // User has session but not approved - show login/pending
+                        // User has session but not approved - show login/pending (do NOT redirect)
                         console.log('[AUTH] Session exists but user not approved, showing login form');
-                        document.getElementById('loading-screen').style.display = 'none';
-                        document.getElementById('app-content').style.display = 'block';
+                        showLoginForm();
 
                     } catch (err) {
                         console.error('[AUTH] Error checking session:', err);
-                        document.getElementById('loading-screen').style.display = 'none';
-                        document.getElementById('app-content').style.display = 'block';
+                        // On any error, show login form (never redirect)
+                        showLoginForm();
                     }
                 }
             }, 100);

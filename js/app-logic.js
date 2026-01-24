@@ -121,17 +121,99 @@ const perDiemSource = 'Finnish Tax Administration 2025';
 const perDiemSourceUrl = 'https://www.veronmaksajat.fi/neuvot/henkiloverotus/tyo-elaka-ja-etuudet/paivarahat-ja-kilometrikorvaukset/2024/ulkomaan-paivarahat-2025/';
 
 // Country tax configurations (fallback static rates)
+// Social security now split into employer and employee contributions
+// Finland's SS agreements list: https://www.kela.fi/international-legislation
 const countryConfig = {
-    Brazil: { taxRate: 0.25, currency: 'BRL', exchangeRate: 6.187, currencySymbol: 'R$', deduction: 0, socialSec: 0.35, name: 'Brazil', taxSource: 'Receita Federal (Decree 9,580/2018, Art. 682)', taxSourceUrl: 'https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/decreto/d9580.htm', taxNote: 'Non-resident flat rate (25%)', socialSecNote: 'No Finland-Brazil totalization agreement - dual INSS contributions required (employer ~27.5% + employee ~7.5%)', socialSecSource: 'INSS/Receita Federal', noTreatyWarning: true },
-    USA: { taxRate: 0.37, currency: 'USD', exchangeRate: 1.08, currencySymbol: '$', deduction: 13850, socialSec: 0.0765, name: 'United States' },
-    Germany: { taxRate: 0.45, currency: 'EUR', exchangeRate: 1.0, currencySymbol: '€', deduction: 10908, socialSec: 0.205, name: 'Germany' },
-    UK: { taxRate: 0.45, currency: 'GBP', exchangeRate: 0.86, currencySymbol: '£', deduction: 12570, socialSec: 0.138, name: 'United Kingdom' },
-    UAE: { taxRate: 0, currency: 'AED', exchangeRate: 3.96, currencySymbol: 'AED ', deduction: 0, socialSec: 0, name: 'United Arab Emirates' },
-    Singapore: { taxRate: 0.22, currency: 'SGD', exchangeRate: 1.45, currencySymbol: 'S$', deduction: 0, socialSec: 0.17, name: 'Singapore' },
-    Australia: { taxRate: 0.45, currency: 'AUD', exchangeRate: 1.65, currencySymbol: 'A$', deduction: 18200, socialSec: 0.115, name: 'Australia' },
-    Mexico: { taxRate: 0.35, currency: 'MXN', exchangeRate: 18.5, currencySymbol: 'MX$', deduction: 0, socialSec: 0.0625, name: 'Mexico' },
-    India: { taxRate: 0.30, currency: 'INR', exchangeRate: 90.5, currencySymbol: '₹', deduction: 250000, socialSec: 0.12, name: 'India' },
-    SouthAfrica: { taxRate: 0.45, currency: 'ZAR', exchangeRate: 20.2, currencySymbol: 'R', deduction: 87300, socialSec: 0.01, name: 'South Africa' }
+    Brazil: {
+        taxRate: 0.25,
+        currency: 'BRL',
+        exchangeRate: 6.187,
+        currencySymbol: 'R$',
+        deduction: 0,
+        employerSocialSec: 0.368,
+        employeeSocialSec: 0.14,
+        employeeSocialSecCap: 8157.41,
+        socialSec: 0.508,
+        name: 'Brazil',
+        taxSource: 'View Source',
+        taxSourceUrl: 'https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/decreto/d9580.htm',
+        taxNote: 'Non-resident flat rate (25%)',
+        socialSecNote: 'No Finland-Brazil totalization agreement - dual INSS contributions required',
+        socialSecSource: 'View Source',
+        socialSecSourceUrl: 'https://www.gov.br/previdencia/pt-br/assuntos/acordos-internacionais/pagina-antiga/acordos-internacionais/international-agreements-on-social-security',
+        noTreatyWarning: true
+    },
+    USA: {
+        taxRate: 0.37, currency: 'USD', exchangeRate: 1.08, currencySymbol: '$', deduction: 13850,
+        employerSocialSec: 0.0765, employeeSocialSec: 0.0765, socialSec: 0.153, name: 'United States',
+        taxSource: 'View Source', taxSourceUrl: 'https://www.irs.gov/individuals/international-taxpayers/tax-rates',
+        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.ssa.gov/international/Agreement_Pamphlets/finland.html',
+        noTreatyWarning: false
+    },
+    Germany: {
+        taxRate: 0.45, currency: 'EUR', exchangeRate: 1.0, currencySymbol: '€', deduction: 10908,
+        employerSocialSec: 0.205, employeeSocialSec: 0.205, socialSec: 0.41, name: 'Germany',
+        taxSource: 'View Source', taxSourceUrl: 'https://www.bundesfinanzministerium.de/Web/EN/Home/home.html',
+        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.deutsche-rentenversicherung.de/DRV/EN/International/international_index.html',
+        socialSecNote: 'Coordinated via EU Regulation 883/2004',
+        noTreatyWarning: false
+    },
+    UK: {
+        taxRate: 0.45, currency: 'GBP', exchangeRate: 0.86, currencySymbol: '£', deduction: 12570,
+        employerSocialSec: 0.138, employeeSocialSec: 0.12, socialSec: 0.258, name: 'United Kingdom',
+        taxSource: 'View Source', taxSourceUrl: 'https://www.gov.uk/income-tax-rates',
+        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.gov.uk/government/publications/reciprocal-agreements',
+        socialSecNote: 'Covered by EU withdrawal agreement provisions',
+        noTreatyWarning: false
+    },
+    UAE: {
+        taxRate: 0, currency: 'AED', exchangeRate: 3.96, currencySymbol: 'AED ', deduction: 0,
+        employerSocialSec: 0, employeeSocialSec: 0, socialSec: 0, name: 'United Arab Emirates',
+        taxSource: 'View Source', taxSourceUrl: 'https://u.ae/en/information-and-services/finance-and-investment/taxation',
+        socialSecSource: 'View Source', socialSecSourceUrl: 'https://gpssa.gov.ae/pages/en/services/gcc-overview',
+        socialSecNote: 'No Finland-UAE agreement - UAE SS applies to GCC nationals only',
+        noTreatyWarning: true
+    },
+    Singapore: {
+        taxRate: 0.22, currency: 'SGD', exchangeRate: 1.45, currencySymbol: 'S$', deduction: 0,
+        employerSocialSec: 0.17, employeeSocialSec: 0.20, socialSec: 0.37, name: 'Singapore',
+        taxSource: 'View Source', taxSourceUrl: 'https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/tax-rates-for-tax-resident-and-non-residents',
+        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.cpf.gov.sg/member',
+        socialSecNote: 'No Finland-Singapore agreement - CPF applies to Singapore citizens/PRs only',
+        noTreatyWarning: true
+    },
+    Australia: {
+        taxRate: 0.45, currency: 'AUD', exchangeRate: 1.65, currencySymbol: 'A$', deduction: 18200,
+        employerSocialSec: 0.115, employeeSocialSec: 0, socialSec: 0.115, name: 'Australia',
+        taxSource: 'View Source', taxSourceUrl: 'https://www.ato.gov.au/individuals-and-families/coming-to-australia-or-going-overseas/your-tax-residency',
+        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.dss.gov.au/international-social-security-agreements',
+        socialSecNote: 'Finland-Australia agreement in force since 2002',
+        noTreatyWarning: false
+    },
+    Mexico: {
+        taxRate: 0.35, currency: 'MXN', exchangeRate: 18.5, currencySymbol: 'MX$', deduction: 0,
+        employerSocialSec: 0.0625, employeeSocialSec: 0.025, socialSec: 0.0875, name: 'Mexico',
+        taxSource: 'View Source', taxSourceUrl: 'https://www.sat.gob.mx/',
+        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.gob.mx/imss',
+        socialSecNote: 'No Finland-Mexico agreement - dual contributions may apply',
+        noTreatyWarning: true
+    },
+    India: {
+        taxRate: 0.30, currency: 'INR', exchangeRate: 90.5, currencySymbol: '₹', deduction: 250000,
+        employerSocialSec: 0.12, employeeSocialSec: 0.12, socialSec: 0.24, name: 'India',
+        taxSource: 'View Source', taxSourceUrl: 'https://incometaxindia.gov.in/Pages/default.aspx',
+        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.mea.gov.in/bilateral-documents.htm?dtl%2F26465%2FSocial_Security_Agreements',
+        socialSecNote: 'Finland-India agreement in force',
+        noTreatyWarning: false
+    },
+    SouthAfrica: {
+        taxRate: 0.45, currency: 'ZAR', exchangeRate: 20.2, currencySymbol: 'R', deduction: 87300,
+        employerSocialSec: 0.01, employeeSocialSec: 0.01, socialSec: 0.02, name: 'South Africa',
+        taxSource: 'View Source', taxSourceUrl: 'https://www.sars.gov.za/individuals/tax-rates/',
+        socialSecSource: 'View Source', socialSecSourceUrl: 'https://www.sassa.gov.za/',
+        socialSecNote: 'No Finland-South Africa agreement - limited SS obligations for non-residents',
+        noTreatyWarning: true
+    }
 };
 
 // Load tax rules from JSON
@@ -236,6 +318,14 @@ function updateCountryInfo() {
     if (perDiemInfo) {
         perDiemInfo.innerHTML = `<a href="${perDiemSourceUrl}" target="_blank" class="text-cozm-teal hover:underline">${perDiemSource}</a>`;
     }
+
+    // Update local currency label in toggle button
+    updateLocalCurrencyLabel();
+
+    // If currently displaying local currency, refresh the display
+    if (currentDisplayCurrency === 'LOCAL' && lastCalculationData) {
+        updateDisplayValues(lastCalculationData);
+    }
 }
 
 // Tab switching
@@ -320,6 +410,19 @@ function formatLocalCurrency(amount, countryKey) {
 }
 
 // Calculate costs
+// NEW METHODOLOGY (Jan 2026):
+// 1. Salary for period (EUR)
+// 2. Per Diem (EUR) - tax-exempt, NOT included in tax/SS calculations
+// 3. Admin Fees (EUR) - employer costs, NOT included in employee taxable income
+// 4. Subtotal in EUR
+// 5. Convert salary to local currency
+// 6. Apply deductions (if any)
+// 7. Calculate tax on SALARY ONLY (not per diem, not admin fees)
+// 8. Calculate Social Security on SALARY ONLY:
+//    - Employer SS (uncapped for Brazil)
+//    - Employee SS (capped for Brazil)
+// 9. Total cost for period
+// 10. Daily cost
 function calculateCosts() {
     const monthlySalary = parseFloat(document.getElementById('monthlySalary').value) || 0;
     const assignmentLength = parseInt(document.getElementById('assignmentLength').value) || 6;
@@ -331,18 +434,17 @@ function calculateCosts() {
     // Calculate totals
     const totalWorkingDays = workingDaysPerMonth * assignmentLength;
     const totalCalendarDays = assignmentLength * 30; // Approximate
+
+    // ===== STEP 1: SALARY =====
     const grossSalary = monthlySalary * assignmentLength;
-    const totalAllowances = dailyAllowance * totalWorkingDays;
 
-    // Get tax rules for this country
-    const countryTaxRules = taxRules ? taxRules[hostCountry] : null;
-    const isResident = isResidentForTax(assignmentLength);
+    // ===== STEP 2: PER DIEM (Tax-exempt) =====
+    // Per diem is NOT included in tax or social security calculations
+    // when properly documented (tied to actual business travel, reasonable amounts)
+    const totalPerDiem = dailyAllowance * totalWorkingDays;
 
-    // Use country-specific configuration
-    const exchangeRate = config.exchangeRate;
-
-    // Determine what's taxable based on country rules
-    let taxableAdminFees = 0;
+    // ===== STEP 3: ADMIN FEES (Employer costs) =====
+    // Admin fees are employer costs, NOT included in employee's taxable income
     const monthlyTaxReports = 200;
     const yearlyTaxReturns = 300;
     const workPermitFee = 1000;
@@ -355,27 +457,24 @@ function calculateCosts() {
     const oneTimeFees = workPermitFee + visaFee + taxSocialSecReg;
     const totalAdminFees = annualFees + oneTimeFees;
 
-    // Check if admin fees are taxable based on country rules
-    let visaFeesTaxableNote = '';
-    let relocationTaxableNote = '';
+    // ===== STEP 4: SUBTOTAL IN EUR =====
+    const subtotalEUR = grossSalary + totalPerDiem + totalAdminFees;
 
-    if (countryTaxRules) {
-        if (countryTaxRules.visaFeesTaxable === true) {
-            taxableAdminFees += visaFee + workPermitFee;
-            visaFeesTaxableNote = `Visa/permit fees TAXABLE: ${countryTaxRules.visaFeesNote}`;
-        }
-        if (countryTaxRules.relocationTaxable === true) {
-            taxableAdminFees += taxSocialSecReg;
-            relocationTaxableNote = `Relocation costs TAXABLE: ${countryTaxRules.relocationNote}`;
-        }
-    }
+    // Get tax rules and exchange rate
+    const countryTaxRules = taxRules ? taxRules[hostCountry] : null;
+    const isResident = isResidentForTax(assignmentLength);
+    const exchangeRate = config.exchangeRate;
 
-    // Total taxable income (gross salary + allowances + taxable admin fees)
-    // Per diem is typically not taxable in most jurisdictions
-    const taxableIncomeEUR = grossSalary + taxableAdminFees;
-    const taxableIncomeLocal = taxableIncomeEUR * exchangeRate;
+    // ===== STEP 5: CONVERT SALARY TO LOCAL CURRENCY =====
+    // Only salary is converted for tax calculation (per diem is tax-exempt)
+    const salaryLocal = grossSalary * exchangeRate;
 
-    // Calculate tax using progressive brackets or flat rate
+    // ===== STEP 6: APPLY DEDUCTIONS =====
+    const standardDeduction = config.deduction || 0;
+    const taxableIncomeLocal = Math.max(0, salaryLocal - standardDeduction);
+    const taxableIncomeEUR = taxableIncomeLocal / exchangeRate;
+
+    // ===== STEP 7: CALCULATE TAX ON SALARY ONLY =====
     let taxAmountLocal = 0;
     let taxCalculationMethod = '';
     let effectiveTaxRate = 0;
@@ -391,43 +490,101 @@ function calculateCosts() {
         taxCalculationMethod = `Non-resident flat rate (${(countryTaxRules.nonResidentRate * 100).toFixed(0)}%)`;
         effectiveTaxRate = countryTaxRules.nonResidentRate * 100;
     } else {
-        // Fallback to old flat rate calculation
-        const standardDeduction = config.deduction;
-        taxAmountLocal = Math.max(0, (taxableIncomeLocal - standardDeduction) * config.taxRate);
-        taxCalculationMethod = `Flat rate with deduction`;
+        // Fallback to flat rate
+        taxAmountLocal = taxableIncomeLocal * config.taxRate;
+        taxCalculationMethod = `Flat rate (${(config.taxRate * 100).toFixed(0)}%)`;
         effectiveTaxRate = config.taxRate * 100;
     }
 
     const taxAmountEUR = taxAmountLocal / exchangeRate;
-
-    // Tax per day calculations
     const taxPerDayLocal = taxAmountLocal / totalCalendarDays;
     const taxPerDayEUR = taxAmountEUR / totalCalendarDays;
 
-    // Social security based on country
-    const socialSecurityCost = grossSalary * config.socialSec;
+    // ===== STEP 8: CALCULATE SOCIAL SECURITY ON SALARY ONLY =====
+    // Per diem is NOT subject to social security when properly documented
+    // Social security is calculated separately for employer and employee
 
-    // Grand totals
-    const grandTotal = taxAmountEUR + socialSecurityCost + totalAllowances + totalAdminFees;
+    let employerSocialSec = 0;
+    let employeeSocialSec = 0;
+
+    if (config.employerSocialSec !== undefined) {
+        // Use new separate rates
+        // Employer SS: typically uncapped
+        employerSocialSec = grossSalary * config.employerSocialSec;
+
+        // Employee SS: may be capped (e.g., Brazil INSS capped at BRL 8,157.41/month)
+        if (config.employeeSocialSecCap) {
+            // Calculate monthly employee SS with cap
+            const monthlySalaryLocal = monthlySalary * exchangeRate;
+            const cappedMonthlySS = Math.min(
+                monthlySalaryLocal * config.employeeSocialSec,
+                config.employeeSocialSecCap
+            );
+            // Convert back to EUR and multiply by assignment length
+            employeeSocialSec = (cappedMonthlySS / exchangeRate) * assignmentLength;
+        } else {
+            employeeSocialSec = grossSalary * config.employeeSocialSec;
+        }
+    } else {
+        // Fallback to old combined rate (split 50/50 for display)
+        const totalSS = grossSalary * config.socialSec;
+        employerSocialSec = totalSS * 0.7; // Employer typically pays more
+        employeeSocialSec = totalSS * 0.3;
+    }
+
+    const totalSocialSecurity = employerSocialSec + employeeSocialSec;
+
+    // Legacy variable for backwards compatibility
+    const socialSecurityCost = totalSocialSecurity;
+    const totalAllowances = totalPerDiem; // Rename for legacy compatibility
+
+    // ===== STEP 9: GRAND TOTALS =====
+    // Total = Salary + Per Diem + Admin Fees + Tax + Social Security
+    const grandTotal = grossSalary + totalPerDiem + totalAdminFees + taxAmountEUR + totalSocialSecurity;
+
+    // ===== STEP 10: DAILY COST =====
     const costPerDay = grandTotal / totalCalendarDays;
 
-    // Store calculation data for currency switching
+    // Store calculation data for currency switching and display
     lastCalculationData = {
-        taxAmountEUR,
-        socialSecurityCost,
-        totalAllowances,
+        // Core cost components
+        grossSalary,
+        totalPerDiem,
         totalAdminFees,
+        taxAmountEUR,
+        totalSocialSecurity,
+        employerSocialSec,
+        employeeSocialSec,
         grandTotal,
         costPerDay,
+
+        // Input values
         monthlySalary,
         assignmentLength,
         dailyAllowance,
         totalWorkingDays,
         totalCalendarDays,
+
+        // Tax calculation details
+        taxableIncomeEUR,
+        taxableIncomeLocal,
+        salaryLocal,
+        taxAmountLocal,
+        taxPerDayLocal,
+        taxPerDayEUR,
         effectiveTaxRate,
         taxCalculationMethod,
+        exchangeRate,
+
+        // Configuration
         config,
-        hostCountry
+        hostCountry,
+        countryTaxRules,
+        isResident,
+
+        // Legacy compatibility
+        socialSecurityCost,
+        totalAllowances
     };
 
     // Get home country for display
@@ -445,6 +602,11 @@ function calculateCosts() {
     setEl('summarySalary', formatCurrency(monthlySalary) + '/month');
     setEl('chartPeriodLabel', `(${assignmentLength} months)`);
 
+    // Update Salary breakdown group
+    setEl('summaryGrossSalary', formatCurrency(grossSalary));
+    setEl('detailMonthlySalary', formatCurrency(monthlySalary));
+    setEl('detailSalaryDuration', `${assignmentLength} months`);
+
     // Update Summary View - main totals
     setEl('summaryTax', formatCurrency(taxAmountEUR));
     setEl('summarySocialSec', formatCurrency(socialSecurityCost));
@@ -454,7 +616,8 @@ function calculateCosts() {
     setEl('summaryTotal', formatCurrency(grandTotal));
     setEl('chartCenterTotal', formatCurrency(grandTotal));
 
-    // Update chart legend values
+    // Update chart legend values (all 5 components)
+    setEl('legendSalary', formatCurrency(grossSalary));
     setEl('legendTax', formatCurrency(taxAmountEUR));
     setEl('legendSocial', formatCurrency(socialSecurityCost));
     setEl('legendPerdiem', formatCurrency(totalAllowances));
@@ -466,16 +629,29 @@ function calculateCosts() {
     setEl('detailTaxMethod', taxCalculationMethod);
     const taxSourceEl = document.getElementById('detailTaxSource');
     if (taxSourceEl) {
-        const sourceName = countryTaxRules ? countryTaxRules.taxSource : 'Default rates';
-        taxSourceEl.textContent = sourceName.length > 30 ? sourceName.substring(0, 30) + '...' : sourceName;
+        const sourceUrl = countryTaxRules?.taxSourceUrl || config.taxSourceUrl || '#';
+        const sourceName = countryTaxRules?.taxSource || config.taxSource || 'View Source';
+        taxSourceEl.innerHTML = `<a href="${sourceUrl}" target="_blank" class="text-cozm-teal hover:underline">${sourceName}</a>`;
     }
 
-    // Social Security details
-    setEl('detailSocialRate', (config.socialSec * 100).toFixed(1) + '%');
+    // Social Security details - show employer/employee breakdown
+    const totalSSRate = ((config.employerSocialSec || 0) + (config.employeeSocialSec || 0)) * 100;
+    setEl('detailSocialRate', totalSSRate.toFixed(1) + '%');
+
+    // Update employer/employee breakdown display
+    setEl('detailEmployerSS', formatCurrency(employerSocialSec));
+    setEl('detailEmployeeSS', formatCurrency(employeeSocialSec));
+    setEl('detailEmployerSSRate', ((config.employerSocialSec || 0) * 100).toFixed(1) + '%');
+    setEl('detailEmployeeSSRate', ((config.employeeSocialSec || 0) * 100).toFixed(1) + '%');
+
+    // Social Security warning with clickable link to source
     const socialWarningEl = document.getElementById('detailSocialWarning');
     const socialWarningRow = document.getElementById('detailSocialWarningRow');
     if (config.noTreatyWarning) {
-        if (socialWarningEl) socialWarningEl.textContent = 'No Reciprocal Agreement ⚠️';
+        if (socialWarningEl) {
+            const ssSourceUrl = config.socialSecSourceUrl || 'https://www.kela.fi/international-legislation';
+            socialWarningEl.innerHTML = `<a href="${ssSourceUrl}" target="_blank" class="text-amber-600 hover:underline">No Reciprocal Agreement ⚠️</a>`;
+        }
         if (socialWarningRow) socialWarningRow.style.display = 'flex';
     } else {
         if (socialWarningRow) socialWarningRow.style.display = 'none';
@@ -489,27 +665,18 @@ function calculateCosts() {
     setEl('detailVisaFee', formatCurrency(visaFee));
     setEl('detailWorkPermit', formatCurrency(workPermitFee));
 
-    // Render donut chart
-    renderCostChart(taxAmountEUR, socialSecurityCost, totalAllowances, totalAdminFees, grandTotal);
+    // Render donut chart with all 5 components
+    renderCostChart(grossSalary, totalPerDiem, totalAdminFees, taxAmountEUR, totalSocialSecurity, grandTotal);
 
-    // Show/hide no-treaty warning banner (slim style)
-    const noTreatyWarning = document.getElementById('noTreatyWarning');
-    const noTreatyWarningText = document.getElementById('noTreatyWarningText');
+    // Show/hide social security badge based on treaty status
     const socialSecBadge = document.getElementById('socialSecBadge');
-
-    if (config.noTreatyWarning) {
-        if (noTreatyWarning) {
-            noTreatyWarning.classList.remove('hidden');
-            if (noTreatyWarningText) {
-                noTreatyWarningText.textContent = `Dual social security contributions apply (no Finland-${config.name} social security reciprocal agreement)`;
-            }
-        }
-        if (socialSecBadge) {
+    if (socialSecBadge) {
+        if (config.noTreatyWarning) {
             socialSecBadge.classList.remove('hidden');
+            socialSecBadge.href = config.socialSecSourceUrl || 'https://www.kela.fi/international-legislation';
+        } else {
+            socialSecBadge.classList.add('hidden');
         }
-    } else {
-        if (noTreatyWarning) noTreatyWarning.classList.add('hidden');
-        if (socialSecBadge) socialSecBadge.classList.add('hidden');
     }
 
     // Legacy detailed view elements (for backward compatibility - these IDs may still exist)
@@ -557,9 +724,11 @@ function calculateCosts() {
         totalWorkingDays,
         totalCalendarDays,
         grossSalary,
+        totalPerDiem,
         totalAllowances,
         taxableIncomeEUR,
         taxableIncomeLocal,
+        salaryLocal,
         exchangeRate,
         taxAmountLocal,
         taxAmountEUR,
@@ -568,16 +737,17 @@ function calculateCosts() {
         taxCalculationMethod,
         effectiveTaxRate,
         socialSecurityCost,
+        employerSocialSec,
+        employeeSocialSec,
+        totalSocialSecurity,
         totalAdminFees,
+        subtotalEUR,
         grandTotal,
         costPerDay,
         hostCountry,
         config,
         countryTaxRules,
-        isResident,
-        visaFeesTaxableNote,
-        relocationTaxableNote,
-        taxableAdminFees
+        isResident
     });
 
     // Show results section
@@ -638,7 +808,8 @@ function toggleBreakdownGroup(groupId) {
 }
 
 // Render donut chart using Chart.js
-function renderCostChart(tax, social, perdiem, admin, total) {
+// Updated to show 5 components: Salary, Per Diem, Admin Fees, Tax, Social Security
+function renderCostChart(salary, perdiem, admin, tax, social, total) {
     const ctx = document.getElementById('costChart');
     if (!ctx) return;
 
@@ -647,12 +818,18 @@ function renderCostChart(tax, social, perdiem, admin, total) {
         costChartInstance.destroy();
     }
 
-    // Chart data
+    // Chart data - 5 components in logical order
     const data = {
-        labels: ['Tax', 'Social Security', 'Per Diem', 'Admin Fees'],
+        labels: ['Salary', 'Per Diem', 'Admin Fees', 'Tax', 'Social Security'],
         datasets: [{
-            data: [tax, social, perdiem, admin],
-            backgroundColor: ['#181C31', '#3FAFBE', '#83849E', '#BD4040'],
+            data: [salary, perdiem, admin, tax, social],
+            backgroundColor: [
+                '#44919c', // Salary - Cozm Teal
+                '#83849E', // Per Diem - Grey
+                '#BD8941', // Admin Fees - Gold
+                '#181C31', // Tax - Dark Navy
+                '#3FAFBE'  // Social Security - Light Teal
+            ],
             borderWidth: 0,
             hoverOffset: 8
         }]
@@ -702,7 +879,7 @@ function renderCostChart(tax, social, perdiem, admin, total) {
     });
 }
 
-// Switch currency display (EUR/GBP)
+// Switch currency display (EUR/LOCAL)
 function switchCurrency(currency) {
     currentDisplayCurrency = currency;
 
@@ -719,16 +896,46 @@ function switchCurrency(currency) {
     }
 }
 
+// Get current host country currency info
+function getLocalCurrencyInfo() {
+    const hostCountry = document.getElementById('hostCountry')?.value || 'Brazil';
+    const config = countryConfig[hostCountry] || countryConfig.Brazil;
+    return {
+        currency: config.currency,
+        symbol: config.currencySymbol,
+        rate: config.exchangeRate
+    };
+}
+
+// Update the local currency label when host country changes
+function updateLocalCurrencyLabel() {
+    const localInfo = getLocalCurrencyInfo();
+    const label = document.getElementById('localCurrencyLabel');
+    if (label) {
+        label.textContent = localInfo.currency;
+    }
+}
+
 // Update display values based on currency
 function updateDisplayValues(calc) {
-    const conversionRate = currentDisplayCurrency === 'GBP' ? 0.86 : 1;
-    const symbol = currentDisplayCurrency === 'GBP' ? '£' : '€';
+    let conversionRate, symbol;
 
-    // Recalculate values
-    const tax = calc.taxAmountEUR * conversionRate;
-    const social = calc.socialSecurityCost * conversionRate;
-    const perdiem = calc.totalAllowances * conversionRate;
+    if (currentDisplayCurrency === 'LOCAL') {
+        const localInfo = getLocalCurrencyInfo();
+        conversionRate = localInfo.rate;
+        symbol = localInfo.symbol;
+    } else {
+        // Default to EUR
+        conversionRate = 1;
+        symbol = '€';
+    }
+
+    // Recalculate values with new 5-component structure
+    const salary = calc.grossSalary * conversionRate;
+    const perdiem = (calc.totalPerDiem || calc.totalAllowances) * conversionRate;
     const admin = calc.totalAdminFees * conversionRate;
+    const tax = calc.taxAmountEUR * conversionRate;
+    const social = (calc.totalSocialSecurity || calc.socialSecurityCost) * conversionRate;
     const total = calc.grandTotal * conversionRate;
     const perDay = calc.costPerDay * conversionRate;
 
@@ -743,22 +950,26 @@ function updateDisplayValues(calc) {
     setEl('summaryPerDay', formatCurrencyDecimal(perDay, symbol));
 
     // Update breakdown values
+    setEl('summarySalary', formatCurrency(salary, symbol));
     setEl('summaryTax', formatCurrency(tax, symbol));
     setEl('summarySocialSec', formatCurrency(social, symbol));
     setEl('summaryAllowances', formatCurrency(perdiem, symbol));
     setEl('summaryAdminFees', formatCurrency(admin, symbol));
 
     // Update chart legend
+    setEl('legendSalary', formatCurrency(salary, symbol));
     setEl('legendTax', formatCurrency(tax, symbol));
     setEl('legendSocial', formatCurrency(social, symbol));
     setEl('legendPerdiem', formatCurrency(perdiem, symbol));
     setEl('legendAdmin', formatCurrency(admin, symbol));
 
-    // Re-render chart with converted values
-    renderCostChart(tax, social, perdiem, admin, total);
+    // Re-render chart with converted values (5 components)
+    renderCostChart(salary, perdiem, admin, tax, social, total);
 }
 
 // Update the detailed calculation workings display with collapsible sections
+// Updated methodology: Tax applies to SALARY only (not per diem/admin fees)
+// Social security shows employer/employee breakdown
 function updateCalculationWorkings(calc) {
     const workingsContainer = document.getElementById('calculationWorkings');
     if (!workingsContainer) return;
@@ -767,16 +978,15 @@ function updateCalculationWorkings(calc) {
     const taxSource = calc.countryTaxRules ? calc.countryTaxRules.taxSource : 'Default rates';
     const taxSourceUrl = calc.countryTaxRules ? calc.countryTaxRules.taxSourceUrl : '#';
 
-    let adminFeesNotes = '';
-    if (calc.visaFeesTaxableNote) {
-        adminFeesNotes += `<li>${calc.visaFeesTaxableNote}</li>`;
-    }
-    if (calc.relocationTaxableNote) {
-        adminFeesNotes += `<li>${calc.relocationTaxableNote}</li>`;
-    }
-    if (calc.taxableAdminFees > 0) {
-        adminFeesNotes += `<li>Taxable admin fees included in income: ${formatCurrency(calc.taxableAdminFees)}</li>`;
-    }
+    // Calculate employer and employee SS rates for display
+    const employerSSRate = ((calc.config.employerSocialSec || 0) * 100).toFixed(1);
+    const employeeSSRate = ((calc.config.employeeSocialSec || 0) * 100).toFixed(1);
+    const totalSSRate = (parseFloat(employerSSRate) + parseFloat(employeeSSRate)).toFixed(1);
+
+    // Check if employee SS is capped
+    const hasSSCap = calc.config.employeeSocialSecCap ? true : false;
+    const ssCapNote = hasSSCap ?
+        `Employee INSS capped at ${calc.config.currencySymbol}${calc.config.employeeSocialSecCap.toLocaleString('en-GB')}/month` : '';
 
     workingsContainer.innerHTML = `
         <div class="space-y-3">
@@ -784,20 +994,24 @@ function updateCalculationWorkings(calc) {
             <div class="grand-total-footer">
                 <div class="grand-total-grid">
                     <div class="grand-total-item">
+                        <p class="grand-total-item-label">Salary</p>
+                        <p class="grand-total-item-value">${formatCurrency(calc.grossSalary)}</p>
+                    </div>
+                    <div class="grand-total-item">
+                        <p class="grand-total-item-label">Per Diem</p>
+                        <p class="grand-total-item-value">${formatCurrency(calc.totalPerDiem || calc.totalAllowances)}</p>
+                    </div>
+                    <div class="grand-total-item">
+                        <p class="grand-total-item-label">Admin Fees</p>
+                        <p class="grand-total-item-value">${formatCurrency(calc.totalAdminFees)}</p>
+                    </div>
+                    <div class="grand-total-item">
                         <p class="grand-total-item-label">Tax</p>
                         <p class="grand-total-item-value">${formatCurrency(calc.taxAmountEUR)}</p>
                     </div>
                     <div class="grand-total-item">
                         <p class="grand-total-item-label">Social Security</p>
-                        <p class="grand-total-item-value">${formatCurrency(calc.socialSecurityCost)}</p>
-                    </div>
-                    <div class="grand-total-item">
-                        <p class="grand-total-item-label">Per Diem</p>
-                        <p class="grand-total-item-value">${formatCurrency(calc.totalAllowances)}</p>
-                    </div>
-                    <div class="grand-total-item">
-                        <p class="grand-total-item-label">Admin Fees</p>
-                        <p class="grand-total-item-value">${formatCurrency(calc.totalAdminFees)}</p>
+                        <p class="grand-total-item-value">${formatCurrency(calc.totalSocialSecurity || calc.socialSecurityCost)}</p>
                     </div>
                 </div>
                 <div class="grand-total-final">
@@ -809,12 +1023,12 @@ function updateCalculationWorkings(calc) {
                 </div>
             </div>
 
-            <!-- Collapsible Section: Income & Per Diem Breakdown -->
+            <!-- Collapsible Section: Salary & Per Diem Breakdown -->
             <div id="accordion-income" class="accordion-section">
                 <div class="accordion-header" onclick="toggleAccordion('accordion-income')">
                     <span class="accordion-title">
                         <svg class="w-5 h-5 text-cozm-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Income & Per Diem Breakdown
+                        Salary & Per Diem Breakdown
                     </span>
                     <svg class="accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </div>
@@ -824,11 +1038,18 @@ function updateCalculationWorkings(calc) {
                         <tr><td>Monthly Salary</td><td>${formatCurrency(calc.monthlySalary)}</td></tr>
                         <tr><td>Assignment Length</td><td>× ${calc.assignmentLength} months</td></tr>
                         <tr class="subtotal-row"><td>Gross Salary (EUR)</td><td>${formatCurrency(calc.grossSalary)}</td></tr>
-                        <tr class="section-header"><td colspan="2">Per Diem Calculation</td></tr>
+                        <tr class="section-header"><td colspan="2">Per Diem Calculation (Tax-Exempt)</td></tr>
                         <tr><td>Daily Rate (<a href="${perDiemSourceUrl}" target="_blank" class="text-cozm-teal hover:underline">${perDiemSource}</a>)</td><td>${formatCurrency(calc.dailyAllowance)}</td></tr>
                         <tr><td>Working Days</td><td>× ${calc.totalWorkingDays} days</td></tr>
-                        <tr class="subtotal-row"><td>Total Per Diem (EUR)</td><td>${formatCurrency(calc.totalAllowances)}</td></tr>
+                        <tr class="subtotal-row"><td>Total Per Diem (EUR)</td><td>${formatCurrency(calc.totalPerDiem || calc.totalAllowances)}</td></tr>
                     </table>
+                    <div class="info-box mt-4">
+                        <p class="info-box-title">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Per Diem Tax Treatment
+                        </p>
+                        <p class="info-box-text">Per diem allowances are tax-exempt in Brazil when properly documented (tied to actual business travel, reasonable amounts, and documented business purpose).</p>
+                    </div>
                 </div>
             </div>
 
@@ -855,13 +1076,15 @@ function updateCalculationWorkings(calc) {
                     </div>
                     <table class="workings-table">
                         <tr class="section-header"><td colspan="2">Tax Calculation - ${calc.config.name} (${calc.isResident ? 'Resident' : 'Non-Resident'})</td></tr>
+                        <tr><td>Gross Salary (EUR)</td><td>${formatCurrency(calc.grossSalary)}</td></tr>
+                        <tr><td>Salary in ${calc.config.currency}</td><td>${formatLocalCurrency(calc.salaryLocal || calc.grossSalary * calc.exchangeRate, calc.hostCountry)}</td></tr>
+                        <tr><td>Taxable Base</td><td>Salary only (per diem exempt)</td></tr>
                         <tr><td>Taxable Income (${calc.config.currency})</td><td>${formatLocalCurrency(calc.taxableIncomeLocal, calc.hostCountry)}</td></tr>
                         <tr><td>Calculation Method</td><td>${calc.taxCalculationMethod}</td></tr>
                         <tr><td>Effective Rate</td><td>${calc.effectiveTaxRate.toFixed(1)}%</td></tr>
                         <tr><td>Source</td><td><a href="${taxSourceUrl}" target="_blank" class="text-cozm-teal hover:underline">${taxSource}</a></td></tr>
                         <tr><td>Tax (${calc.config.currency})</td><td>${formatLocalCurrency(calc.taxAmountLocal, calc.hostCountry)}</td></tr>
                         <tr class="subtotal-row"><td>Tax (EUR)</td><td>${formatCurrency(calc.taxAmountEUR)}</td></tr>
-                        <tr><td>Tax Per Day (${calc.config.currency})</td><td>${formatLocalCurrency(calc.taxPerDayLocal, calc.hostCountry)}</td></tr>
                         <tr><td>Tax Per Day (EUR)</td><td>${formatCurrencyDecimal(calc.taxPerDayEUR)}</td></tr>
                     </table>
                 </div>
@@ -897,12 +1120,26 @@ function updateCalculationWorkings(calc) {
                     `}
                     <table class="workings-table">
                         <tr class="section-header"><td colspan="2">Social Security - ${calc.config.name}</td></tr>
+                        <tr><td>Contribution Base</td><td>Salary only (per diem exempt)</td></tr>
                         <tr><td>Gross Salary (EUR)</td><td>${formatCurrency(calc.grossSalary)}</td></tr>
-                        <tr><td>Social Security Rate</td><td>${(calc.config.socialSec * 100).toFixed(1)}%</td></tr>
+                        <tr class="section-header"><td colspan="2">Employer Contributions</td></tr>
+                        <tr><td>Employer Rate</td><td>${employerSSRate}%</td></tr>
+                        <tr><td>Employer INSS + FGTS + RAT</td><td>${formatCurrency(calc.employerSocialSec)}</td></tr>
+                        <tr class="section-header"><td colspan="2">Employee Contributions</td></tr>
+                        <tr><td>Employee Rate</td><td>${employeeSSRate}%</td></tr>
+                        ${hasSSCap ? `<tr><td>Monthly Cap</td><td>${ssCapNote}</td></tr>` : ''}
+                        <tr><td>Employee INSS</td><td>${formatCurrency(calc.employeeSocialSec)}</td></tr>
                         ${calc.config.socialSecSource ? `<tr><td>Source</td><td>${calc.config.socialSecSource}</td></tr>` : ''}
-                        <tr class="subtotal-row"><td>Social Security Cost (EUR)</td><td>${formatCurrency(calc.socialSecurityCost)}</td></tr>
-                        <tr><td>Social Security Per Day (EUR)</td><td>${formatCurrencyDecimal(calc.socialSecurityCost / calc.totalCalendarDays)}</td></tr>
+                        <tr class="subtotal-row"><td>Total Social Security (EUR)</td><td>${formatCurrency(calc.totalSocialSecurity || calc.socialSecurityCost)}</td></tr>
+                        <tr><td>Social Security Per Day (EUR)</td><td>${formatCurrencyDecimal((calc.totalSocialSecurity || calc.socialSecurityCost) / calc.totalCalendarDays)}</td></tr>
                     </table>
+                    <div class="info-box mt-4">
+                        <p class="info-box-title">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Social Security Notes
+                        </p>
+                        <p class="info-box-text">Per diem allowances are NOT subject to social security contributions in Brazil when properly documented as reimbursement for actual business travel expenses.</p>
+                    </div>
                 </div>
             </div>
 
@@ -923,18 +1160,10 @@ function updateCalculationWorkings(calc) {
                         <tr><td>Rate Date</td><td>${rateDate}</td></tr>
                         <tr class="section-header"><td colspan="2">Local Currency Values</td></tr>
                         <tr><td>Gross Salary (${calc.config.currency})</td><td>${formatLocalCurrency(calc.grossSalary * calc.exchangeRate, calc.hostCountry)}</td></tr>
-                        <tr><td>Per Diem (${calc.config.currency})</td><td>${formatLocalCurrency(calc.totalAllowances * calc.exchangeRate, calc.hostCountry)}</td></tr>
-                        <tr class="subtotal-row"><td>Total Income (${calc.config.currency})</td><td>${formatLocalCurrency((calc.grossSalary + calc.totalAllowances) * calc.exchangeRate, calc.hostCountry)}</td></tr>
+                        <tr><td>Per Diem (${calc.config.currency})</td><td>${formatLocalCurrency((calc.totalPerDiem || calc.totalAllowances) * calc.exchangeRate, calc.hostCountry)}</td></tr>
+                        <tr><td>Admin Fees (${calc.config.currency})</td><td>${formatLocalCurrency(calc.totalAdminFees * calc.exchangeRate, calc.hostCountry)}</td></tr>
+                        <tr class="subtotal-row"><td>Total (${calc.config.currency})</td><td>${formatLocalCurrency(calc.grandTotal * calc.exchangeRate, calc.hostCountry)}</td></tr>
                     </table>
-                    ${adminFeesNotes ? `
-                    <div class="note-box mt-4">
-                        <p class="note-box-title">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            Admin Fees Taxability Notes
-                        </p>
-                        <ul class="note-box-text list-disc list-inside space-y-1">${adminFeesNotes}</ul>
-                    </div>
-                    ` : ''}
                 </div>
             </div>
         </div>
