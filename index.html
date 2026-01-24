@@ -17,10 +17,123 @@
     <!-- Auth Check - This is the LOGIN page (index.html)
          If user has valid session and is approved, redirect to app.html
          Otherwise, show the login form (handled by auth.js) -->
+    <!-- MOBILE FIX: Uses timeout protection for session check -->
     <script>
         // Clear redirect counter on login page load - user is where they need to be
         sessionStorage.removeItem('auth_redirect_count');
         console.log('[AUTH] Login page loaded, redirect counter cleared');
+
+        // Clear all auth data helper (for mobile Safari issues)
+        window.clearAllAuth = function() {
+            try {
+                sessionStorage.clear();
+                localStorage.removeItem('fse-cost-calc-auth');
+                Object.keys(localStorage).forEach(key => {
+                    if (key.includes('supabase') || key.includes('auth')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+                console.log('[AUTH] Cleared all auth data');
+            } catch (e) {
+                console.warn('[AUTH] Could not clear storage:', e);
+            }
+        };
+
+        // Check if user already has valid session - redirect to app.html if so
+        // This prevents showing login form unnecessarily
+        (async function checkExistingSession() {
+            console.log('[AUTH] Checking for existing session on login page...');
+
+            // Wait for Supabase to load with short timeout (5 seconds max)
+            let attempts = 0;
+            const maxAttempts = 50; // 5 seconds
+
+            const checkInterval = setInterval(async () => {
+                attempts++;
+
+                if (attempts >= maxAttempts) {
+                    clearInterval(checkInterval);
+                    console.log('[AUTH] No session check possible, showing login form');
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('app-content').style.display = 'block';
+                    return;
+                }
+
+                if (window.SupabaseConfig) {
+                    clearInterval(checkInterval);
+
+                    try {
+                        const supabase = window.SupabaseConfig.init();
+                        if (!supabase) {
+                            document.getElementById('loading-screen').style.display = 'none';
+                            document.getElementById('app-content').style.display = 'block';
+                            return;
+                        }
+
+                        // Quick session check with 5 second timeout to prevent hanging
+                        const sessionPromise = supabase.auth.getSession();
+                        const timeoutPromise = new Promise((_, reject) =>
+                            setTimeout(() => reject(new Error('timeout')), 5000)
+                        );
+
+                        let sessionResult;
+                        try {
+                            sessionResult = await Promise.race([sessionPromise, timeoutPromise]);
+                        } catch (timeoutErr) {
+                            console.log('[AUTH] Session check timed out, showing login form');
+                            document.getElementById('loading-screen').style.display = 'none';
+                            document.getElementById('app-content').style.display = 'block';
+                            return;
+                        }
+
+                        const { data: { session }, error } = sessionResult;
+
+                        if (error || !session) {
+                            console.log('[AUTH] No valid session, showing login form');
+                            document.getElementById('loading-screen').style.display = 'none';
+                            document.getElementById('app-content').style.display = 'block';
+                            return;
+                        }
+
+                        // Session exists - check if user is approved (quick check)
+                        const appUserPromise = supabase
+                            .from('app_users')
+                            .select('approved')
+                            .eq('id', session.user.id)
+                            .single();
+                        const appUserTimeout = new Promise((_, reject) =>
+                            setTimeout(() => reject(new Error('timeout')), 3000)
+                        );
+
+                        let appUserResult;
+                        try {
+                            appUserResult = await Promise.race([appUserPromise, appUserTimeout]);
+                        } catch (e) {
+                            console.log('[AUTH] User check timed out, showing login form');
+                            document.getElementById('loading-screen').style.display = 'none';
+                            document.getElementById('app-content').style.display = 'block';
+                            return;
+                        }
+
+                        if (appUserResult.data?.approved) {
+                            console.log('[AUTH] User already approved, redirecting to app');
+                            window.location.href = 'app.html';
+                            return;
+                        }
+
+                        // User has session but not approved - show login/pending
+                        console.log('[AUTH] Session exists but user not approved, showing login form');
+                        document.getElementById('loading-screen').style.display = 'none';
+                        document.getElementById('app-content').style.display = 'block';
+
+                    } catch (err) {
+                        console.error('[AUTH] Error checking session:', err);
+                        document.getElementById('loading-screen').style.display = 'none';
+                        document.getElementById('app-content').style.display = 'block';
+                    }
+                }
+            }, 100);
+        })();
     </script>
 
     <!-- Loading Screen -->

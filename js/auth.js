@@ -1,11 +1,23 @@
 // Authentication Module for FSE Cost Calculator
 // Handles login, signup, email verification, and 2FA
+// MOBILE FIX: All Supabase calls wrapped with timeout to prevent hanging on Safari/mobile
 
 class AuthManager {
     constructor() {
         this.supabase = null;
         this.currentUser = null;
         this.currentStep = 'email'; // email, verify, password, 2fa, pending
+        this.DEFAULT_TIMEOUT = 10000; // 10 seconds default timeout
+    }
+
+    // MOBILE FIX: Helper to wrap promises with timeout
+    withTimeout(promise, ms, errorMsg) {
+        return Promise.race([
+            promise,
+            new Promise((_, reject) =>
+                setTimeout(() => reject(new Error(errorMsg || 'Operation timed out')), ms || this.DEFAULT_TIMEOUT)
+            )
+        ]);
     }
 
     async init() {
@@ -16,6 +28,7 @@ class AuthManager {
         }
 
         // Set up auth state change listener for session refresh
+        // MOBILE FIX: Keep callback synchronous to avoid deadlocks
         this.supabase.auth.onAuthStateChange((event, session) => {
             console.log('Auth state changed:', event);
             if (event === 'SIGNED_OUT') {
@@ -25,32 +38,47 @@ class AuthManager {
             }
         });
 
-        // Check for existing session
-        const { data: { session }, error } = await this.supabase.auth.getSession();
+        // Check for existing session with timeout
+        try {
+            const { data: { session }, error } = await this.withTimeout(
+                this.supabase.auth.getSession(),
+                8000,
+                'Session check timed out'
+            );
 
-        if (error) {
-            console.error('Session check error:', error);
+            if (error) {
+                console.error('Session check error:', error);
+                return false;
+            }
+
+            if (session) {
+                this.currentUser = session.user;
+                return await this.checkUserAccess();
+            }
+        } catch (timeoutErr) {
+            console.error('Session init timed out:', timeoutErr);
+            this.showError('Connection timeout. Please check your internet and refresh.');
             return false;
-        }
-
-        if (session) {
-            this.currentUser = session.user;
-            return await this.checkUserAccess();
         }
 
         return false;
     }
 
     // Check if user has access (is approved)
+    // MOBILE FIX: Added timeout protection
     async checkUserAccess() {
         if (!this.currentUser) return false;
 
         try {
-            const { data: appUser, error } = await this.supabase
-                .from('app_users')
-                .select('*')
-                .eq('id', this.currentUser.id)
-                .single();
+            const { data: appUser, error } = await this.withTimeout(
+                this.supabase
+                    .from('app_users')
+                    .select('*')
+                    .eq('id', this.currentUser.id)
+                    .single(),
+                8000,
+                'User check timed out'
+            );
 
             if (error && error.code === 'PGRST116') {
                 // User not in app_users table, create entry
@@ -71,6 +99,9 @@ class AuthManager {
             }
         } catch (err) {
             console.error('Error checking user access:', err);
+            if (err.message.includes('timed out')) {
+                this.showError('Connection timeout. Please try again.');
+            }
             return false;
         }
     }
@@ -111,6 +142,7 @@ class AuthManager {
     }
 
     // Step 1: Enter email - always send OTP (no passwords)
+    // MOBILE FIX: Added timeout protection
     async submitEmail(email) {
         email = email.toLowerCase().trim();
 
@@ -123,12 +155,16 @@ class AuthManager {
 
         try {
             // Always send OTP - works for both new and existing users
-            const { error } = await this.supabase.auth.signInWithOtp({
-                email: email,
-                options: {
-                    shouldCreateUser: true
-                }
-            });
+            const { error } = await this.withTimeout(
+                this.supabase.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        shouldCreateUser: true
+                    }
+                }),
+                15000, // 15 seconds for email sending
+                'Sending code timed out'
+            );
 
             if (error) throw error;
 
@@ -136,13 +172,18 @@ class AuthManager {
             this.showStep('verify');
             this.showSuccess('Sign-in code sent to ' + email);
         } catch (err) {
-            this.showError(err.message || 'Failed to send sign-in code. Please try again.');
+            if (err.message.includes('timed out')) {
+                this.showError('Connection timeout. Please check your internet and try again.');
+            } else {
+                this.showError(err.message || 'Failed to send sign-in code. Please try again.');
+            }
         } finally {
             this.showLoading(false);
         }
     }
 
     // Step 2: Verify OTP code
+    // MOBILE FIX: Added timeout protection - this is the critical path that hangs on mobile
     async verifyOtp(code) {
         if (!code || code.length !== 8) {
             this.showError('Please enter the 8-digit verification code.');
@@ -152,11 +193,15 @@ class AuthManager {
         this.showLoading(true);
 
         try {
-            const { data, error } = await this.supabase.auth.verifyOtp({
-                email: this.pendingEmail,
-                token: code,
-                type: 'email'
-            });
+            const { data, error } = await this.withTimeout(
+                this.supabase.auth.verifyOtp({
+                    email: this.pendingEmail,
+                    token: code,
+                    type: 'email'
+                }),
+                15000, // 15 seconds for verification
+                'Verification timed out'
+            );
 
             if (error) throw error;
 
@@ -173,7 +218,11 @@ class AuthManager {
                 this.showPendingApproval();
             }
         } catch (err) {
-            this.showError(err.message || 'Invalid verification code. Please try again.');
+            if (err.message.includes('timed out')) {
+                this.showError('Verification timed out. Please try again.');
+            } else {
+                this.showError(err.message || 'Invalid verification code. Please try again.');
+            }
         } finally {
             this.showLoading(false);
         }
