@@ -14,29 +14,53 @@
     <link rel="stylesheet" href="css/app.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- CRITICAL: Load Supabase BEFORE auth check runs -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="window.supabaseLoadFailed=true;"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+        onerror="window.supabaseLoadFailed=true;"></script>
     <script src="js/supabase-config.js" onerror="window.configLoadFailed=true;"></script>
     <style>
         /* Mobile-specific inline overrides */
         @media (max-width: 768px) {
-            .px-8 { padding-left: 1rem !important; padding-right: 1rem !important; }
-            .py-5 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
-            .gap-8 { gap: 1rem !important; }
-            .text-xl { font-size: 1rem !important; }
-            .text-\[13px\] { font-size: 11px !important; }
+            .px-8 {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+
+            .py-5 {
+                padding-top: 0.75rem !important;
+                padding-bottom: 0.75rem !important;
+            }
+
+            .gap-8 {
+                gap: 1rem !important;
+            }
+
+            .text-xl {
+                font-size: 1rem !important;
+            }
+
+            .text-\[13px\] {
+                font-size: 11px !important;
+            }
+
             /* Ensure scrolling works on mobile */
-            html, body {
+            html,
+            body {
                 -webkit-overflow-scrolling: touch;
                 overflow-x: hidden;
             }
         }
+
         @media (max-width: 480px) {
-            .max-w-7xl { max-width: 100% !important; }
+            .max-w-7xl {
+                max-width: 100% !important;
+            }
         }
+
         /* Prevent horizontal overflow on all screen sizes */
         html {
             overflow-x: hidden;
         }
+
         body {
             overflow-x: hidden;
             min-height: 100vh;
@@ -49,13 +73,13 @@
     <!-- MOBILE FIX: Uses Promise.race() timeout to prevent getSession() hanging on Safari/mobile -->
     <!-- SCRIPT LOAD FIX: Supabase scripts now load in <head> before this runs -->
     <script>
-        (async function() {
+        (async function () {
             console.log('[AUTH] Starting auth check on app.html');
 
             // DEV MODE: Skip auth check if ?dev=true in URL (localhost only)
             const urlParams = new URLSearchParams(window.location.search);
             const isDevMode = urlParams.get('dev') === 'true' &&
-                             (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+                (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
             if (isDevMode) {
                 console.log('🔧 DEV MODE: Authentication bypassed for local testing');
@@ -110,7 +134,7 @@
             }
 
             // Clear all auth data and retry (for mobile Safari issues)
-            window.clearAllAndRetry = function() {
+            window.clearAllAndRetry = function () {
                 try {
                     sessionStorage.clear();
                     localStorage.removeItem('fse-cost-calc-auth');
@@ -323,7 +347,7 @@
 
                         // MOBILE FIX: Add visibility change listener to refresh session
                         // This handles Safari tab suspension/restoration
-                        document.addEventListener('visibilitychange', async function() {
+                        document.addEventListener('visibilitychange', async function () {
                             if (document.visibilityState === 'visible' && window.SupabaseConfig) {
                                 console.log('[AUTH] Tab became visible, refreshing session...');
                                 try {
@@ -357,12 +381,23 @@
     </script>
 
     <!-- Loading Screen -->
-    <div id="loading-screen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; display: flex; align-items: center; justify-content: center; z-index: 9999;">
+    <div id="loading-screen"
+        style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; display: flex; align-items: center; justify-content: center; z-index: 9999;">
         <div style="text-align: center;">
-            <div style="width: 56px; height: 56px; border: 4px solid #e5e7eb; border-top-color: #44919c; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
-            <p style="color: #6b7280; font-family: Inter, sans-serif; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; font-size: 12px;">Securing Session...</p>
+            <div
+                style="width: 56px; height: 56px; border: 4px solid #e5e7eb; border-top-color: #44919c; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;">
+            </div>
+            <p
+                style="color: #6b7280; font-family: Inter, sans-serif; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; font-size: 12px;">
+                Securing Session...</p>
         </div>
-        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+        <style>
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
     </div>
 
     <div id="app-content" style="display: none;">
@@ -375,69 +410,93 @@
                     <div class="flex items-center justify-between md:justify-start gap-4 md:gap-8">
                         <div class="flex items-center gap-3 md:gap-8">
                             <div class="logo-container">
-                                <img src="https://thecozm.com/images/logo/theCozmLogo.png" alt="The Cozm" class="h-8 md:h-12" />
+                                <img src="https://thecozm.com/images/logo/theCozmLogo.png" alt="The Cozm"
+                                    class="h-8 md:h-12" />
                             </div>
                             <div class="hidden sm:block md:border-l md:border-gray-200 md:pl-6">
-                                <h1 class="text-sm md:text-xl font-extrabold text-gray-900 tracking-tight">FSE Cost Calculator</h1>
-                                <p class="text-[10px] md:text-[13px] text-cozm-teal font-bold uppercase tracking-wider">Multi-Country Intelligence</p>
+                                <h1 class="text-sm md:text-xl font-extrabold text-gray-900 tracking-tight">FSE Cost
+                                    Calculator</h1>
+                                <p class="text-[10px] md:text-[13px] text-cozm-teal font-bold uppercase tracking-wider">
+                                    Multi-Country Intelligence</p>
                             </div>
                         </div>
                         <!-- Mobile: Action buttons in header row -->
                         <div class="flex md:hidden items-center gap-2">
-                            <button onclick="autoPopulateDemo()" class="p-2 rounded-lg bg-cozm-light-teal text-cozm-teal" title="Auto-populate">
+                            <button onclick="autoPopulateDemo()"
+                                class="p-2 rounded-lg bg-cozm-light-teal text-cozm-teal" title="Auto-populate">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
                             </button>
-                            <button onclick="appSignOut()" class="p-2 rounded-lg text-cozm-red hover:bg-red-50" title="Log Out">
+                            <button onclick="appSignOut()" class="p-2 rounded-lg text-cozm-red hover:bg-red-50"
+                                title="Log Out">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                 </svg>
                             </button>
                         </div>
                     </div>
 
                     <!-- Navigation Tabs - Center on mobile -->
-                    <div class="flex items-center justify-center gap-1 bg-gray-100 rounded-xl p-1 md:p-1.5 w-full md:w-auto">
-                        <button id="nav-calculator" class="nav-tab nav-tab-active flex-1 md:flex-initial justify-center" onclick="switchMainTab('calculator')">
+                    <div
+                        class="flex items-center justify-center gap-1 bg-gray-100 rounded-xl p-1 md:p-1.5 w-full md:w-auto">
+                        <button id="nav-calculator" class="nav-tab nav-tab-active flex-1 md:flex-initial justify-center"
+                            onclick="switchMainTab('calculator')">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                             </svg>
                             <span class="hidden sm:inline">Cost Analysis</span>
                             <span class="sm:hidden text-xs">Costs</span>
                         </button>
-                        <button id="nav-staffing" class="nav-tab flex-1 md:flex-initial justify-center" onclick="switchMainTab('staffing')">
+                        <button id="nav-staffing" class="nav-tab flex-1 md:flex-initial justify-center"
+                            onclick="switchMainTab('staffing')">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                             <span class="hidden sm:inline">Staffing Engine</span>
                             <span class="sm:hidden text-xs">Staff</span>
                         </button>
-                        <button id="nav-settings" class="nav-tab flex-initial justify-center" onclick="openSettingsModal()" title="Calculation Settings">
+                        <button id="nav-settings" class="nav-tab flex-initial justify-center"
+                            onclick="openSettingsModal()" title="Calculation Settings">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                         </button>
                     </div>
 
                     <!-- Desktop: Action buttons -->
                     <div class="hidden md:flex items-center gap-4 border-l border-gray-200 pl-8">
-                        <button onclick="autoPopulateDemo()" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cozm-light-teal text-cozm-teal font-semibold hover:bg-cozm-teal hover:text-white transition-all text-sm" title="Auto-populate with sample data">
+                        <button onclick="autoPopulateDemo()"
+                            class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cozm-light-teal text-cozm-teal font-semibold hover:bg-cozm-teal hover:text-white transition-all text-sm"
+                            title="Auto-populate with sample data">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
                             Populate
                         </button>
-                        <button id="admin-btn" style="display: none;" onclick="window.location.href='admin.html'" class="p-2.5 rounded-xl hover:bg-gray-100 text-gray-600 transition-colors" title="Admin Panel">
+                        <button id="admin-btn" style="display: none;" onclick="window.location.href='admin.html'"
+                            class="p-2.5 rounded-xl hover:bg-gray-100 text-gray-600 transition-colors"
+                            title="Admin Panel">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                         </button>
-                        <button onclick="appSignOut()" class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-cozm-red font-extrabold hover:bg-red-50 transition-all">
+                        <button onclick="appSignOut()"
+                            class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-cozm-red font-extrabold hover:bg-red-50 transition-all">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>
                             Log Out
                         </button>
@@ -453,12 +512,18 @@
                     <!-- Mobile: Stack title and tabs vertically -->
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 md:mb-8 gap-4">
                         <div class="text-center md:text-left">
-                            <h2 class="text-lg md:text-xl font-extrabold text-gray-900 tracking-tight">Cost Estimation Module</h2>
-                            <p class="text-xs md:text-sm text-gray-500 mt-1">Complete the details below for an estimate of this international deployment</p>
+                            <h2 class="text-lg md:text-xl font-extrabold text-gray-900 tracking-tight">Cost Estimation
+                                Module</h2>
+                            <p class="text-xs md:text-sm text-gray-500 mt-1">Complete the details below for an estimate
+                                of this international deployment</p>
                         </div>
                         <div class="flex border-b-2 border-gray-100 w-full md:w-auto">
-                            <button id="tab-single" class="tab-active flex-1 md:flex-initial px-4 md:px-6 py-3 text-xs md:text-sm transition-all" onclick="switchTab('single')">Single Engineer</button>
-                            <button id="tab-bulk" class="tab-inactive flex-1 md:flex-initial px-4 md:px-6 py-3 text-xs md:text-sm transition-all" onclick="switchTab('bulk')">Batch Process</button>
+                            <button id="tab-single"
+                                class="tab-active flex-1 md:flex-initial px-4 md:px-6 py-3 text-xs md:text-sm transition-all"
+                                onclick="switchTab('single')">Single Engineer</button>
+                            <button id="tab-bulk"
+                                class="tab-inactive flex-1 md:flex-initial px-4 md:px-6 py-3 text-xs md:text-sm transition-all"
+                                onclick="switchTab('bulk')">Batch Process</button>
                         </div>
                     </div>
 
@@ -466,7 +531,9 @@
                     <div id="form-single" class="animate-fade-in">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
                             <div>
-                                <label class="form-label">Home Country <span class="tooltip-wrapper"><span class="help-icon">i</span><span class="tooltip-content">The engineer's country of tax residence and employment contract</span></span></label>
+                                <label class="form-label">Home Country <span class="tooltip-wrapper"><span
+                                            class="help-icon">i</span><span class="tooltip-content">The engineer's
+                                            country of tax residence and employment contract</span></span></label>
                                 <select id="homeCountry" class="input-field w-full" onchange="updateCountryInfo()">
                                     <option value="Finland">Finland</option>
                                     <option value="Portugal">Portugal</option>
@@ -474,7 +541,9 @@
                             </div>
 
                             <div>
-                                <label class="form-label">Host Country <span class="tooltip-wrapper"><span class="help-icon">i</span><span class="tooltip-content">The destination country where work will be performed</span></span></label>
+                                <label class="form-label">Host Country <span class="tooltip-wrapper"><span
+                                            class="help-icon">i</span><span class="tooltip-content">The destination
+                                            country where work will be performed</span></span></label>
                                 <select id="hostCountry" class="input-field w-full" onchange="updateCountryInfo()">
                                     <option value="Brazil">Brazil</option>
                                     <option value="USA">United States</option>
@@ -491,14 +560,20 @@
                             </div>
 
                             <div>
-                                <label class="form-label">Monthly Salary (EUR) <span class="tooltip-wrapper"><span class="help-icon">i</span><span class="tooltip-content">Gross monthly salary in EUR (typical range: €5,000–€10,000)</span></span></label>
+                                <label class="form-label">Monthly Salary (EUR) <span class="tooltip-wrapper"><span
+                                            class="help-icon">i</span><span class="tooltip-content">Gross monthly salary
+                                            in EUR (typical range: €5,000–€10,000)</span></span></label>
                                 <div class="currency-input">
-                                    <input type="number" id="monthlySalary" value="7000" class="input-field w-full" min="0" step="100">
+                                    <input type="number" id="monthlySalary" value="7000" class="input-field w-full"
+                                        min="0" step="100">
                                 </div>
                             </div>
 
                             <div>
-                                <label class="form-label">Assignment Duration <span class="tooltip-wrapper"><span class="help-icon">i</span><span class="tooltip-content">Length of deployment (3 months to 2 years typical). Assignments ≥183 days may trigger tax residency.</span></span></label>
+                                <label class="form-label">Assignment Duration <span class="tooltip-wrapper"><span
+                                            class="help-icon">i</span><span class="tooltip-content">Length of deployment
+                                            (3 months to 2 years typical). Assignments ≥183 days may trigger tax
+                                            residency.</span></span></label>
                                 <select id="assignmentLength" class="input-field w-full">
                                     <option value="3">3 months</option>
                                     <option value="6" selected>6 months</option>
@@ -509,24 +584,38 @@
                             </div>
 
                             <div>
-                                <label class="form-label">Daily Allowance (EUR) <span class="tooltip-wrapper"><span class="help-icon">i</span><span class="tooltip-content">Tax-free per diem based on Finnish Tax Administration rates. Auto-set by host country.</span></span></label>
+                                <label class="form-label">Daily Allowance (EUR) <span class="tooltip-wrapper"><span
+                                            class="help-icon">i</span><span class="tooltip-content">Tax-free per diem
+                                            based on Finnish Tax Administration rates. Auto-set by host
+                                            country.</span></span></label>
                                 <div class="currency-input relative">
-                                    <input type="number" id="dailyAllowance" value="66" class="input-field w-full opacity-60" disabled>
-                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg></span>
+                                    <input type="number" id="dailyAllowance" value="66"
+                                        class="input-field w-full opacity-60" disabled>
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><svg
+                                            class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        </svg></span>
                                 </div>
                                 <p class="text-[11px] mt-2" id="perDiemInfo"></p>
                             </div>
 
                             <div>
-                                <label class="form-label">Working Days / Month <span class="tooltip-wrapper"><span class="help-icon">i</span><span class="tooltip-content">Standard working days per month (typically 22 for full-time)</span></span></label>
-                                <input type="number" id="workingDays" value="22" class="input-field w-full" min="1" max="31">
+                                <label class="form-label">Working Days / Month <span class="tooltip-wrapper"><span
+                                            class="help-icon">i</span><span class="tooltip-content">Standard working
+                                            days per month (typically 22 for full-time)</span></span></label>
+                                <input type="number" id="workingDays" value="22" class="input-field w-full" min="1"
+                                    max="31">
                             </div>
                         </div>
 
                         <div class="mt-6 md:mt-10 flex justify-center md:justify-end">
                             <button class="btn-primary w-full md:w-auto" onclick="calculateCosts()">
                                 <span class="flex items-center justify-center gap-3">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                    </svg>
                                     Generate Estimate
                                 </span>
                             </button>
@@ -535,21 +624,32 @@
 
                     <!-- Batch Process Form -->
                     <div id="form-bulk" class="hidden animate-fade-in">
-                        <div class="drop-zone p-6 md:p-12" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                        <div class="drop-zone p-6 md:p-12" id="dropZone"
+                            onclick="document.getElementById('fileInput').click()">
                             <input type="file" id="fileInput" class="hidden" accept=".xlsx,.xls">
-                            <svg class="w-12 h-12 md:w-16 md:h-16 mx-auto text-cozm-teal mb-3 md:mb-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                            <svg class="w-12 h-12 md:w-16 md:h-16 mx-auto text-cozm-teal mb-3 md:mb-4 opacity-40"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
                             <p class="text-gray-900 font-bold text-base md:text-lg">Drop manifest or browse files</p>
                             <p class="text-xs md:text-sm text-gray-500 mt-2">Compatible with .xlsx and .xls formats</p>
                         </div>
                         <div class="mt-4 md:mt-6 flex items-center justify-center md:justify-between">
-                            <button class="btn-secondary w-full md:w-auto" onclick="downloadTemplate()">Download Protocol Template</button>
+                            <button class="btn-secondary w-full md:w-auto" onclick="downloadTemplate()">Download
+                                Protocol Template</button>
                         </div>
                         <div id="bulkPreview" class="hidden mt-10">
                             <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4">Data Preview</h3>
                             <div class="overflow-hidden rounded-xl border border-gray-200">
                                 <table class="w-full text-sm">
                                     <thead class="bg-gray-50">
-                                        <tr><th class="px-6 py-4 text-left font-bold text-gray-700">Engineer</th><th class="px-6 py-4 text-left font-bold text-gray-700">Route</th><th class="px-6 py-4 text-right font-bold text-gray-700">Remuneration</th><th class="px-6 py-4 text-right font-bold text-gray-700">Term</th></tr>
+                                        <tr>
+                                            <th class="px-6 py-4 text-left font-bold text-gray-700">Engineer</th>
+                                            <th class="px-6 py-4 text-left font-bold text-gray-700">Route</th>
+                                            <th class="px-6 py-4 text-right font-bold text-gray-700">Remuneration</th>
+                                            <th class="px-6 py-4 text-right font-bold text-gray-700">Term</th>
+                                        </tr>
                                     </thead>
                                     <tbody id="bulkPreviewBody" class="divide-y divide-gray-100"></tbody>
                                 </table>
@@ -564,19 +664,25 @@
                 <!-- Results -->
                 <div id="resultsSection" class="hidden animate-fade-in">
                     <!-- Header with Currency Toggle - Mobile: Stack vertically -->
-                    <div class="results-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 md:mb-6">
+                    <div
+                        class="results-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 md:mb-6">
                         <div class="text-center sm:text-left">
-                            <h2 class="text-lg md:text-xl font-extrabold text-gray-900 tracking-tight">Additional Cost Estimate</h2>
-                            <p class="text-xs text-gray-500 mt-1">Incremental costs beyond base salary for this international deployment</p>
+                            <h2 class="text-lg md:text-xl font-extrabold text-gray-900 tracking-tight">Additional Cost
+                                Estimate</h2>
+                            <p class="text-xs text-gray-500 mt-1">Incremental costs beyond base salary for this
+                                international deployment</p>
                         </div>
                         <div class="currency-toggle mx-auto sm:mx-0">
-                            <button id="currency-eur" class="currency-btn active" onclick="switchCurrency('EUR')">EUR</button>
-                            <button id="currency-local" class="currency-btn" onclick="switchCurrency('LOCAL')"><span id="localCurrencyLabel">BRL</span></button>
+                            <button id="currency-eur" class="currency-btn active"
+                                onclick="switchCurrency('EUR')">EUR</button>
+                            <button id="currency-local" class="currency-btn" onclick="switchCurrency('LOCAL')"><span
+                                    id="localCurrencyLabel">BRL</span></button>
                         </div>
                     </div>
 
                     <!-- Two-Column Results Layout - Mobile: single column, reversed order (chart first) -->
-                    <div class="results-container flex flex-col-reverse lg:grid lg:grid-cols-[1fr_380px] gap-4 md:gap-6">
+                    <div
+                        class="results-container flex flex-col-reverse lg:grid lg:grid-cols-[1fr_380px] gap-4 md:gap-6">
                         <!-- Left Column: Assignment Summary + Breakdown Groups -->
                         <div class="results-left-column order-2 lg:order-1">
                             <!-- Assignment Summary Card -->
@@ -612,12 +718,19 @@
                                             <span class="breakdown-label">Salary (Base)</span>
                                             <span class="tooltip-wrapper" onclick="event.stopPropagation()">
                                                 <span class="help-icon">i</span>
-                                                <span class="tooltip-content">The employee's gross salary is shown here as the base for tax and social security calculations. Note: This is NOT an additional cost—you would pay this salary regardless of deployment location.</span>
+                                                <span class="tooltip-content">The employee's gross salary is shown here
+                                                    as the base for tax and social security calculations. Note: This is
+                                                    NOT an additional cost—you would pay this salary regardless of
+                                                    deployment location.</span>
                                             </span>
                                         </div>
                                         <div class="breakdown-header-right">
                                             <span class="breakdown-value" id="summaryGrossSalary">€0</span>
-                                            <svg class="breakdown-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                            <svg class="breakdown-chevron" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 5l7 7-7 7" />
+                                            </svg>
                                         </div>
                                     </div>
                                     <div class="breakdown-details" id="details-salary">
@@ -631,7 +744,8 @@
                                         </div>
                                         <div class="detail-row">
                                             <span class="detail-label">Note</span>
-                                            <span class="detail-value" style="font-size: 11px; color: #6b7280;">Base for tax & SS calculations (not an additional cost)</span>
+                                            <span class="detail-value" style="font-size: 11px; color: #6b7280;">Base for
+                                                tax & SS calculations (not an additional cost)</span>
                                         </div>
                                     </div>
                                 </div>
@@ -645,12 +759,19 @@
                                             <span class="breakdown-exempt-badge">Tax Exempt</span>
                                             <span class="tooltip-wrapper" onclick="event.stopPropagation()">
                                                 <span class="help-icon">i</span>
-                                                <span class="tooltip-content">Daily subsistence allowance paid to the employee to cover meals and incidentals whilst deployed abroad. This is an ADDITIONAL cost on top of salary, set by Finnish Tax Administration rates.</span>
+                                                <span class="tooltip-content">Daily subsistence allowance paid to the
+                                                    employee to cover meals and incidentals whilst deployed abroad. This
+                                                    is an ADDITIONAL cost on top of salary, set by Finnish Tax
+                                                    Administration rates.</span>
                                             </span>
                                         </div>
                                         <div class="breakdown-header-right">
                                             <span class="breakdown-value" id="summaryAllowances">€0</span>
-                                            <svg class="breakdown-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                            <svg class="breakdown-chevron" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 5l7 7-7 7" />
+                                            </svg>
                                         </div>
                                     </div>
                                     <div class="breakdown-details" id="details-perdiem">
@@ -664,11 +785,13 @@
                                         </div>
                                         <div class="detail-row">
                                             <span class="detail-label">Source</span>
-                                            <span class="detail-value detail-link" id="detailPerDiemSource">Finnish Tax Admin 2025</span>
+                                            <span class="detail-value detail-link" id="detailPerDiemSource">Finnish Tax
+                                                Admin 2025</span>
                                         </div>
                                         <div class="detail-row">
                                             <span class="detail-label">Note</span>
-                                            <span class="detail-value" style="font-size: 11px; color: #6b7280;">Not subject to tax or social security</span>
+                                            <span class="detail-value" style="font-size: 11px; color: #6b7280;">Not
+                                                subject to tax or social security</span>
                                         </div>
                                     </div>
                                 </div>
@@ -681,12 +804,19 @@
                                             <span class="breakdown-label">Admin Fees</span>
                                             <span class="tooltip-wrapper" onclick="event.stopPropagation()">
                                                 <span class="help-icon">i</span>
-                                                <span class="tooltip-content">One-time administrative costs for visa applications, work permits, and government filings required for international deployment. These are ADDITIONAL costs that would not exist for a domestic assignment.</span>
+                                                <span class="tooltip-content">One-time administrative costs for visa
+                                                    applications, work permits, and government filings required for
+                                                    international deployment. These are ADDITIONAL costs that would not
+                                                    exist for a domestic assignment.</span>
                                             </span>
                                         </div>
                                         <div class="breakdown-header-right">
                                             <span class="breakdown-value" id="summaryAdminFees">€0</span>
-                                            <svg class="breakdown-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                            <svg class="breakdown-chevron" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 5l7 7-7 7" />
+                                            </svg>
                                         </div>
                                     </div>
                                     <div class="breakdown-details" id="details-admin">
@@ -713,12 +843,19 @@
                                             <span class="breakdown-label">Host Country Tax</span>
                                             <span class="tooltip-wrapper" onclick="event.stopPropagation()">
                                                 <span class="help-icon">i</span>
-                                                <span class="tooltip-content">Income tax liability in the host country. This is an ADDITIONAL cost—whilst you may pay Finnish tax on domestic work, this is the extra tax burden created by the international deployment.</span>
+                                                <span class="tooltip-content">Income tax liability in the host country.
+                                                    This is an ADDITIONAL cost—whilst you may pay Finnish tax on
+                                                    domestic work, this is the extra tax burden created by the
+                                                    international deployment.</span>
                                             </span>
                                         </div>
                                         <div class="breakdown-header-right">
                                             <span class="breakdown-value" id="summaryTax">€0</span>
-                                            <svg class="breakdown-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                            <svg class="breakdown-chevron" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 5l7 7-7 7" />
+                                            </svg>
                                         </div>
                                     </div>
                                     <div class="breakdown-details" id="details-tax">
@@ -736,11 +873,14 @@
                                         </div>
                                         <div class="detail-row tax-total-row">
                                             <span class="detail-label"><strong>Total Tax</strong></span>
-                                            <span class="detail-value"><strong id="detailTaxTotal">£0</strong> <span class="effective-rate-badge" id="detailTaxRate">(25.0% effective)</span></span>
+                                            <span class="detail-value"><strong id="detailTaxTotal">£0</strong> <span
+                                                    class="effective-rate-badge" id="detailTaxRate">(25.0%
+                                                    effective)</span></span>
                                         </div>
                                         <div class="detail-row">
                                             <span class="detail-label">Source</span>
-                                            <span class="detail-value detail-link" id="detailTaxSource">Government Source</span>
+                                            <span class="detail-value detail-link" id="detailTaxSource">Government
+                                                Source</span>
                                         </div>
                                     </div>
                                 </div>
@@ -753,13 +893,22 @@
                                             <span class="breakdown-label">Host Country Social Security</span>
                                             <span class="tooltip-wrapper" onclick="event.stopPropagation()">
                                                 <span class="help-icon">i</span>
-                                                <span class="tooltip-content">Social security contributions required in the host country (employer + employee portions). This is an ADDITIONAL cost—where no reciprocal agreement exists with Finland, you may need to pay into both systems simultaneously.</span>
+                                                <span class="tooltip-content">Social security contributions required in
+                                                    the host country (employer + employee portions). This is an
+                                                    ADDITIONAL cost—where no reciprocal agreement exists with Finland,
+                                                    you may need to pay into both systems simultaneously.</span>
                                             </span>
-                                            <a class="breakdown-warning-badge hidden" id="socialSecBadge" href="https://www.kela.fi/international-legislation" target="_blank" onclick="event.stopPropagation()">No Reciprocal Agreement</a>
+                                            <a class="breakdown-warning-badge hidden" id="socialSecBadge"
+                                                href="https://www.kela.fi/international-legislation" target="_blank"
+                                                onclick="event.stopPropagation()">No Reciprocal Agreement</a>
                                         </div>
                                         <div class="breakdown-header-right">
                                             <span class="breakdown-value" id="summarySocialSec">€0</span>
-                                            <svg class="breakdown-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                            <svg class="breakdown-chevron" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 5l7 7-7 7" />
+                                            </svg>
                                         </div>
                                     </div>
                                     <div class="breakdown-details" id="details-social">
@@ -768,16 +917,20 @@
                                             <span class="detail-value" id="detailSocialRate">50.8%</span>
                                         </div>
                                         <div class="detail-row">
-                                            <span class="detail-label">Employer (<span id="detailEmployerSSRate">36.8%</span>)</span>
+                                            <span class="detail-label">Employer (<span
+                                                    id="detailEmployerSSRate">36.8%</span>)</span>
                                             <span class="detail-value" id="detailEmployerSS">€0</span>
                                         </div>
                                         <div class="detail-row">
-                                            <span class="detail-label">Employee (<span id="detailEmployeeSSRate">14.0%</span>)</span>
+                                            <span class="detail-label">Employee (<span
+                                                    id="detailEmployeeSSRate">14.0%</span>)</span>
                                             <span class="detail-value" id="detailEmployeeSS">€0</span>
                                         </div>
                                         <div class="detail-row" id="detailSocialWarningRow">
                                             <span class="detail-label">Warning</span>
-                                            <span class="detail-value detail-warning" id="detailSocialWarning" onclick="showSocialSecurityPopup(event)" style="cursor: pointer;">No Reciprocal Agreement ⚠️</span>
+                                            <span class="detail-value detail-warning" id="detailSocialWarning"
+                                                onclick="showSocialSecurityPopup(event)" style="cursor: pointer;">No
+                                                Reciprocal Agreement ⚠️</span>
                                         </div>
                                     </div>
                                 </div>
@@ -791,7 +944,11 @@
                                     Total Additional Cost <span id="chartPeriodLabel">(6 months)</span>
                                     <span class="tooltip-wrapper">
                                         <span class="help-icon">i</span>
-                                        <span class="tooltip-content">This is the incremental cost incurred specifically due to this international deployment, beyond what you would normally pay for a Finland-based employee. It includes host country taxes, social security, per diem allowances, and admin fees—but NOT the base salary which you would pay regardless of location.</span>
+                                        <span class="tooltip-content">This is the incremental cost incurred specifically
+                                            due to this international deployment, beyond what you would normally pay for
+                                            a Finland-based employee. It includes host country taxes, social security,
+                                            per diem allowances, and admin fees—but NOT the base salary which you would
+                                            pay regardless of location.</span>
                                     </span>
                                 </p>
                                 <p class="chart-total-amount text-2xl md:text-3xl" id="summaryTotal">€0</p>
@@ -799,7 +956,10 @@
                                     Daily additional cost: <strong id="summaryPerDay">€0</strong>/day
                                     <span class="tooltip-wrapper">
                                         <span class="help-icon">i</span>
-                                        <span class="tooltip-content">The average extra cost per working day for this deployment. Example: If your FSE normally costs €350/day in Finland, and the daily additional cost here is €379, the total loaded cost would be €729/day during the assignment.</span>
+                                        <span class="tooltip-content">The average extra cost per working day for this
+                                            deployment. Example: If your FSE normally costs €350/day in Finland, and the
+                                            daily additional cost here is €379, the total loaded cost would be €729/day
+                                            during the assignment.</span>
                                     </span>
                                 </p>
 
@@ -839,15 +999,24 @@
                                 <!-- Action Buttons - Mobile: stack vertically, Desktop: horizontal -->
                                 <div class="chart-actions flex flex-col sm:flex-row gap-2">
                                     <button class="btn-secondary chart-action-btn text-xs md:text-sm py-2.5 md:py-3">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
                                         Save
                                     </button>
                                     <button class="btn-secondary chart-action-btn text-xs md:text-sm py-2.5 md:py-3">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                        </svg>
                                         Share
                                     </button>
                                     <button class="btn-primary chart-action-btn text-xs md:text-sm py-2.5 md:py-3">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 13l4 4L19 7" />
+                                        </svg>
                                         Approve
                                     </button>
                                 </div>
@@ -865,8 +1034,10 @@
                 <div class="card p-4 md:p-8 mb-6 md:mb-8">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
                         <div class="text-center md:text-left">
-                            <h2 class="text-lg md:text-xl font-extrabold text-gray-900 tracking-tight">Resource Optimization Engine</h2>
-                            <p class="text-xs md:text-sm text-gray-500 mt-1">Match your employee roster to project demands based on Cost, Speed, or Compliance.</p>
+                            <h2 class="text-lg md:text-xl font-extrabold text-gray-900 tracking-tight">Resource
+                                Optimization Engine</h2>
+                            <p class="text-xs md:text-sm text-gray-500 mt-1">Match your employee roster to project
+                                demands based on Cost, Speed, or Compliance.</p>
                         </div>
                     </div>
 
@@ -874,7 +1045,8 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                         <!-- Left: Project Demand -->
                         <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                            <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4">Project Demand</h3>
+                            <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4">Project Demand
+                            </h3>
                             <div class="space-y-4">
                                 <div>
                                     <label class="form-label">Destination Country</label>
@@ -918,12 +1090,19 @@
                         <div class="space-y-6">
                             <!-- Roster Source -->
                             <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                                <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4">Supply Source</h3>
+                                <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4">Supply Source
+                                </h3>
                                 <div class="flex items-center gap-4">
                                     <div class="flex-1">
-                                        <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                                        <div
+                                            class="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
                                             <div class="bg-green-100 text-green-700 p-2 rounded-lg">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
                                             </div>
                                             <div>
                                                 <p class="text-sm font-bold text-gray-900">Global Roster.xlsx</p>
@@ -937,11 +1116,16 @@
 
                             <!-- Optimization Sliders -->
                             <div class="bg-gray-900 text-white rounded-xl p-6 shadow-lg">
-                                <h3 class="text-sm font-bold text-white uppercase tracking-widest mb-6 flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-cozm-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                                <h3
+                                    class="text-sm font-bold text-white uppercase tracking-widest mb-6 flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-cozm-teal" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                                    </svg>
                                     Optimization Goals
                                 </h3>
-                                
+
                                 <div class="space-y-6">
                                     <!-- Speed Slider -->
                                     <div>
@@ -949,7 +1133,9 @@
                                             <span class="font-medium text-gray-300">Speed (Visa Priority)</span>
                                             <span class="text-cozm-teal font-bold" id="label-speed">50%</span>
                                         </div>
-                                        <input type="range" id="slider-speed" min="0" max="100" value="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cozm-teal" oninput="updateOptimization()">
+                                        <input type="range" id="slider-speed" min="0" max="100" value="50"
+                                            class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cozm-teal"
+                                            oninput="updateOptimization()">
                                     </div>
 
                                     <!-- Cost Slider -->
@@ -958,7 +1144,9 @@
                                             <span class="font-medium text-gray-300">Cost Efficiency</span>
                                             <span class="text-cozm-teal font-bold" id="label-cost">50%</span>
                                         </div>
-                                        <input type="range" id="slider-cost" min="0" max="100" value="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cozm-teal" oninput="updateOptimization()">
+                                        <input type="range" id="slider-cost" min="0" max="100" value="50"
+                                            class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cozm-teal"
+                                            oninput="updateOptimization()">
                                     </div>
 
                                     <!-- Compliance Slider -->
@@ -967,7 +1155,9 @@
                                             <span class="font-medium text-gray-300">Compliance Strictness</span>
                                             <span class="text-cozm-teal font-bold" id="label-compliance">50%</span>
                                         </div>
-                                        <input type="range" id="slider-compliance" min="0" max="100" value="50" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cozm-teal" oninput="updateOptimization()">
+                                        <input type="range" id="slider-compliance" min="0" max="100" value="50"
+                                            class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cozm-teal"
+                                            oninput="updateOptimization()">
                                     </div>
                                 </div>
                             </div>
@@ -978,7 +1168,10 @@
                     <div class="flex justify-center mb-10">
                         <button class="btn-primary" onclick="runOptimization()">
                             <span class="flex items-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                </svg>
                                 Run Engine
                             </span>
                         </button>
@@ -1016,7 +1209,8 @@
                     <h3 class="settings-modal-title">Calculation Settings</h3>
                     <button class="settings-modal-close" onclick="closeSettingsModal()">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
@@ -1032,12 +1226,16 @@
                                 <span class="setting-help">
                                     <span class="tooltip-wrapper">
                                         <span class="help-icon">i</span>
-                                        <span class="tooltip-content">When there is NO reciprocal social security agreement between Finland and the host country, should host country social security be included in the estimate? Default: Yes (dual contributions typically required).</span>
+                                        <span class="tooltip-content">When there is NO reciprocal social security
+                                            agreement between Finland and the host country, should host country social
+                                            security be included in the estimate? Default: Yes (dual contributions
+                                            typically required).</span>
                                     </span>
                                 </span>
                             </div>
                             <label class="toggle-switch">
-                                <input type="checkbox" id="settingSSNoAgreement" checked onchange="saveSettings(); recalculateIfNeeded();">
+                                <input type="checkbox" id="settingSSNoAgreement" checked
+                                    onchange="saveSettings(); recalculateIfNeeded();">
                                 <span class="toggle-slider"></span>
                             </label>
                         </div>
@@ -1048,12 +1246,16 @@
                                 <span class="setting-help">
                                     <span class="tooltip-wrapper">
                                         <span class="help-icon">i</span>
-                                        <span class="tooltip-content">When a reciprocal social security agreement EXISTS between Finland and the host country, should host country social security still be included? Default: No (A1/CoC certificate typically exempts from host country SS).</span>
+                                        <span class="tooltip-content">When a reciprocal social security agreement EXISTS
+                                            between Finland and the host country, should host country social security
+                                            still be included? Default: No (A1/CoC certificate typically exempts from
+                                            host country SS).</span>
                                     </span>
                                 </span>
                             </div>
                             <label class="toggle-switch">
-                                <input type="checkbox" id="settingSSWithAgreement" onchange="saveSettings(); recalculateIfNeeded();">
+                                <input type="checkbox" id="settingSSWithAgreement"
+                                    onchange="saveSettings(); recalculateIfNeeded();">
                                 <span class="toggle-slider"></span>
                             </label>
                         </div>
@@ -1064,8 +1266,6 @@
 
     </div>
 
-    <!-- Scripts -->
-    <!-- NOTE: Supabase scripts are loaded in <head> to prevent race condition with auth check -->
     <!-- Scripts -->
     <!-- NOTE: Supabase scripts are loaded in <head> to prevent race condition with auth check -->
     <script src="js/mock-data.js"></script>
@@ -1126,7 +1326,7 @@
 
             results.forEach((candidate, index) => {
                 const visaClass = candidate.details.visaDays === 0 ? 'text-green-600 bg-green-50' : 'text-orange-600 bg-orange-50';
-                
+
                 const tr = document.createElement('tr');
                 tr.className = 'bg-white border-b hover:bg-gray-50';
                 tr.innerHTML = `
