@@ -548,6 +548,61 @@ h1, h2, h3 {
     color: var(--cozm-red);
 }
 
+/* Tax bracket breakdown table */
+.tax-bracket-breakdown {
+    margin: 12px 0;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+}
+
+.tax-bracket-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.tax-bracket-row:not(:last-child) {
+    border-bottom: 1px dashed #e2e8f0;
+}
+
+.tax-bracket-range {
+    flex: 1;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+    font-size: 11px;
+}
+
+.tax-bracket-rate {
+    width: 50px;
+    text-align: center;
+    color: var(--cozm-teal);
+    font-weight: 500;
+}
+
+.tax-bracket-amount {
+    width: 90px;
+    text-align: right;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.tax-total-row {
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 2px solid var(--cozm-teal) !important;
+    border-bottom: none !important;
+}
+
+.effective-rate-badge {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
 /* Right Column - Chart Panel */
 .results-right-column {
     position: relative;

@@ -268,15 +268,31 @@ async function fetchExchangeRates() {
     }
 }
 
-// Calculate progressive tax
-function calculateProgressiveTax(income, brackets) {
+// Calculate progressive tax and return both total and bracket-by-bracket breakdown
+function calculateProgressiveTax(income, brackets, returnBreakdown = false) {
     let tax = 0;
+    const breakdown = [];
+
     for (const bracket of brackets) {
         if (income > bracket.min) {
             const maxBracket = bracket.max || Infinity;
             const taxableInBracket = Math.min(income, maxBracket) - bracket.min;
-            tax += taxableInBracket * bracket.rate;
+            const taxInBracket = taxableInBracket * bracket.rate;
+            tax += taxInBracket;
+
+            // Store breakdown for display
+            breakdown.push({
+                min: bracket.min,
+                max: bracket.max,
+                rate: bracket.rate,
+                taxableAmount: taxableInBracket,
+                taxAmount: taxInBracket
+            });
         }
+    }
+
+    if (returnBreakdown) {
+        return { total: tax, breakdown: breakdown };
     }
     return tax;
 }
@@ -479,11 +495,14 @@ function calculateCosts() {
     let taxAmountLocal = 0;
     let taxCalculationMethod = '';
     let effectiveTaxRate = 0;
+    let taxBracketBreakdown = []; // Detailed bracket-by-bracket breakdown
 
     if (countryTaxRules && countryTaxRules.taxBrackets) {
         // Use progressive tax brackets for both residents and non-residents
-        // No simplification - apply actual progressive rates
-        taxAmountLocal = calculateProgressiveTax(taxableIncomeLocal, countryTaxRules.taxBrackets);
+        // No simplification - apply actual progressive rates with full breakdown
+        const taxResult = calculateProgressiveTax(taxableIncomeLocal, countryTaxRules.taxBrackets, true);
+        taxAmountLocal = taxResult.total;
+        taxBracketBreakdown = taxResult.breakdown;
         taxCalculationMethod = isResident ? 'Progressive brackets (resident)' : 'Progressive brackets (non-resident)';
         effectiveTaxRate = taxableIncomeLocal > 0 ? (taxAmountLocal / taxableIncomeLocal) * 100 : 0;
     } else {
@@ -491,6 +510,14 @@ function calculateCosts() {
         taxAmountLocal = taxableIncomeLocal * config.taxRate;
         taxCalculationMethod = `Flat rate (${(config.taxRate * 100).toFixed(0)}%)`;
         effectiveTaxRate = config.taxRate * 100;
+        // Create single-bracket breakdown for flat rate
+        taxBracketBreakdown = [{
+            min: 0,
+            max: null,
+            rate: config.taxRate,
+            taxableAmount: taxableIncomeLocal,
+            taxAmount: taxAmountLocal
+        }];
     }
 
     const taxAmountEUR = taxAmountLocal / exchangeRate;
@@ -577,6 +604,7 @@ function calculateCosts() {
         taxPerDayEUR,
         effectiveTaxRate,
         taxCalculationMethod,
+        taxBracketBreakdown,
         exchangeRate,
 
         // Configuration
@@ -627,9 +655,36 @@ function calculateCosts() {
     setEl('legendSocial', formatCurrency(socialSecurityCost));
 
     // Update breakdown group details
-    // Tax details
-    setEl('detailTaxRate', effectiveTaxRate.toFixed(1) + '%');
+    // Tax details with full bracket-by-bracket breakdown
+    setEl('detailTaxableIncome', formatLocalCurrency(taxableIncomeLocal, hostCountry));
     setEl('detailTaxMethod', taxCalculationMethod);
+    setEl('detailTaxTotal', formatLocalCurrency(taxAmountLocal, hostCountry));
+    setEl('detailTaxRate', `(${effectiveTaxRate.toFixed(1)}% effective)`);
+
+    // Render tax bracket breakdown
+    const taxBreakdownEl = document.getElementById('taxBracketBreakdown');
+    if (taxBreakdownEl && taxBracketBreakdown.length > 0) {
+        const currencySymbol = config.currencySymbol || '€';
+        const formatLocal = (val) => currencySymbol + val.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+        let breakdownHtml = '';
+        for (const bracket of taxBracketBreakdown) {
+            const minFormatted = formatLocal(bracket.min);
+            const maxFormatted = bracket.max ? formatLocal(bracket.max) : '∞';
+            const ratePercent = (bracket.rate * 100).toFixed(0) + '%';
+            const taxFormatted = formatLocal(bracket.taxAmount);
+
+            breakdownHtml += `
+                <div class="tax-bracket-row">
+                    <span class="tax-bracket-range">${minFormatted} – ${maxFormatted}</span>
+                    <span class="tax-bracket-rate">@ ${ratePercent}</span>
+                    <span class="tax-bracket-amount">= ${taxFormatted}</span>
+                </div>
+            `;
+        }
+        taxBreakdownEl.innerHTML = breakdownHtml;
+    }
+
     const taxSourceEl = document.getElementById('detailTaxSource');
     if (taxSourceEl) {
         const sourceUrl = countryTaxRules?.taxSourceUrl || config.taxSourceUrl || '#';

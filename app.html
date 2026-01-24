@@ -717,20 +717,24 @@
                                     </div>
                                     <div class="breakdown-details" id="details-tax">
                                         <div class="detail-row">
-                                            <span class="detail-label">Effective Rate</span>
-                                            <span class="detail-value" id="detailTaxRate">25.0%</span>
+                                            <span class="detail-label">Taxable Income</span>
+                                            <span class="detail-value" id="detailTaxableIncome">£0</span>
                                         </div>
                                         <div class="detail-row">
                                             <span class="detail-label">Method</span>
-                                            <span class="detail-value" id="detailTaxMethod">Non-resident flat rate</span>
+                                            <span class="detail-value" id="detailTaxMethod">Progressive brackets</span>
                                         </div>
-                                        <div class="detail-row">
-                                            <span class="detail-label">Taxable Base</span>
-                                            <span class="detail-value" style="font-size: 11px;">Salary only (per diem exempt)</span>
+                                        <!-- Bracket-by-bracket breakdown -->
+                                        <div class="tax-bracket-breakdown" id="taxBracketBreakdown">
+                                            <!-- Populated dynamically by JavaScript -->
+                                        </div>
+                                        <div class="detail-row tax-total-row">
+                                            <span class="detail-label"><strong>Total Tax</strong></span>
+                                            <span class="detail-value"><strong id="detailTaxTotal">£0</strong> <span class="effective-rate-badge" id="detailTaxRate">(25.0% effective)</span></span>
                                         </div>
                                         <div class="detail-row">
                                             <span class="detail-label">Source</span>
-                                            <span class="detail-value detail-link" id="detailTaxSource">Brazilian Federal</span>
+                                            <span class="detail-value detail-link" id="detailTaxSource">Government Source</span>
                                         </div>
                                     </div>
                                 </div>
