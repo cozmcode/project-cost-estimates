@@ -516,6 +516,15 @@
                         }
                         break;
 
+                    case 'stop_voice':
+                        result.message = 'Voice commands stopped';
+                        this.log('Stopping voice via function call');
+                        // Delay to allow goodbye message to be spoken
+                        setTimeout(() => {
+                            stopListening();
+                        }, 1500);
+                        break;
+
                     default:
                         result = { success: false, error: `Unknown function: ${name}` };
                 }
@@ -667,13 +676,19 @@
         }
 
         /**
-         * Expand a breakdown group in the UI
+         * Expand a breakdown group in the UI and scroll to it
          */
         expandBreakdownGroup(groupId) {
             const group = document.getElementById(`group-${groupId}`);
-            if (group && !group.classList.contains('expanded')) {
-                group.classList.add('expanded');
-                this.log(`Expanded breakdown group: ${groupId}`);
+            if (group) {
+                if (!group.classList.contains('expanded')) {
+                    group.classList.add('expanded');
+                }
+                // Scroll to the group with some offset for the header
+                setTimeout(() => {
+                    group.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+                this.log(`Expanded and scrolled to breakdown group: ${groupId}`);
             }
         }
 
@@ -849,6 +864,9 @@
             // Add source info if available
             if (data.perDiemSourceName) {
                 parts.push(`Source: ${data.perDiemSourceName}.`);
+                if (data.perDiemSourceUrl) {
+                    parts.push(`The source URL is ${data.perDiemSourceUrl}`);
+                }
             }
 
             return {
@@ -859,6 +877,8 @@
                 workingDays: workingDays,
                 basis: data.perDiemBasisText || `${homeCountry} destination rate for ${countryName}`,
                 source: data.perDiemSourceName || null,
+                sourceUrl: data.perDiemSourceUrl || null,
+                sourceYear: data.perDiemSourceYear || null,
                 taxExempt: true,
                 message: parts.join(' ')
             };
@@ -1269,11 +1289,11 @@
 
         if (listening) {
             if (voiceBtn) voiceBtn.classList.add('listening');
-            if (voiceBtnText) voiceBtnText.textContent = currentMode === 'realtime' ? 'AI Listening...' : 'Listening...';
+            if (voiceBtnText) voiceBtnText.textContent = currentMode === 'realtime' ? 'Listening...' : 'Listening...';
             if (voiceBtnMobile) voiceBtnMobile.classList.add('listening');
         } else {
             if (voiceBtn) voiceBtn.classList.remove('listening');
-            if (voiceBtnText) voiceBtnText.textContent = 'Voice Commands';
+            if (voiceBtnText) voiceBtnText.textContent = 'Voice';
             if (voiceBtnMobile) voiceBtnMobile.classList.remove('listening');
         }
     }

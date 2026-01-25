@@ -37,6 +37,7 @@ TOOL MAPPING (use these when user mentions):
 - "social security on/off" / "include SS" / "exclude SS" / "turn on SS" → toggle_social_security
 - "show in EUR" / "show in local currency" / "switch currency" / "pounds" → set_currency_display
 - "open settings" / "show settings" → open_settings
+- "stop" / "turn off voice" / "goodbye" / "that's all" → stop_voice
 
 EXAMPLES:
 - User: "Portugal" → call set_home_country({country: "Portugal"}), say "Done."
@@ -298,6 +299,16 @@ const TOOLS = [
     type: "function",
     name: "open_settings",
     description: "Open the settings panel to show current configuration options including social security toggles and display preferences.",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: []
+    }
+  },
+  {
+    type: "function",
+    name: "stop_voice",
+    description: "Stop the voice assistant and turn off listening. Call this when the user says 'stop', 'turn off voice', 'goodbye', 'that's all', or similar.",
     parameters: {
       type: "object",
       properties: {},
