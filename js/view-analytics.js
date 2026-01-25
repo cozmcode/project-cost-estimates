@@ -29,11 +29,17 @@ function initAnalyticsMap() {
         attributionControl: false
     });
 
-    // Add CartoDB Dark Matter Tiles (Sleek, professional look)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 19
+    // Add Esri Canvas Dark Grey Tiles (Professional, Corporate Blue-Grey look)
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+        maxZoom: 16
+    }).addTo(analyticsMap);
+    
+    // Add Labels layer (optional but helpful for Esri base)
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Labels &copy; Esri',
+        maxZoom: 16,
+        pane: 'shadowPane' // Ensure labels stay above the base but below markers
     }).addTo(analyticsMap);
 
     // Add Markers
