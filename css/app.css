@@ -144,12 +144,12 @@ h1, h2, h3 {
 .skill-chip {
     display: inline-flex;
     align-items: center;
-    padding: 6px 12px;
+    padding: 6px 14px;
     font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--text-secondary);
+    font-weight: 600;
+    color: var(--cozm-light-sky-blue);
     background-color: white;
-    border: 1px solid var(--border-light);
+    border: 1px solid var(--cozm-light-gray);
     border-radius: 20px;
     cursor: pointer;
     transition: all 0.2s;
@@ -158,12 +158,14 @@ h1, h2, h3 {
 .skill-chip:hover {
     border-color: var(--cozm-teal);
     color: var(--cozm-teal);
+    background-color: var(--cozm-pastel-blue);
 }
 
 .skill-chip.selected {
-    background-color: var(--cozm-teal);
-    border-color: var(--cozm-teal);
+    background: var(--gradient-dark);
+    border-color: var(--cozm-dark-indigo);
     color: white;
+    box-shadow: 0 2px 4px rgba(24, 28, 49, 0.15);
 }
 
 /* ===== NAVIGATION ===== */
@@ -2005,4 +2007,142 @@ h1, h2, h3 {
         top: 80px;
         max-height: 400px;
     }
+}
+
+/* ===== STAFFING ENGINE - BRAND COLOURS ===== */
+
+/* Risk Badges */
+.risk-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.risk-badge.critical {
+    background-color: rgba(189, 64, 64, 0.1);
+    color: var(--cozm-red);
+    font-weight: 700;
+}
+
+.risk-badge.warning {
+    background-color: rgba(189, 137, 65, 0.1);
+    color: var(--cozm-gold);
+}
+
+.risk-badge.note {
+    background-color: rgba(64, 174, 188, 0.1);
+    color: var(--cozm-teal);
+}
+
+/* Skills Match Badges */
+.skills-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.skills-badge.full-match {
+    background-color: rgba(64, 174, 188, 0.15);
+    color: var(--cozm-teal);
+}
+
+.skills-badge.partial-match {
+    background-color: rgba(189, 137, 65, 0.15);
+    color: var(--cozm-gold);
+}
+
+.skills-badge.low-match {
+    background-color: rgba(189, 64, 64, 0.1);
+    color: var(--cozm-red);
+}
+
+.skills-badge.no-match {
+    background-color: var(--cozm-light-gray);
+    color: var(--cozm-light-sky-blue);
+}
+
+/* Compliance Score Bar */
+.compliance-bar {
+    height: 8px;
+    background-color: var(--cozm-light-gray);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.compliance-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.compliance-bar-fill.high {
+    background: var(--cozm-teal);
+}
+
+.compliance-bar-fill.medium {
+    background: var(--cozm-gold);
+}
+
+.compliance-bar-fill.low {
+    background: var(--cozm-red);
+}
+
+/* Score Progress Bar - Staffing Engine */
+.score-bar {
+    height: 10px;
+    background-color: var(--cozm-light-gray);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.score-bar-fill {
+    height: 100%;
+    background: var(--gradient-dark);
+    border-radius: 5px;
+    transition: width 0.4s ease-out;
+}
+
+/* Visa Type Badge */
+.visa-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.visa-badge.in-country {
+    background-color: rgba(64, 174, 188, 0.15);
+    color: var(--cozm-teal);
+}
+
+.visa-badge.processing {
+    background-color: rgba(189, 137, 65, 0.15);
+    color: var(--cozm-gold);
+}
+
+/* Carbon Footprint Indicator */
+.carbon-indicator {
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.carbon-indicator.low {
+    color: var(--cozm-teal);
+}
+
+.carbon-indicator.medium {
+    color: var(--cozm-gold);
+}
+
+.carbon-indicator.high {
+    color: var(--cozm-red);
 }
