@@ -452,6 +452,10 @@
                         result = this.getPerDiemExplanation();
                         break;
 
+                    case 'explain_admin_fees':
+                        result = this.getAdminFeesExplanation();
+                        break;
+
                     case 'get_form_state':
                         result = this.getFormState();
                         break;
@@ -676,9 +680,18 @@
         }
 
         /**
-         * Expand a breakdown group in the UI and scroll to it
+         * Expand a breakdown group in the UI, collapse others, and scroll to it
          */
         expandBreakdownGroup(groupId) {
+            // First, collapse all other breakdown groups
+            const allGroups = document.querySelectorAll('.breakdown-group');
+            allGroups.forEach(g => {
+                if (g.id !== `group-${groupId}`) {
+                    g.classList.remove('expanded');
+                }
+            });
+
+            // Now expand the target group
             const group = document.getElementById(`group-${groupId}`);
             if (group) {
                 if (!group.classList.contains('expanded')) {
@@ -880,6 +893,51 @@
                 sourceUrl: data.perDiemSourceUrl || null,
                 sourceYear: data.perDiemSourceYear || null,
                 taxExempt: true,
+                message: parts.join(' ')
+            };
+        }
+
+        /**
+         * Get admin fees breakdown explanation
+         */
+        getAdminFeesExplanation() {
+            // Expand the admin section in the UI
+            this.expandBreakdownGroup('admin');
+
+            const data = window.lastCalculationData;
+
+            if (!data) {
+                return {
+                    success: true,
+                    hasResults: false,
+                    message: 'No results displayed yet. Please calculate costs first to see admin fees details.'
+                };
+            }
+
+            const formatCurrency = (val) => '€' + Math.round(val).toLocaleString('en-GB');
+            const totalAdminFees = data.totalAdminFees || 0;
+            const countryName = data.config?.name || data.hostCountry;
+
+            // Build explanation
+            const parts = [];
+            parts.push(`Admin fees are ${formatCurrency(totalAdminFees)}.`);
+            parts.push(`These are one-time administrative costs for visa processing, work permits, and immigration compliance for ${countryName}.`);
+
+            // Add breakdown if available
+            if (data.adminFeesBreakdown) {
+                const breakdown = data.adminFeesBreakdown;
+                if (breakdown.visa) parts.push(`Visa fees: ${formatCurrency(breakdown.visa)}.`);
+                if (breakdown.workPermit) parts.push(`Work permit: ${formatCurrency(breakdown.workPermit)}.`);
+                if (breakdown.other) parts.push(`Other fees: ${formatCurrency(breakdown.other)}.`);
+            }
+
+            parts.push(`Admin fees are typically a one-time cost, not recurring monthly.`);
+
+            return {
+                success: true,
+                hasResults: true,
+                totalAmount: formatCurrency(totalAdminFees),
+                country: countryName,
                 message: parts.join(' ')
             };
         }
