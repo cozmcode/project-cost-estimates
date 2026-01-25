@@ -849,7 +849,9 @@
                     role: document.getElementById('projectRole').value,
                     durationMonths: parseInt(document.getElementById('projectDuration').value),
                     count: parseInt(document.getElementById('projectCount').value)
-                    const weights = {
+                };
+
+                const weights = {
                     speed: parseInt(document.getElementById('slider-speed').value),
                     cost: parseInt(document.getElementById('slider-cost').value),
                     compliance: parseInt(document.getElementById('slider-compliance').value)
@@ -883,7 +885,7 @@
                             <span class="px-2 py-1 rounded-full text-xs font-bold ${visaClass}">
                                 ${details.visaType}
                             </span>
-                            <diassxs text-gray-500 mt-1">${details.visaDays} days processing</div>
+                            <div class="text-xs text-gray-500 mt-1">${details.visaDays} days processing</div>
                         </td>
                         <td class="px-6 py-4 font-medium">
                             €${details.totalCost.toLocaleString()}

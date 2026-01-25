@@ -178,6 +178,35 @@ function getExchangeRate(currency) {
     return exchangeRates[currency] || 1;
 }
 
+// Calculate progressive tax using bracket-by-bracket method
+function calculateProgressiveTax(income, brackets, returnBreakdown = false) {
+    let tax = 0;
+    const breakdown = [];
+
+    for (const bracket of brackets) {
+        if (income > bracket.min) {
+            const maxBracket = bracket.max || Infinity;
+            const taxableInBracket = Math.min(income, maxBracket) - bracket.min;
+            const taxInBracket = taxableInBracket * bracket.rate;
+            tax += taxInBracket;
+
+            // Store breakdown for display
+            breakdown.push({
+                min: bracket.min,
+                max: bracket.max,
+                rate: bracket.rate,
+                taxableAmount: taxableInBracket,
+                taxAmount: taxInBracket
+            });
+        }
+    }
+
+    if (returnBreakdown) {
+        return { total: tax, breakdown: breakdown };
+    }
+    return tax;
+}
+
 // Determine if assignment triggers tax residency (183-day rule)
 function isResidentForTax(assignmentMonths) {
     const days = assignmentMonths * 30;
