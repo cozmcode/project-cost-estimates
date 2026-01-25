@@ -34,6 +34,9 @@ TOOL MAPPING (use these when user mentions):
 - "working days" → set_working_days
 - "calculate" / "estimate" / "run" → calculate_costs
 - "explain" / "what is" / "tell me about" / "breakdown" → explain_results/explain_tax/etc.
+- "social security on/off" / "include SS" / "exclude SS" / "turn on SS" → toggle_social_security
+- "show in EUR" / "show in local currency" / "switch currency" / "pounds" → set_currency_display
+- "open settings" / "show settings" → open_settings
 
 EXAMPLES:
 - User: "Portugal" → call set_home_country({country: "Portugal"}), say "Done."
@@ -249,6 +252,52 @@ const TOOLS = [
     type: "function",
     name: "get_form_state",
     description: "Get the current values of all form fields. ALWAYS call this first before asking the user for any information, so you know what's already filled in. Returns: homeCountry, destinationCountry, salary, duration, dailyAllowance, workingDays.",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: []
+    }
+  },
+  {
+    type: "function",
+    name: "toggle_social_security",
+    description: "Turn social security contributions on or off. Controls whether host country social security is included in cost calculations. Use this when the user asks to include/exclude SS, turn SS on/off, or enable/disable social security.",
+    parameters: {
+      type: "object",
+      properties: {
+        enabled: {
+          type: "boolean",
+          description: "true to include social security in calculations, false to exclude"
+        },
+        scenario: {
+          type: "string",
+          enum: ["no_agreement", "with_agreement", "both"],
+          description: "Which scenario to apply: 'no_agreement' (countries without SS treaty), 'with_agreement' (countries with SS treaty), or 'both' (default)"
+        }
+      },
+      required: ["enabled"]
+    }
+  },
+  {
+    type: "function",
+    name: "set_currency_display",
+    description: "Switch the display currency between EUR and local currency (e.g., GBP, USD, BRL). Use when user asks to show in euros, pounds, local currency, etc.",
+    parameters: {
+      type: "object",
+      properties: {
+        currency: {
+          type: "string",
+          enum: ["EUR", "LOCAL"],
+          description: "EUR for euros, LOCAL for host country currency (e.g., GBP for UK, USD for USA)"
+        }
+      },
+      required: ["currency"]
+    }
+  },
+  {
+    type: "function",
+    name: "open_settings",
+    description: "Open the settings panel to show current configuration options including social security toggles and display preferences.",
     parameters: {
       type: "object",
       properties: {},

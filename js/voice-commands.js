@@ -456,6 +456,66 @@
                         result = this.getFormState();
                         break;
 
+                    case 'toggle_social_security':
+                        const ssNoAgreement = document.getElementById('settingSSNoAgreement');
+                        const ssWithAgreement = document.getElementById('settingSSWithAgreement');
+                        const scenario = args.scenario || 'both';
+                        const ssEnabled = args.enabled;
+
+                        if (scenario === 'no_agreement' || scenario === 'both') {
+                            if (ssNoAgreement) {
+                                ssNoAgreement.checked = ssEnabled;
+                                this.log(`SS No Agreement set to: ${ssEnabled}`);
+                            }
+                        }
+                        if (scenario === 'with_agreement' || scenario === 'both') {
+                            if (ssWithAgreement) {
+                                ssWithAgreement.checked = ssEnabled;
+                                this.log(`SS With Agreement set to: ${ssEnabled}`);
+                            }
+                        }
+
+                        // Trigger settings save and recalculation
+                        if (typeof window.saveSettings === 'function') {
+                            window.saveSettings();
+                        }
+                        if (typeof window.recalculateIfNeeded === 'function') {
+                            window.recalculateIfNeeded();
+                        }
+
+                        result.message = `Social security ${ssEnabled ? 'enabled' : 'disabled'}${scenario !== 'both' ? ` for ${scenario.replace('_', ' ')} scenario` : ''}`;
+                        break;
+
+                    case 'set_currency_display':
+                        const eurBtn = document.getElementById('currency-eur');
+                        const localBtn = document.getElementById('currency-local');
+
+                        if (args.currency === 'EUR' && eurBtn) {
+                            eurBtn.click();
+                            result.message = 'Switched display to EUR';
+                            this.log('Currency switched to EUR');
+                        } else if (args.currency === 'LOCAL' && localBtn) {
+                            localBtn.click();
+                            result.message = 'Switched display to local currency';
+                            this.log('Currency switched to local');
+                        } else {
+                            result.success = false;
+                            result.error = 'Currency button not found';
+                        }
+                        break;
+
+                    case 'open_settings':
+                        const settingsPanel = document.querySelector('.settings-panel');
+                        if (settingsPanel) {
+                            settingsPanel.classList.add('expanded');
+                            result.message = 'Settings panel opened';
+                            this.log('Settings panel expanded');
+                        } else {
+                            result.success = false;
+                            result.error = 'Settings panel not found';
+                        }
+                        break;
+
                     default:
                         result = { success: false, error: `Unknown function: ${name}` };
                 }
