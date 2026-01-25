@@ -112,6 +112,9 @@
                     this.log('Data channel opened');
                     this.isConnected = true;
                     showVoiceToast('Voice assistant connected. Speak naturally!');
+
+                    // Send initial form state to model so it knows current values
+                    this.sendInitialFormState();
                 };
                 this.dataChannel.onclose = () => {
                     this.log('Data channel closed');
@@ -336,6 +339,37 @@
 
             // Send function result back to the model
             this.sendFunctionResult(callId, result);
+        }
+
+        /**
+         * Send initial form state to the model when session connects
+         */
+        sendInitialFormState() {
+            if (!this.dataChannel || this.dataChannel.readyState !== 'open') {
+                this.error('Cannot send initial form state - data channel not open');
+                return;
+            }
+
+            const formState = this.getFormState();
+            this.log('Sending initial form state to model:', formState.summary);
+
+            // Send as a conversation item so the model has context
+            const event = {
+                type: 'conversation.item.create',
+                item: {
+                    type: 'message',
+                    role: 'user',
+                    content: [
+                        {
+                            type: 'input_text',
+                            text: `[SYSTEM CONTEXT - Current form state] ${formState.summary}. Use this information and don't ask the user for values that are already set.`
+                        }
+                    ]
+                }
+            };
+
+            this.dataChannel.send(JSON.stringify(event));
+            this.log('Initial form state sent to model');
         }
 
         /**
