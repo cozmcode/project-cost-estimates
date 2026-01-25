@@ -486,9 +486,7 @@
                             title="Admin Panel">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                             </svg>
                         </button>
                         <button onclick="appSignOut()"
@@ -1164,51 +1162,49 @@
                                 </div>
                             </div>
 
-                            <!-- Optimization Sliders -->
-                            <div class="bg-gray-900 text-white rounded-xl p-6 shadow-lg">
-                                <h3
-                                    class="text-sm font-bold text-white uppercase tracking-widest mb-6 flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-cozm-teal" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
+                            <!-- Optimisation Priority Presets -->
+                            <div class="optimization-presets">
+                                <h3 class="optimization-presets-title">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                                            d="M13 10V3L4 14h7v7l9-11h-7z" />
                                     </svg>
-                                    Optimization Goals
+                                    Optimisation Priority
                                 </h3>
-
-                                <div class="space-y-6">
-                                    <!-- Speed Slider -->
-                                    <div>
-                                        <div class="flex justify-between text-sm mb-2">
-                                            <span class="font-medium text-gray-300">Speed (Visa Priority)</span>
-                                            <span class="text-cozm-teal font-bold" id="label-speed">50%</span>
+                                <div class="preset-grid">
+                                    <button type="button" class="preset-card selected" data-preset="cost" onclick="selectPreset(this)">
+                                        <span class="preset-icon">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </span>
+                                        <div class="preset-card-text">
+                                            <span class="preset-name">Lowest Cost</span>
+                                            <span class="preset-desc">Prioritise cost efficiency</span>
                                         </div>
-                                        <input type="range" id="slider-speed" min="0" max="100" value="50"
-                                            class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cozm-teal"
-                                            oninput="updateOptimization()">
-                                    </div>
-
-                                    <!-- Cost Slider -->
-                                    <div>
-                                        <div class="flex justify-between text-sm mb-2">
-                                            <span class="font-medium text-gray-300">Cost Efficiency</span>
-                                            <span class="text-cozm-teal font-bold" id="label-cost">50%</span>
+                                    </button>
+                                    <button type="button" class="preset-card" data-preset="speed" onclick="selectPreset(this)">
+                                        <span class="preset-icon">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </span>
+                                        <div class="preset-card-text">
+                                            <span class="preset-name">Fastest</span>
+                                            <span class="preset-desc">Minimise visa wait times</span>
                                         </div>
-                                        <input type="range" id="slider-cost" min="0" max="100" value="50"
-                                            class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cozm-teal"
-                                            oninput="updateOptimization()">
-                                    </div>
-
-                                    <!-- Compliance Slider -->
-                                    <div>
-                                        <div class="flex justify-between text-sm mb-2">
-                                            <span class="font-medium text-gray-300">Compliance Strictness</span>
-                                            <span class="text-cozm-teal font-bold" id="label-compliance">50%</span>
+                                    </button>
+                                    <button type="button" class="preset-card" data-preset="compliance" onclick="selectPreset(this)">
+                                        <span class="preset-icon">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                                            </svg>
+                                        </span>
+                                        <div class="preset-card-text">
+                                            <span class="preset-name">Safest</span>
+                                            <span class="preset-desc">Maximum legal protection</span>
                                         </div>
-                                        <input type="range" id="slider-compliance" min="0" max="100" value="50"
-                                            class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cozm-teal"
-                                            oninput="updateOptimization()">
-                                    </div>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1364,17 +1360,53 @@
             }
         }
 
-        // Live update for slider labels
-        function updateOptimization() {
-            document.getElementById('label-speed').textContent = document.getElementById('slider-speed').value + '%';
-            document.getElementById('label-cost').textContent = document.getElementById('slider-cost').value + '%';
-            document.getElementById('label-compliance').textContent = document.getElementById('slider-compliance').value + '%';
+        // Optimisation preset weights
+        const OPTIMIZATION_PRESETS = {
+            cost: { cost: 70, speed: 15, compliance: 15 },
+            speed: { speed: 70, cost: 15, compliance: 15 },
+            compliance: { compliance: 70, cost: 15, speed: 15 }
+        };
+
+        // Select optimisation preset
+        function selectPreset(button) {
+            document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('selected'));
+            button.classList.add('selected');
+            // Auto-run optimization when preset changes
+            runOptimizationDebounced();
+        }
+
+        // Get selected preset weights
+        function getSelectedWeights() {
+            const selected = document.querySelector('.preset-card.selected');
+            return OPTIMIZATION_PRESETS[selected?.dataset.preset || 'cost'];
         }
 
         // Toggle skill chip selection
         function toggleSkill(button) {
             button.classList.toggle('selected');
+            // Auto-run optimization when skills change
+            runOptimizationDebounced();
         }
+
+        // Debounced optimization runner (prevents too many calls)
+        let optimizationTimeout = null;
+        function runOptimizationDebounced() {
+            if (optimizationTimeout) clearTimeout(optimizationTimeout);
+            optimizationTimeout = setTimeout(() => {
+                runOptimization();
+            }, 300);
+        }
+
+        // Add change listeners to all form inputs for auto-update
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = ['projectDestination', 'projectRole', 'projectCount', 'projectDuration'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('change', runOptimizationDebounced);
+                }
+            });
+        });
 
         // Get array of selected skills
         function getSelectedSkills() {
@@ -1400,11 +1432,8 @@
                     requiredSkills: getSelectedSkills()
                 };
 
-                const weights = {
-                    speed: parseInt(document.getElementById('slider-speed').value),
-                    cost: parseInt(document.getElementById('slider-cost').value),
-                    compliance: parseInt(document.getElementById('slider-compliance').value)
-                };
+                // Get weights from selected preset
+                const weights = getSelectedWeights();
 
                 // 2. Run Engine (async)
                 const results = await staffingEngine.optimizeTeam(project, weights);

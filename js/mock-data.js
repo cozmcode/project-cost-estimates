@@ -84,6 +84,26 @@ const MOCK_DATA = {
             current_location: 'UK',
             base_salary_eur: 7200, // Higher cost but still competitive
             skills: ['Technology', 'Strategic Workforce Planning', 'Expatriate Tax', 'Safety Lead']
+        },
+        {
+            id: 'e9',
+            first_name: 'Arjun',
+            last_name: 'Kumar',
+            nationality: 'UK',
+            role: 'Lead Engineer',
+            current_location: 'UK',
+            base_salary_eur: 7500,
+            skills: ['Technology', 'Strategic Workforce Planning', 'Expatriate Tax', 'Wartsila 31']
+        },
+        {
+            id: 'e10',
+            first_name: 'Eamon',
+            last_name: 'Shahir',
+            nationality: 'UK',
+            role: 'Lead Engineer',
+            current_location: 'UK',
+            base_salary_eur: 7800,
+            skills: ['Technology', 'Strategic Workforce Planning', 'Expatriate Tax', 'Start-up']
         }
     ],
 
