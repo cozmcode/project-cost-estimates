@@ -416,8 +416,6 @@
                             <div class="hidden sm:block md:border-l md:border-gray-200 md:pl-6">
                                 <h1 class="text-sm md:text-xl font-extrabold text-gray-900 tracking-tight">FSE Cost
                                     Calculator</h1>
-                                <p class="text-[10px] md:text-[13px] text-cozm-teal font-bold uppercase tracking-wider">
-                                    Multi-Country Intelligence</p>
                             </div>
                         </div>
                         <!-- Mobile: Action buttons in header row -->
@@ -458,6 +456,15 @@
                             </svg>
                             <span class="hidden sm:inline">Staffing Engine</span>
                             <span class="sm:hidden text-xs">Staff</span>
+                        </button>
+                        <button id="nav-analytics" class="nav-tab flex-1 md:flex-initial justify-center"
+                            onclick="switchMainTab('analytics')">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            <span class="hidden sm:inline">Analytics</span>
+                            <span class="sm:hidden text-xs">Stats</span>
                         </button>
                     </div>
 
@@ -1247,6 +1254,93 @@
                     </div>
                 </div>
             </div>
+            <!-- Analytics Section -->
+            <div id="section-analytics" class="hidden animate-fade-in">
+                <div class="card p-4 md:p-8 mb-6 md:mb-8">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+                        <div class="text-center md:text-left">
+                            <h2 class="text-lg md:text-xl font-extrabold text-gray-900 tracking-tight">Global
+                                Deployment Insights</h2>
+                            <p class="text-xs md:text-sm text-gray-500 mt-1">Real-time analysis of your global roster
+                                capabilities and cost trends.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <!-- Roster Overview -->
+                        <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                            <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4">Roster Overview
+                            </h3>
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <p class="text-3xl font-extrabold text-cozm-teal">158</p>
+                                    <p class="text-xs text-gray-500 font-medium">Total Engineers</p>
+                                </div>
+                                <div>
+                                    <p class="text-3xl font-extrabold text-green-500">82%</p>
+                                    <p class="text-xs text-gray-500 font-medium">Deployment Ready</p>
+                                </div>
+                                <div>
+                                    <p class="text-3xl font-extrabold text-indigo-500">12</p>
+                                    <p class="text-xs text-gray-500 font-medium">Countries</p>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="flex justify-between text-xs font-medium text-gray-600 mb-1">
+                                    <span>Finland</span>
+                                    <span>45%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-cozm-teal h-2 rounded-full" style="width: 45%"></div>
+                                </div>
+
+                                <div class="flex justify-between text-xs font-medium text-gray-600 mb-1">
+                                    <span>India</span>
+                                    <span>28%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-cozm-teal h-2 rounded-full" style="width: 28%"></div>
+                                </div>
+
+                                <div class="flex justify-between text-xs font-medium text-gray-600 mb-1">
+                                    <span>Portugal</span>
+                                    <span>15%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-cozm-teal h-2 rounded-full" style="width: 15%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cost Trends -->
+                        <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                            <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4">Global Cost
+                                Trends</h3>
+                            <p class="text-xs text-gray-500 mb-4">Average monthly cost (Salary + Tax + Fees) for a
+                                6-month deployment to key hubs.</p>
+                            
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-white rounded border border-gray-200">
+                                    <span class="text-sm font-bold text-gray-700">Brazil</span>
+                                    <span class="text-sm font-mono text-cozm-dark-indigo">€9,800/mo</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-white rounded border border-gray-200">
+                                    <span class="text-sm font-bold text-gray-700">USA (Houston)</span>
+                                    <span class="text-sm font-mono text-cozm-dark-indigo">€12,500/mo</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-white rounded border border-gray-200">
+                                    <span class="text-sm font-bold text-gray-700">Singapore</span>
+                                    <span class="text-sm font-mono text-cozm-dark-indigo">€11,200/mo</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-white rounded border border-gray-200">
+                                    <span class="text-sm font-bold text-gray-700">Germany</span>
+                                    <span class="text-sm font-mono text-cozm-dark-indigo">€10,100/mo</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <!-- Settings Modal -->
@@ -1338,198 +1432,7 @@
     <script src="js/app-logic.js?v=1.0.5"></script>
     <script src="js/voice-commands.js?v=2.4.0"></script>
 
-    <!-- Staffing UI Interaction Script -->
-    <script>
-        // Tab switching logic for Staffing Engine
-        function switchMainTab(tab) {
-            const calcSection = document.getElementById('section-calculator');
-            const staffSection = document.getElementById('section-staffing');
-            const navCalc = document.getElementById('nav-calculator');
-            const navStaff = document.getElementById('nav-staffing');
-
-            if (tab === 'calculator') {
-                calcSection.classList.remove('hidden');
-                staffSection.classList.add('hidden');
-                navCalc.classList.add('nav-tab-active');
-                navStaff.classList.remove('nav-tab-active');
-            } else {
-                calcSection.classList.add('hidden');
-                staffSection.classList.remove('hidden');
-                navCalc.classList.remove('nav-tab-active');
-                navStaff.classList.add('nav-tab-active');
-            }
-        }
-
-        // Optimisation preset weights
-        const OPTIMIZATION_PRESETS = {
-            cost: { cost: 70, speed: 15, compliance: 15 },
-            speed: { speed: 70, cost: 15, compliance: 15 },
-            compliance: { compliance: 70, cost: 15, speed: 15 }
-        };
-
-        // Select optimisation preset
-        function selectPreset(button) {
-            document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('selected'));
-            button.classList.add('selected');
-            // Auto-run optimization when preset changes
-            runOptimizationDebounced();
-        }
-
-        // Get selected preset weights
-        function getSelectedWeights() {
-            const selected = document.querySelector('.preset-card.selected');
-            return OPTIMIZATION_PRESETS[selected?.dataset.preset || 'cost'];
-        }
-
-        // Toggle skill chip selection
-        function toggleSkill(button) {
-            button.classList.toggle('selected');
-            // Auto-run optimization when skills change
-            runOptimizationDebounced();
-        }
-
-        // Debounced optimization runner (prevents too many calls)
-        let optimizationTimeout = null;
-        function runOptimizationDebounced() {
-            if (optimizationTimeout) clearTimeout(optimizationTimeout);
-            optimizationTimeout = setTimeout(() => {
-                runOptimization();
-            }, 300);
-        }
-
-        // Add change listeners to all form inputs for auto-update
-        document.addEventListener('DOMContentLoaded', function() {
-            const inputs = ['projectDestination', 'projectRole', 'projectCount', 'projectDuration'];
-            inputs.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener('change', runOptimizationDebounced);
-                }
-            });
-        });
-
-        // Get array of selected skills
-        function getSelectedSkills() {
-            const chips = document.querySelectorAll('#skillsSelector .skill-chip.selected');
-            return Array.from(chips).map(chip => chip.dataset.skill);
-        }
-
-        // Run Optimization (async to support API calls)
-        async function runOptimization() {
-            // Show loading state
-            const runButton = document.querySelector('#section-staffing .btn-primary');
-            const originalText = runButton.innerHTML;
-            runButton.innerHTML = '<span class="flex items-center gap-2"><svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Optimising...</span>';
-            runButton.disabled = true;
-
-            try {
-                // 1. Get Inputs
-                const project = {
-                    country: document.getElementById('projectDestination').value,
-                    role: document.getElementById('projectRole').value,
-                    durationMonths: parseInt(document.getElementById('projectDuration').value),
-                    count: parseInt(document.getElementById('projectCount').value),
-                    requiredSkills: getSelectedSkills()
-                };
-
-                // Get weights from selected preset
-                const weights = getSelectedWeights();
-
-                // 2. Run Engine (async)
-                const results = await staffingEngine.optimizeTeam(project, weights);
-
-                // 3. Render Results
-                const tbody = document.getElementById('staffing-results-body');
-                tbody.innerHTML = '';
-
-                results.forEach((candidate, index) => {
-                    const details = candidate.scores.details;
-
-                    // Get CO2 footprint for this route
-                    const carbonKey = `${candidate.current_location}_${project.country}`;
-                    const carbonKg = MOCK_DATA.carbonFootprint?.[carbonKey] || 0;
-
-                    // Skills match calculation (using brand colours)
-                    const skillsMatch = details.skillsMatch || { percentage: 0, matched: [], total: 0 };
-                    const skillsMatchClass = skillsMatch.percentage === 100 ? 'skills-badge full-match' :
-                                            skillsMatch.percentage >= 50 ? 'skills-badge partial-match' :
-                                            skillsMatch.percentage > 0 ? 'skills-badge low-match' : 'skills-badge no-match';
-                    const skillsDisplay = skillsMatch.total > 0
-                        ? `${skillsMatch.matched.length}/${skillsMatch.total} (${skillsMatch.percentage}%)`
-                        : 'N/A';
-
-                    // Compliance risks (using brand colours)
-                    const risks = details.risks || [];
-                    const complianceScore = candidate.scores.complianceScore;
-                    const complianceClass = complianceScore >= 80 ? 'compliance-bar-fill high' :
-                                           complianceScore >= 50 ? 'compliance-bar-fill medium' :
-                                           'compliance-bar-fill low';
-                    const riskHtml = risks.length > 0
-                        ? risks.map(r => `<div class="risk-badge ${r.includes('CRITICAL') ? 'critical' : r.includes('WARNING') ? 'warning' : 'note'}">${r}</div>`).join('')
-                        : '';
-
-                    // Visa badge styling (brand colours)
-                    const visaBadgeClass = details.visaDays === 0 ? 'visa-badge in-country' : 'visa-badge processing';
-
-                    // Carbon indicator styling (brand colours)
-                    const carbonIndicatorClass = carbonKg < 500 ? 'carbon-indicator low' : carbonKg < 1500 ? 'carbon-indicator medium' : 'carbon-indicator high';
-
-                    const tr = document.createElement('tr');
-                    tr.className = 'bg-white border-b hover:bg-gray-50';
-                    tr.innerHTML = `
-                        <td class="px-6 py-4 font-bold" style="color: var(--cozm-dark-indigo);">#${index + 1}</td>
-                        <td class="px-6 py-4">
-                            <div class="font-bold" style="color: var(--cozm-dark-indigo);">${candidate.first_name} ${candidate.last_name}</div>
-                            <div class="text-xs" style="color: var(--cozm-light-sky-blue);">${candidate.nationality} • From ${candidate.current_location}</div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="${skillsMatchClass}">
-                                ${skillsDisplay}
-                            </span>
-                            ${skillsMatch.matched.length > 0 ? `<div class="text-xs mt-1" style="color: var(--cozm-light-sky-blue);">${skillsMatch.matched.join(', ')}</div>` : ''}
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="${visaBadgeClass}">
-                                ${details.visaType}
-                            </span>
-                            <div class="text-xs mt-1" style="color: var(--cozm-light-sky-blue);">${details.visaDays} days processing</div>
-                            ${riskHtml}
-                        </td>
-                        <td class="px-6 py-4 font-medium" style="color: var(--cozm-dark-indigo);">
-                            €${details.totalCost.toLocaleString()}
-                            <div class="${carbonIndicatorClass}">
-                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
-                                ${carbonKg > 0 ? carbonKg + ' kg CO₂' : 'No flight'}
-                            </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center gap-2">
-                                <div class="score-bar" style="width: 100px;">
-                                    <div class="score-bar-fill" style="width: ${candidate.finalScore}%;"></div>
-                                </div>
-                                <span class="text-xs font-bold" style="color: var(--cozm-dark-indigo);">${candidate.finalScore}</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <button class="font-bold text-sm" style="color: var(--cozm-teal);" onmouseover="this.style.color='var(--cozm-dark-indigo)'" onmouseout="this.style.color='var(--cozm-teal)'">Select</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-
-                document.getElementById('staffing-results').classList.remove('hidden');
-                // Scroll to results
-                document.getElementById('staffing-results').scrollIntoView({ behavior: 'smooth' });
-            } catch (error) {
-                console.error('[Staffing Engine] Error:', error);
-                alert('Error running optimisation. Check console for details.');
-            } finally {
-                // Restore button
-                runButton.innerHTML = originalText;
-                runButton.disabled = false;
-            }
-        }
-    </script>
+    <script src="js/view-staffing.js"></script>
 </body>
 
 </html>
