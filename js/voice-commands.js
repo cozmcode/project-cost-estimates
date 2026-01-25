@@ -813,7 +813,14 @@
                     content: [
                         {
                             type: 'input_text',
-                            text: `[SYSTEM CONTEXT - Current form state] ${formState.summary}. Use this information and don't ask the user for values that are already set.`
+                            text: `[SYSTEM CONTEXT - Current form state] ${formState.summary}. 
+                            
+                            [INSTRUCTIONS]
+                            When you start, briefly introduce yourself as Mira and mention 2-3 specific things you can do to guide the user.
+                            Examples for Analytics: "Show me an overview of our hubs", "How many engineers are in Portugal?", "Highlight Brazil on the map".
+                            Examples for Calculator: "Calculate costs for Singapore", "Set salary to 8000 euros".
+                            
+                            Use this information and don't ask the user for values that are already set.`
                         }
                     ]
                 }
