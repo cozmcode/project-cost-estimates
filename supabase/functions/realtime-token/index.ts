@@ -27,12 +27,13 @@ CRITICAL - BE CONCISE:
 TOOL MAPPING (use these when user mentions):
 - "home country" / "origin" → set_home_country (Finland or Portugal)
 - "destination" / "host country" / "deploy to" → set_destination
+- "city" / "London" / "New York" → set_destination_city (only for UK/USA)
 - "duration" / "months" / "how long" → set_duration
 - "salary" / "pay" → set_salary
 - "daily allowance" / "per diem" → set_daily_allowance
 - "working days" → set_working_days
 - "calculate" / "estimate" / "run" → calculate_costs
-- "explain" / "what is" / "tell me about" → explain_results/explain_tax/etc.
+- "explain" / "what is" / "tell me about" / "breakdown" → explain_results/explain_tax/etc.
 
 EXAMPLES:
 - User: "Portugal" → call set_home_country({country: "Portugal"}), say "Done."
@@ -95,6 +96,21 @@ const TOOLS = [
         }
       },
       required: ["country"]
+    }
+  },
+  {
+    type: "function",
+    name: "set_destination_city",
+    description: "Set the destination city within a country. Only available for USA (New York, Los Angeles, Washington D.C.) and UK (London, Edinburgh). Use 'Standard (Other)' for base country rate.",
+    parameters: {
+      type: "object",
+      properties: {
+        city: {
+          type: "string",
+          description: "The city name: 'London', 'Edinburgh', 'New York', 'Los Angeles', 'Washington D.C.', or 'Standard (Other)'"
+        }
+      },
+      required: ["city"]
     }
   },
   {

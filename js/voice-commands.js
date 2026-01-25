@@ -342,6 +342,34 @@
                         }
                         break;
 
+                    case 'set_destination_city':
+                        const citySelect = document.getElementById('hostCity');
+                        if (citySelect && args.city) {
+                            // Check if the city dropdown is visible (only for UK/USA)
+                            const cityContainer = document.getElementById('citySelectorContainer');
+                            if (!cityContainer || cityContainer.classList.contains('hidden')) {
+                                result.success = false;
+                                result.error = 'City selection is only available for UK and USA destinations';
+                                this.error('set_destination_city failed: city selector not visible');
+                            } else {
+                                citySelect.value = args.city;
+                                citySelect.dispatchEvent(new Event('change', { bubbles: true }));
+
+                                if (citySelect.value === args.city) {
+                                    result.message = `City set to ${args.city}`;
+                                    this.log(`City successfully set to ${args.city}`);
+                                } else {
+                                    result.success = false;
+                                    const availableCities = Array.from(citySelect.options).map(o => o.value).join(', ');
+                                    result.error = `Could not set city to ${args.city}. Available: ${availableCities}`;
+                                }
+                            }
+                        } else {
+                            result.success = false;
+                            result.error = citySelect ? 'No city provided' : 'City dropdown not found - select UK or USA first';
+                        }
+                        break;
+
                     case 'set_duration':
                         const monthsSelect = document.getElementById('assignmentLength');
                         if (monthsSelect && args.months) {
@@ -579,9 +607,23 @@
         }
 
         /**
+         * Expand a breakdown group in the UI
+         */
+        expandBreakdownGroup(groupId) {
+            const group = document.getElementById(`group-${groupId}`);
+            if (group && !group.classList.contains('expanded')) {
+                group.classList.add('expanded');
+                this.log(`Expanded breakdown group: ${groupId}`);
+            }
+        }
+
+        /**
          * Get detailed tax breakdown explanation
          */
         getTaxExplanation() {
+            // Expand the tax section in the UI
+            this.expandBreakdownGroup('tax');
+
             const data = window.lastCalculationData;
 
             if (!data) {
@@ -646,6 +688,9 @@
          * Get social security breakdown explanation
          */
         getSocialSecurityExplanation() {
+            // Expand the social security section in the UI
+            this.expandBreakdownGroup('social');
+
             const data = window.lastCalculationData;
 
             if (!data) {
@@ -701,6 +746,9 @@
          * Get per diem breakdown explanation
          */
         getPerDiemExplanation() {
+            // Expand the per diem section in the UI
+            this.expandBreakdownGroup('perdiem');
+
             const data = window.lastCalculationData;
 
             if (!data) {
