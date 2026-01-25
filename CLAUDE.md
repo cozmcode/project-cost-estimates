@@ -121,3 +121,31 @@ Contains progressive tax brackets and non-resident rates for each country. When 
 
 - **Do not add new UI elements or features without explicit user approval** - Always check with the user before adding buttons, controls, or functionality not specifically requested
 - When fixing bugs, make minimal changes - avoid adding "improvements" or "enhancements" beyond what was asked
+
+## CRITICAL: Voice Button Protection
+
+**NEVER remove or replace the Voice button in the header.** This has been accidentally removed multiple times during edits.
+
+The Voice button MUST remain in `app.html` in TWO locations:
+
+1. **Desktop** (lines ~467-472):
+```html
+<button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">
+    <svg class="w-5 h-5 mic-icon" ...>...</svg>
+    <span id="voiceBtnText">Voice</span>
+</button>
+```
+
+2. **Mobile** (lines ~425-430):
+```html
+<button id="voiceBtnMobile" onclick="toggleVoice()" ...>
+    <svg ...microphone icon...>...</svg>
+</button>
+```
+
+**Before committing ANY changes to `app.html`:**
+1. Search for `voiceBtn` - must exist
+2. Search for `voiceBtnMobile` - must exist
+3. Search for `toggleVoice` - must have onclick handlers
+
+If these are missing, the edit has accidentally removed the voice functionality.
