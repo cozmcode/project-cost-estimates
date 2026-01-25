@@ -777,7 +777,7 @@
         }
 
         /**
-         * Get social security breakdown explanation
+         * Get social security breakdown explanation with detailed calculations
          */
         getSocialSecurityExplanation() {
             // Expand the social security section in the UI
@@ -797,38 +797,63 @@
             const totalSS = data.totalSocialSecurity || data.socialSecurityCost || 0;
             const employerSS = data.employerSocialSec || 0;
             const employeeSS = data.employeeSocialSec || 0;
+            const grossSalary = data.grossSalary || 0;
             const config = data.config || {};
             const countryName = config.name || data.hostCountry;
             const homeCountry = document.getElementById('homeCountry')?.value || 'Finland';
+            const employerRate = ((config.employerSocialSec || 0) * 100).toFixed(1);
+            const employeeRate = ((config.employeeSocialSec || 0) * 100).toFixed(1);
 
-            // Build explanation
+            // Build detailed explanation
             const parts = [];
-            parts.push(`Social security is ${formatCurrency(totalSS)}.`);
+            parts.push(`Social security breakdown for ${countryName}.`);
+            parts.push(`Contribution base is ${formatCurrency(grossSalary)}.`);
+
+            // Agreement status
+            if (data.hasAgreement) {
+                parts.push(`${homeCountry} has a reciprocal agreement with ${countryName}.`);
+            } else {
+                parts.push(`No reciprocal agreement between ${homeCountry} and ${countryName}.`);
+            }
 
             if (totalSS === 0) {
-                if (data.hasAgreement) {
-                    parts.push(`${homeCountry} has a reciprocal social security agreement with ${countryName}, so contributions remain payable in ${homeCountry} only.`);
-                } else if (data.socialSecExclusionReason) {
-                    parts.push(`Reason: ${data.socialSecExclusionReason}.`);
+                if (data.socialSecExclusionReason) {
+                    parts.push(`Social security is zero because: ${data.socialSecExclusionReason}.`);
+                } else if (data.hasAgreement) {
+                    parts.push(`Contributions remain payable in ${homeCountry} only.`);
                 } else {
                     parts.push(`No host country social security contributions are required.`);
                 }
             } else {
-                parts.push(`Employer portion is ${formatCurrency(employerSS)}.`);
-                parts.push(`Employee portion is ${formatCurrency(employeeSS)}.`);
+                // Employer calculation
+                parts.push(`Employer rate is ${employerRate}%.`);
+                parts.push(`${formatCurrency(grossSalary)} times ${employerRate}% equals ${formatCurrency(employerSS)} employer contribution.`);
 
-                const employerRate = ((config.employerSocialSec || 0) * 100).toFixed(1);
-                const employeeRate = ((config.employeeSocialSec || 0) * 100).toFixed(1);
-                parts.push(`Rates are ${employerRate}% employer and ${employeeRate}% employee.`);
+                // Employee calculation
+                parts.push(`Employee rate is ${employeeRate}%.`);
+                parts.push(`${formatCurrency(grossSalary)} times ${employeeRate}% equals ${formatCurrency(employeeSS)} employee contribution.`);
+
+                // Cap note if applicable
+                if (config.employeeSocialSecCap) {
+                    const currencySymbol = config.currencySymbol || '€';
+                    parts.push(`Note: employee contributions are capped at ${currencySymbol}${config.employeeSocialSecCap.toLocaleString('en-GB')} per month.`);
+                }
+
+                // Total
+                parts.push(`Total social security cost is ${formatCurrency(totalSS)}.`);
             }
 
             return {
                 success: true,
                 hasResults: true,
+                contributionBase: formatCurrency(grossSalary),
                 totalAmount: formatCurrency(totalSS),
+                employerRate: employerRate + '%',
                 employerPortion: formatCurrency(employerSS),
+                employeeRate: employeeRate + '%',
                 employeePortion: formatCurrency(employeeSS),
                 hasAgreement: data.hasAgreement || false,
+                hasCap: !!config.employeeSocialSecCap,
                 reason: data.socialSecExclusionReason || (totalSS === 0 ? 'Reciprocal agreement' : 'Contributions required'),
                 message: parts.join(' ')
             };

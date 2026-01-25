@@ -631,6 +631,45 @@ h1, h2, h3 {
     color: var(--text-secondary);
 }
 
+/* Social Security calculation breakdown */
+.ss-calculation-group {
+    margin: 8px 0;
+    padding: 8px 0;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.ss-calculation-group:first-of-type {
+    margin-top: 12px;
+}
+
+.ss-calculation-row .detail-calc {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+}
+
+.ss-calculation-row .detail-label.detail-calc {
+    padding-left: 12px;
+}
+
+.ss-cap-row .detail-calc {
+    font-size: 11px;
+    color: var(--cozm-gold);
+    font-style: italic;
+}
+
+.ss-total-row {
+    margin-top: 4px;
+    padding-top: 8px;
+}
+
+.ss-grand-total-row {
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 2px solid var(--cozm-teal) !important;
+    border-bottom: none !important;
+}
+
 /* Right Column - Chart Panel */
 .results-right-column {
     position: relative;

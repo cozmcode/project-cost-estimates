@@ -1244,15 +1244,64 @@ function calculateCosts() {
         taxSourceEl.innerHTML = `<a href="${sourceUrl}" target="_blank" rel="noopener noreferrer" class="text-cozm-teal hover:underline">${sourceName}</a>`;
     }
 
-    // Social Security details - show employer/employee breakdown
-    const totalSSRate = ((config.employerSocialSec || 0) + (config.employeeSocialSec || 0)) * 100;
-    setEl('detailSocialRate', totalSSRate.toFixed(1) + '%');
+    // Social Security details - detailed breakdown with calculations
+    const employerSSRate = (config.employerSocialSec || 0) * 100;
+    const employeeSSRate = (config.employeeSocialSec || 0) * 100;
+    const totalSSRate = employerSSRate + employeeSSRate;
+    const currencySymbol = config.currencySymbol || '€';
 
-    // Update employer/employee breakdown display
+    // Contribution base
+    setEl('detailSSBase', formatCurrency(grossSalary));
+
+    // Local valuation (if different currency)
+    const ssLocalRow = document.getElementById('detailSSLocalRow');
+    if (exchangeRate && exchangeRate !== 1 && currencySymbol !== '€') {
+        const localBase = grossSalary * exchangeRate;
+        setEl('detailSSLocalValue', currencySymbol + Math.round(localBase).toLocaleString('en-GB'));
+        if (ssLocalRow) ssLocalRow.style.display = 'flex';
+    } else {
+        if (ssLocalRow) ssLocalRow.style.display = 'none';
+    }
+
+    // Agreement status
+    const agreementStatus = hasAgreement ? 'Reciprocal agreement with home country' : 'No reciprocal agreement';
+    setEl('detailSSAgreement', agreementStatus);
+
+    // Employer rate and calculation
+    setEl('detailEmployerSSRate', employerSSRate.toFixed(1) + '%');
+    const employerCalcRow = document.getElementById('detailEmployerSSCalcRow');
+    if (employerSSRate > 0 && socialSecIncluded) {
+        const employerCalcText = `${formatCurrency(grossSalary)} × ${employerSSRate.toFixed(1)}% = ${formatCurrency(employerSocialSec)}`;
+        setEl('detailEmployerSSCalc', employerCalcText);
+        if (employerCalcRow) employerCalcRow.style.display = 'flex';
+    } else {
+        if (employerCalcRow) employerCalcRow.style.display = 'none';
+    }
+
+    // Employee rate and calculation
+    setEl('detailEmployeeSSRate', employeeSSRate.toFixed(1) + '%');
+    const employeeCalcRow = document.getElementById('detailEmployeeSSCalcRow');
+    if (employeeSSRate > 0 && socialSecIncluded) {
+        const employeeCalcText = `${formatCurrency(grossSalary)} × ${employeeSSRate.toFixed(1)}% = ${formatCurrency(employeeSocialSec)}`;
+        setEl('detailEmployeeSSCalc', employeeCalcText);
+        if (employeeCalcRow) employeeCalcRow.style.display = 'flex';
+    } else {
+        if (employeeCalcRow) employeeCalcRow.style.display = 'none';
+    }
+
+    // SS cap note (for countries like Brazil with monthly caps)
+    const ssCapRow = document.getElementById('detailSSCapRow');
+    if (config.employeeSocialSecCap && socialSecIncluded) {
+        setEl('detailSSCapNote', `Monthly cap of ${currencySymbol}${config.employeeSocialSecCap.toLocaleString('en-GB')}`);
+        if (ssCapRow) ssCapRow.classList.remove('hidden');
+    } else {
+        if (ssCapRow) ssCapRow.classList.add('hidden');
+    }
+
+    // Update employer/employee totals
     setEl('detailEmployerSS', formatCurrency(employerSocialSec));
     setEl('detailEmployeeSS', formatCurrency(employeeSocialSec));
-    setEl('detailEmployerSSRate', ((config.employerSocialSec || 0) * 100).toFixed(1) + '%');
-    setEl('detailEmployeeSSRate', ((config.employeeSocialSec || 0) * 100).toFixed(1) + '%');
+    setEl('detailSocialTotal', formatCurrency(totalSocialSecurity));
 
     // Social Security warning with clickable link to source
     const socialWarningEl = document.getElementById('detailSocialWarning');

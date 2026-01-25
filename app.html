@@ -926,19 +926,57 @@
                                         </div>
                                     </div>
                                     <div class="breakdown-details" id="details-social">
+                                        <!-- Base for SS calculation -->
                                         <div class="detail-row">
-                                            <span class="detail-label">Combined Rate</span>
-                                            <span class="detail-value" id="detailSocialRate">50.8%</span>
+                                            <span class="detail-label">Contribution Base</span>
+                                            <span class="detail-value" id="detailSSBase">€42,000</span>
+                                        </div>
+                                        <div class="detail-row" id="detailSSLocalRow">
+                                            <span class="detail-label">Local Valuation</span>
+                                            <span class="detail-value" id="detailSSLocalValue">£35,280</span>
                                         </div>
                                         <div class="detail-row">
-                                            <span class="detail-label">Employer (<span
-                                                    id="detailEmployerSSRate">36.8%</span>)</span>
-                                            <span class="detail-value" id="detailEmployerSS">€0</span>
+                                            <span class="detail-label">Agreement Status</span>
+                                            <span class="detail-value" id="detailSSAgreement">No reciprocal agreement</span>
                                         </div>
-                                        <div class="detail-row">
-                                            <span class="detail-label">Employee (<span
-                                                    id="detailEmployeeSSRate">14.0%</span>)</span>
-                                            <span class="detail-value" id="detailEmployeeSS">€0</span>
+                                        <!-- Employer calculation -->
+                                        <div class="ss-calculation-group">
+                                            <div class="detail-row">
+                                                <span class="detail-label">Employer Rate</span>
+                                                <span class="detail-value" id="detailEmployerSSRate">13.8%</span>
+                                            </div>
+                                            <div class="detail-row ss-calculation-row" id="detailEmployerSSCalcRow">
+                                                <span class="detail-label detail-calc">Calculation</span>
+                                                <span class="detail-value detail-calc" id="detailEmployerSSCalc">€42,000 × 13.8% = €5,796</span>
+                                            </div>
+                                        </div>
+                                        <!-- Employee calculation -->
+                                        <div class="ss-calculation-group">
+                                            <div class="detail-row">
+                                                <span class="detail-label">Employee Rate</span>
+                                                <span class="detail-value" id="detailEmployeeSSRate">12.0%</span>
+                                            </div>
+                                            <div class="detail-row ss-calculation-row" id="detailEmployeeSSCalcRow">
+                                                <span class="detail-label detail-calc">Calculation</span>
+                                                <span class="detail-value detail-calc" id="detailEmployeeSSCalc">€42,000 × 12.0% = €5,040</span>
+                                            </div>
+                                            <div class="detail-row ss-cap-row hidden" id="detailSSCapRow">
+                                                <span class="detail-label detail-calc">Cap Applied</span>
+                                                <span class="detail-value detail-calc" id="detailSSCapNote">Monthly cap of R$7,786.02</span>
+                                            </div>
+                                        </div>
+                                        <!-- Totals -->
+                                        <div class="detail-row ss-total-row">
+                                            <span class="detail-label"><strong>Employer Contribution</strong></span>
+                                            <span class="detail-value" id="detailEmployerSS"><strong>€5,796</strong></span>
+                                        </div>
+                                        <div class="detail-row ss-total-row">
+                                            <span class="detail-label"><strong>Employee Contribution</strong></span>
+                                            <span class="detail-value" id="detailEmployeeSS"><strong>€5,040</strong></span>
+                                        </div>
+                                        <div class="detail-row ss-grand-total-row">
+                                            <span class="detail-label"><strong>Total SS Cost</strong></span>
+                                            <span class="detail-value"><strong id="detailSocialTotal">€10,836</strong></span>
                                         </div>
                                         <div class="detail-row" id="detailSocialWarningRow">
                                             <span class="detail-label">Warning</span>
