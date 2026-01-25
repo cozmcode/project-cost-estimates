@@ -368,6 +368,32 @@
                         }
                         break;
 
+                    case 'set_daily_allowance':
+                        const allowanceInput = document.getElementById('dailyAllowance');
+                        if (allowanceInput && args.amount !== undefined) {
+                            allowanceInput.value = args.amount;
+                            allowanceInput.dispatchEvent(new Event('change', { bubbles: true }));
+                            result.message = `Daily allowance set to €${args.amount}`;
+                            this.log(`Daily allowance set to €${args.amount}`);
+                        } else {
+                            result.success = false;
+                            result.error = allowanceInput ? 'No amount provided' : 'Daily allowance input not found';
+                        }
+                        break;
+
+                    case 'set_working_days':
+                        const workingDaysInput = document.getElementById('workingDays');
+                        if (workingDaysInput && args.days) {
+                            workingDaysInput.value = args.days;
+                            workingDaysInput.dispatchEvent(new Event('change', { bubbles: true }));
+                            result.message = `Working days set to ${args.days}`;
+                            this.log(`Working days set to ${args.days}`);
+                        } else {
+                            result.success = false;
+                            result.error = workingDaysInput ? 'No days provided' : 'Working days input not found';
+                        }
+                        break;
+
                     case 'switch_tab':
                         if (typeof window.switchMainTab === 'function' && args.tab) {
                             window.switchMainTab(args.tab);

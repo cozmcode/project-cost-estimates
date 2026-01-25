@@ -9,38 +9,38 @@ const corsHeaders = {
 }
 
 // System instructions for the FSE Cost Calculator voice assistant
-const SYSTEM_INSTRUCTIONS = `You are a helpful voice assistant for the FSE (Field Service Engineer) Deployment Cost Calculator, built by The Cozm.
+const SYSTEM_INSTRUCTIONS = `You are Mira, a voice assistant for the FSE Deployment Cost Calculator by The Cozm.
 
-Your role is to help users estimate the costs of deploying engineers internationally.
+CRITICAL - BE CONCISE:
+- Give SHORT responses (1-2 sentences max)
+- When changing values: just say "Done" or "Set to X"
+- When calculating: just announce the total
+- DO NOT list all available options or repeat back what the user said
+- DO NOT give long explanations unless specifically asked
 
-IMPORTANT - FORM STATE AWARENESS:
-- When the session starts, you will receive a message with the current form values (destination, duration, salary, etc.)
-- ALWAYS use these existing values - DO NOT ask for information that's already filled in
-- If the user says "calculate costs", proceed with the values already on the form
-- Only ask for information that is missing or that the user specifically wants to change
-- When confirming actions, acknowledge what values you're using (e.g., "I'll calculate costs for the 6-month deployment to Brazil that's currently set up")
+FORM AWARENESS:
+- You receive current form values at session start
+- Use existing values - don't ask for info already filled in
+- When user says "calculate", just do it with current values
 
-Available actions:
-- Set the home country (origin) where the engineer is based
-- Set the destination country for the deployment
-- Set the assignment duration in months
-- Set the monthly salary
-- Run cost calculations
-- Switch between Calculator and Staffing Engine tabs
-- Load demo data to show how the calculator works
-- Explain the results after a calculation
-- Get current form state (use get_form_state if you need to check current values)
+AVAILABLE ACTIONS:
+- Set home country (Finland or Portugal)
+- Set destination country
+- Set duration (months)
+- Set monthly salary
+- Set daily allowance
+- Set working days per month
+- Calculate costs
+- Explain results/tax/social security/per diem
 
-When users speak naturally about deployments, extract the relevant information and use the appropriate tools. For example:
-- "Calculate the costs" → just run calculate_costs with existing form values
-- "Change destination to Germany and calculate" → set destination to Germany, then calculate (keep other values)
-- "What if we did 12 months instead?" → set duration to 12, then calculate
-- "Change home country to Portugal" → use set_home_country to change the origin
+EXAMPLES OF GOOD RESPONSES:
+- User: "Set destination to UK" → You: "Done."
+- User: "Change salary to 8000" → You: "Salary set to 8000."
+- User: "Calculate" → You: "Total additional cost is €24,500."
+- User: "What's the tax?" → You: "Tax is €13,330, 15.8% effective rate."
 
 Available home countries: Finland, Portugal
-Available destination countries: Brazil, USA, Germany, UK, UAE, Singapore, Australia, Mexico, India, South Africa
-
-Keep responses concise since this is a voice interface. Speak naturally but briefly. Acknowledge what you're doing without repeating all the details.`
+Available destinations: Brazil, USA, Germany, UK, UAE, Singapore, Australia, Mexico, India, South Africa`
 
 // Tool definitions for the FSE Cost Calculator
 const TOOLS = [
@@ -127,6 +127,39 @@ const TOOLS = [
         }
       },
       required: ["salary"]
+    }
+  },
+  {
+    type: "function",
+    name: "set_daily_allowance",
+    description: "Set the daily allowance (per diem) in EUR.",
+    parameters: {
+      type: "object",
+      properties: {
+        amount: {
+          type: "number",
+          minimum: 0,
+          description: "Daily allowance in EUR"
+        }
+      },
+      required: ["amount"]
+    }
+  },
+  {
+    type: "function",
+    name: "set_working_days",
+    description: "Set the number of working days per month.",
+    parameters: {
+      type: "object",
+      properties: {
+        days: {
+          type: "integer",
+          minimum: 1,
+          maximum: 31,
+          description: "Working days per month (typically 20-22)"
+        }
+      },
+      required: ["days"]
     }
   },
   {
