@@ -4,6 +4,215 @@
 // Tax rules loaded from JSON (will be fetched on page load)
 let taxRules = null;
 
+// Country configuration with social security rates, treaty status, and display names
+// Exchange rates are populated by fetchExchangeRates() on page load
+const countryConfig = {
+    Brazil: {
+        name: 'Brazil',
+        currency: 'BRL',
+        exchangeRate: 6.0,          // Default, updated by fetchExchangeRates()
+        taxRate: 0.25,              // 25% non-resident flat rate
+        deduction: 0,
+        socialSec: 0.35,        // 35% total (employer ~28% + employee ~7%)
+        socialSecCap: null,         // No cap for employers
+        employeeSocialSecRate: 0.11, // Employee portion
+        employeeSocialSecCap: 8157.41, // BRL monthly cap for employee
+        hasTreatyWithFinland: false,
+        noTreatyWarning: true
+    },
+    USA: {
+        name: 'United States',
+        currency: 'USD',
+        exchangeRate: 1.08,
+        taxRate: 0.24,              // Approximate federal marginal rate
+        deduction: 14600,           // Standard deduction (single, 2025)
+        socialSec: 0.153,       // 15.3% total (employer 7.65% + employee 7.65%)
+        socialSecCap: 176100,       // USD annual cap for Social Security
+        hasTreatyWithFinland: true
+    },
+    Germany: {
+        name: 'Germany',
+        currency: 'EUR',
+        exchangeRate: 1.0,
+        taxRate: 0.30,              // Approximate effective rate
+        deduction: 0,
+        socialSec: 0.40,        // ~40% total (employer ~20% + employee ~20%)
+        socialSecCap: 90600,        // EUR annual cap (2025)
+        hasTreatyWithFinland: true  // EU regulation
+    },
+    UK: {
+        name: 'United Kingdom',
+        currency: 'GBP',
+        exchangeRate: 0.85,
+        taxRate: 0.20,              // Basic rate
+        deduction: 12570,           // Personal allowance (GBP)
+        socialSec: 0.268,       // NI: employer 13.8% + employee 12% (above threshold)
+        socialSecCap: null,         // No cap for employer NI
+        hasTreatyWithFinland: true
+    },
+    UAE: {
+        name: 'United Arab Emirates',
+        currency: 'AED',
+        exchangeRate: 3.97,
+        taxRate: 0,                 // No personal income tax
+        deduction: 0,
+        socialSec: 0,           // No social security for expats
+        hasTreatyWithFinland: false,
+        noTreatyWarning: false      // No warning needed - no SS anyway
+    },
+    Singapore: {
+        name: 'Singapore',
+        currency: 'SGD',
+        exchangeRate: 1.45,
+        taxRate: 0.22,              // Approximate marginal rate
+        deduction: 0,
+        socialSec: 0.37,        // CPF: employer 17% + employee 20% (varies by age)
+        socialSecCap: 6800,         // SGD monthly cap (ordinary wage ceiling)
+        hasTreatyWithFinland: false,
+        noTreatyWarning: true
+    },
+    Australia: {
+        name: 'Australia',
+        currency: 'AUD',
+        exchangeRate: 1.65,
+        taxRate: 0.30,              // Non-resident rate
+        deduction: 0,
+        socialSec: 0.115,       // Super guarantee 11.5% (employer only, 2024-25)
+        socialSecCap: 62500,        // AUD quarterly cap
+        hasTreatyWithFinland: true
+    },
+    Mexico: {
+        name: 'Mexico',
+        currency: 'MXN',
+        exchangeRate: 18.5,
+        taxRate: 0.30,              // Approximate marginal rate
+        deduction: 0,
+        socialSec: 0.35,        // ~35% total IMSS contributions
+        socialSecCap: null,
+        hasTreatyWithFinland: false,
+        noTreatyWarning: true
+    },
+    India: {
+        name: 'India',
+        currency: 'INR',
+        exchangeRate: 90.0,
+        taxRate: 0.30,              // Surcharge band
+        deduction: 0,
+        socialSec: 0.24,        // PF: employer 12% + employee 12%
+        socialSecCap: 15000,        // INR monthly cap for PF
+        hasTreatyWithFinland: true
+    },
+    SouthAfrica: {
+        name: 'South Africa',
+        currency: 'ZAR',
+        exchangeRate: 19.5,
+        taxRate: 0.31,              // Approximate marginal rate
+        deduction: 0,
+        socialSec: 0.02,        // UIF: 1% employer + 1% employee
+        socialSecCap: 17712,        // ZAR monthly cap
+        hasTreatyWithFinland: false,
+        noTreatyWarning: true
+    }
+};
+
+// Load tax rules from JSON file
+async function loadTaxRules() {
+    try {
+        const response = await fetch('js/tax-rules.json');
+        if (!response.ok) {
+            throw new Error(`Failed to load tax rules: ${response.status}`);
+        }
+        taxRules = await response.json();
+        console.log('[TAX] Tax rules loaded successfully');
+    } catch (error) {
+        console.error('[TAX] Error loading tax rules:', error);
+        // Set fallback empty object to prevent further errors
+        taxRules = {};
+    }
+}
+
+// Exchange rates cache
+let exchangeRates = {};
+
+// Fetch exchange rates from API and update countryConfig
+async function fetchExchangeRates() {
+    try {
+        // Use Frankfurter API (free, no API key required)
+        const response = await fetch('https://api.frankfurter.app/latest?from=EUR');
+        if (!response.ok) {
+            throw new Error(`Failed to fetch exchange rates: ${response.status}`);
+        }
+        const data = await response.json();
+        exchangeRates = data.rates;
+        exchangeRates.EUR = 1; // Add EUR as base
+
+        // Update countryConfig with live rates
+        const currencyMap = {
+            Brazil: 'BRL', USA: 'USD', Germany: 'EUR', UK: 'GBP',
+            UAE: 'AED', Singapore: 'SGD', Australia: 'AUD',
+            Mexico: 'MXN', India: 'INR', SouthAfrica: 'ZAR'
+        };
+        for (const [country, currency] of Object.entries(currencyMap)) {
+            if (countryConfig[country] && exchangeRates[currency]) {
+                countryConfig[country].exchangeRate = exchangeRates[currency];
+            }
+        }
+
+        // Update cache for display
+        exchangeRatesCache.rates = exchangeRates;
+        exchangeRatesCache.lastFetched = new Date().toISOString();
+        exchangeRatesCache.date = data.date;
+        exchangeRatesCache.source = 'ECB via Frankfurter API';
+
+        console.log('[FOREX] Exchange rates loaded:', Object.keys(exchangeRates).length, 'currencies');
+    } catch (error) {
+        console.error('[FOREX] Error fetching exchange rates:', error);
+        // Keep default rates in countryConfig
+        exchangeRatesCache.source = 'Fallback rates';
+        exchangeRatesCache.date = 'static';
+    }
+}
+
+// Get exchange rate for a currency
+function getExchangeRate(currency) {
+    return exchangeRates[currency] || 1;
+}
+
+// Calculate progressive tax using bracket-by-bracket method
+function calculateProgressiveTax(income, brackets, returnBreakdown = false) {
+    let tax = 0;
+    const breakdown = [];
+
+    for (const bracket of brackets) {
+        if (income > bracket.min) {
+            const maxBracket = bracket.max || Infinity;
+            const taxableInBracket = Math.min(income, maxBracket) - bracket.min;
+            const taxInBracket = taxableInBracket * bracket.rate;
+            tax += taxInBracket;
+
+            // Store breakdown for display
+            breakdown.push({
+                min: bracket.min,
+                max: bracket.max,
+                rate: bracket.rate,
+                taxableAmount: taxableInBracket,
+                taxAmount: taxInBracket
+            });
+        }
+    }
+
+    if (returnBreakdown) {
+        return { total: tax, breakdown: breakdown };
+    }
+    return tax;
+}
+
+// Determine if assignment triggers tax residency (183-day rule)
+function isResidentForTax(assignmentMonths) {
+    const days = assignmentMonths * 30;
+    return days >= 183;
+}
+
 // ===== SETTINGS MANAGEMENT =====
 // Settings persist to localStorage and affect SS calculations globally
 
@@ -199,47 +408,7 @@ let costChartInstance = null;
 // Current currency display
 let currentDisplayCurrency = 'EUR';
 let lastCalculationData = null;
-
-// Finnish 2026 per diem rates by country (tax-free daily allowances)
-// Source: https://www.vero.fi/syventavat-vero-ohjeet/paatokset/2025/verohallinnon-paatos-verovapaista-matkakustannusten-korvauksista-vuonna-2026/
-const finnishPerDiemRates = {
-    Brazil: 72,
-    USA: 86,
-    Germany: 78,
-    UK: 84,
-    UAE: 69,
-    Singapore: 79,
-    Australia: 72,
-    Mexico: 74,
-    India: 57,
-    SouthAfrica: 53,
-    default: 54  // Finland domestic full per diem €54 in 2026
-};
-
-
-// Finnish City-Specific Overrides (2026)
-const finnishCityOverrides = {
-    USA: {
-        "Standard (Other)": 86,
-        "New York": 122,
-        "Los Angeles": 122,
-        "Washington D.C.": 122
-    },
-    UK: {
-        "Standard (Other)": 84,
-        "London": 89,
-        "Edinburgh": 89
-    }
-};
-
-// Portuguese Per Diem Rates (2024/2025 Reference)
-// Source: Portaria/Public Administration Guidelines
-// Portugal uses a flat rate based on salary level, not destination country.
-// €148.91 is the rate for "Level 18+" (Engineers/Senior Staff)
-const portuguesePerDiemRate = 148.91;
-
-const perDiemSource = 'Finnish Tax Admin 2026';
-const perDiemSourceUrl = 'https://www.vero.fi/syventavat-vero-ohjeet/paatokset/2025/verohallinnon-paatos-verovapaista-matkakustannusten-korvauksista-vuonna-2026/';
+let currentPerDiemContext = null;
 
 // ... [rest of the file] ...
 
@@ -267,9 +436,18 @@ function updateCountryInfo() {
     }
 
     // 2. Determine Per Diem Rate based on Home Country
+    const perDiemData = window.perDiemConfig || {};
+    const finlandConfig = perDiemData.finland;
+    const portugalConfig = perDiemData.portugal;
+    const hostCountryName = config.name || hostCountry;
+
     let perDiemRate = 0;
-    let sourceText = '';
+    let sourceName = '';
     let sourceUrl = '';
+    let sourceYear = '';
+    let basisText = '';
+    const warnings = [];
+    let usesFallback = false;
 
     // Check for existing city selector or create it
     let cityContainer = document.getElementById('citySelectorContainer');
@@ -279,54 +457,120 @@ function updateCountryInfo() {
         cityContainer = document.createElement('div');
         cityContainer.id = 'citySelectorContainer';
         cityContainer.className = 'mt-3 hidden animate-fade-in';
-        cityContainer.innerHTML = `
-            <label class="form-label text-xs">Destination City (Affects Allowance)</label>
-            <select id="hostCity" class="input-field w-full text-sm" onchange="updateCountryInfo()">
-                <!-- Options populated dynamically -->
-            </select>
-        `;
+        cityContainer.setAttribute('role', 'group');
+        cityContainer.setAttribute('aria-label', 'Destination city selection');
+
+        const cityLabel = document.createElement('label');
+        cityLabel.className = 'form-label text-xs';
+        cityLabel.setAttribute('for', 'hostCity');
+        cityLabel.textContent = 'Destination City (Affects Allowance)';
+
+        const citySelect = document.createElement('select');
+        citySelect.id = 'hostCity';
+        citySelect.className = 'input-field w-full text-sm';
+        citySelect.addEventListener('change', updateCountryInfo);
+
+        const cityHint = document.createElement('p');
+        cityHint.id = 'citySelectorHint';
+        cityHint.className = 'text-[11px] text-gray-500 mt-2';
+        cityHint.textContent = 'Select a high-cost city if applicable; "Standard (Other)" uses the base country rate.';
+
+        citySelect.setAttribute('aria-describedby', 'citySelectorHint');
+
+        cityContainer.appendChild(cityLabel);
+        cityContainer.appendChild(citySelect);
+        cityContainer.appendChild(cityHint);
         hostParent.appendChild(cityContainer);
     }
 
+    const citySelect = document.getElementById('hostCity');
+
     if (homeCountry === 'Portugal') {
         // Portugal Logic: Flat rate regardless of destination
-        perDiemRate = portuguesePerDiemRate;
-        sourceText = 'Portugal Public Sector (Level 18+)';
-        sourceUrl = 'https://www.dgaep.gov.pt/'; // General DGAEP link
+        if (portugalConfig) {
+            perDiemRate = portugalConfig.flatRate;
+            sourceName = portugalConfig.sourceName;
+            sourceUrl = portugalConfig.sourceUrl;
+            sourceYear = portugalConfig.year;
+            basisText = 'Portugal flat rate (Level 18+), destination-independent';
+
+            if (portugalConfig.sourceNote) {
+                warnings.push(portugalConfig.sourceNote);
+            }
+        } else {
+            warnings.push('Portugal per diem configuration missing.');
+        }
 
         // Hide city selector for Portugal (irrelevant for per diem)
         cityContainer.classList.add('hidden');
-
-    } else {
+    } else if (homeCountry === 'Finland') {
         // Finland Logic: Destination-based rates
-        sourceText = perDiemSource;
-        sourceUrl = perDiemSourceUrl;
+        if (finlandConfig) {
+            sourceName = finlandConfig.sourceName;
+            sourceUrl = finlandConfig.sourceUrl;
+            sourceYear = finlandConfig.year;
 
-        // Check if Host Country has city specifics
-        if (finnishCityOverrides[hostCountry]) {
-            // Show City Selector
-            const citySelect = document.getElementById('hostCity');
+            // Check if Host Country has city specifics
+            const overrides = finlandConfig.cityOverrides?.[hostCountry];
+            if (overrides && citySelect) {
+                // Show City Selector
+                if (citySelect.getAttribute('data-country') !== hostCountry) {
+                    citySelect.setAttribute('data-country', hostCountry);
+                    const cityKeys = Object.keys(overrides);
+                    const sortedKeys = cityKeys.sort((a, b) => {
+                        if (a === 'Standard (Other)') return -1;
+                        if (b === 'Standard (Other)') return 1;
+                        return a.localeCompare(b);
+                    });
 
+                    citySelect.replaceChildren();
+                    sortedKeys.forEach((city) => {
+                        const option = document.createElement('option');
+                        option.value = city;
+                        option.textContent = city;
+                        citySelect.appendChild(option);
+                    });
+                }
 
-            // Repopulate only if options don't match current country (simple check)
-            if (citySelect.getAttribute('data-country') !== hostCountry) {
-                citySelect.setAttribute('data-country', hostCountry);
-                citySelect.innerHTML = Object.keys(finnishCityOverrides[hostCountry]).map(city =>
-                    `<option value="${city}">${city}</option>`
-                ).join('');
+                cityContainer.classList.remove('hidden');
+
+                const defaultCity = overrides['Standard (Other)'] ? 'Standard (Other)' : Object.keys(overrides)[0];
+                if (!citySelect.value) {
+                    citySelect.value = defaultCity;
+                }
+
+                const selectedCity = citySelect.value || defaultCity;
+                perDiemRate = overrides[selectedCity] ?? finlandConfig.defaultRate;
+                basisText = `Finland destination rate for ${hostCountryName}${selectedCity !== 'Standard (Other)' ? ` (${selectedCity})` : ''}`;
+            } else {
+                // No city specifics, use standard country rate
+                cityContainer.classList.add('hidden');
+                perDiemRate = finlandConfig.rates?.[hostCountry];
+                if (!perDiemRate) {
+                    perDiemRate = finlandConfig.defaultRate;
+                    usesFallback = true;
+                    warnings.push(`No Finland per diem configured for ${hostCountryName}; using default domestic rate.`);
+                }
+                basisText = `Finland destination rate for ${hostCountryName}`;
             }
-
-            cityContainer.classList.remove('hidden');
-
-            // Get rate for selected city
-            const selectedCity = citySelect.value || "Standard (Other)";
-            perDiemRate = finnishCityOverrides[hostCountry][selectedCity];
-
         } else {
-            // No city specifics, use standard country rate
-            cityContainer.classList.add('hidden');
-            perDiemRate = finnishPerDiemRates[hostCountry] || finnishPerDiemRates.default;
+            warnings.push('Finland per diem configuration missing.');
         }
+    } else {
+        // Unknown home country: prefer explicit warning and safe fallback
+        if (finlandConfig) {
+            perDiemRate = finlandConfig.defaultRate;
+            sourceName = finlandConfig.sourceName;
+            sourceUrl = finlandConfig.sourceUrl;
+            sourceYear = finlandConfig.year;
+            basisText = `Default Finland domestic rate (home country "${homeCountry}" not configured)`;
+            usesFallback = true;
+            warnings.push(`Home country "${homeCountry}" not configured for per diem rules.`);
+        } else {
+            warnings.push(`Home country "${homeCountry}" not configured for per diem rules.`);
+        }
+
+        cityContainer.classList.add('hidden');
     }
 
     // 3. Update Input Field
@@ -339,8 +583,34 @@ function updateCountryInfo() {
     // 4. Update Source Link
     const perDiemInfo = document.getElementById('perDiemInfo');
     if (perDiemInfo) {
-        perDiemInfo.innerHTML = `<a href="${sourceUrl}" target="_blank" class="text-cozm-teal hover:underline">${sourceText}</a>`;
+        const sourceLabel = sourceName ? `${sourceName}${sourceYear ? ` (${sourceYear})` : ''}` : 'Source pending verification';
+        const sourceMarkup = sourceUrl
+            ? `<a href="${sourceUrl}" target="_blank" rel="noopener noreferrer" class="text-cozm-teal hover:underline">${sourceLabel}</a>`
+            : `<span class="text-gray-500">${sourceLabel}</span>`;
+        const warningMarkup = warnings.length
+            ? `<span class="block mt-1 text-cozm-gold">${warnings.join(' ')}</span>`
+            : '';
+
+        perDiemInfo.innerHTML = `
+            <span class="block">Basis: ${basisText || 'Per diem basis to be confirmed'}.</span>
+            <span class="block">Daily allowance locked at ${formatCurrencyDecimal(perDiemRate)}.</span>
+            <span class="block">Source: ${sourceMarkup}</span>
+            ${warningMarkup}
+        `;
     }
+
+    currentPerDiemContext = {
+        homeCountry,
+        hostCountry,
+        hostCity: citySelect?.value || '',
+        rate: perDiemRate,
+        sourceName,
+        sourceUrl,
+        sourceYear,
+        basisText,
+        warnings,
+        usesFallback
+    };
 
     // Update local currency label in toggle button
     updateLocalCurrencyLabel();
@@ -349,7 +619,209 @@ function updateCountryInfo() {
     if (currentDisplayCurrency === 'LOCAL' && lastCalculationData) {
         updateDisplayValues(lastCalculationData);
     }
+
+    // Auto-recalculate if a previous calculation exists (ensures results stay in sync with inputs)
+    if (lastCalculationData) {
+        calculateCosts();
+    }
 }
+
+function setWarningMessage(element, message) {
+    if (!element) return;
+    if (message) {
+        element.textContent = message;
+        element.classList.remove('hidden');
+    } else {
+        element.textContent = '';
+        element.classList.add('hidden');
+    }
+}
+
+function updateInputWarnings() {
+    const monthlySalaryEl = document.getElementById('monthlySalary');
+    const assignmentLengthEl = document.getElementById('assignmentLength');
+    const workingDaysEl = document.getElementById('workingDays');
+
+    const salaryWarningEl = document.getElementById('monthlySalaryWarning');
+    const assignmentWarningEl = document.getElementById('assignmentLengthWarning');
+    const workingDaysWarningEl = document.getElementById('workingDaysWarning');
+
+    if (monthlySalaryEl) {
+        const salaryValue = parseFloat(monthlySalaryEl.value);
+        let salaryWarning = '';
+        if (!Number.isFinite(salaryValue) || salaryValue <= 0) {
+            salaryWarning = 'Monthly salary must be greater than €0.';
+        } else if (salaryValue < 5000 || salaryValue > 10000) {
+            salaryWarning = 'Outside the typical €5,000-€10,000 range. Please double-check.';
+        }
+        setWarningMessage(salaryWarningEl, salaryWarning);
+    }
+
+    if (assignmentLengthEl) {
+        const assignmentMonths = parseFloat(assignmentLengthEl.value);
+        let assignmentWarning = '';
+        if (Number.isFinite(assignmentMonths) && (assignmentMonths * 30) >= 183) {
+            assignmentWarning = 'This duration is likely to trigger tax residency (183-day rule).';
+        }
+        setWarningMessage(assignmentWarningEl, assignmentWarning);
+    }
+
+    if (workingDaysEl) {
+        const workingDays = parseFloat(workingDaysEl.value);
+        let workingDaysWarning = '';
+        if (!Number.isFinite(workingDays) || workingDays <= 0) {
+            workingDaysWarning = 'Working days must be greater than 0.';
+        } else if (workingDays < 18 || workingDays > 26) {
+            workingDaysWarning = 'Outside the typical 18-26 working days/month range. Please confirm.';
+        }
+        setWarningMessage(workingDaysWarningEl, workingDaysWarning);
+    }
+}
+
+function attachInputWarningListeners() {
+    const monthlySalaryEl = document.getElementById('monthlySalary');
+    const assignmentLengthEl = document.getElementById('assignmentLength');
+    const workingDaysEl = document.getElementById('workingDays');
+
+    if (monthlySalaryEl) {
+        monthlySalaryEl.addEventListener('input', updateInputWarnings);
+    }
+    if (assignmentLengthEl) {
+        assignmentLengthEl.addEventListener('change', updateInputWarnings);
+    }
+    if (workingDaysEl) {
+        workingDaysEl.addEventListener('input', updateInputWarnings);
+    }
+}
+
+function setupTooltipAccessibility() {
+    const tooltipWrappers = document.querySelectorAll('.tooltip-wrapper');
+    tooltipWrappers.forEach((wrapper, index) => {
+        const helpIcon = wrapper.querySelector('.help-icon');
+        const tooltipContent = wrapper.querySelector('.tooltip-content');
+        if (!helpIcon || !tooltipContent) return;
+
+        if (!tooltipContent.id) {
+            tooltipContent.id = `tooltip-content-${index + 1}`;
+        }
+
+        helpIcon.setAttribute('tabindex', '0');
+        helpIcon.setAttribute('role', 'button');
+        helpIcon.setAttribute('aria-describedby', tooltipContent.id);
+        helpIcon.setAttribute('aria-label', tooltipContent.textContent.trim());
+        tooltipContent.setAttribute('role', 'tooltip');
+    });
+}
+
+function copyEstimateSummary() {
+    if (!lastCalculationData) {
+        showToast('Generate an estimate first to copy the summary.', 'error');
+        return;
+    }
+
+    const homeCountry = document.getElementById('homeCountry')?.value || 'Finland';
+    const hostCountryName = lastCalculationData.config?.name || lastCalculationData.hostCountry || 'Host Country';
+    const perDiemBasis = lastCalculationData.perDiemBasisText
+        ? ` (${lastCalculationData.perDiemBasisText})`
+        : '';
+
+    const summaryLines = [
+        'FSE Deployment Cost Estimate',
+        `Route: ${homeCountry} -> ${hostCountryName}`,
+        `Duration: ${lastCalculationData.assignmentLength} months`,
+        `Monthly Salary: ${formatCurrency(lastCalculationData.monthlySalary)}`,
+        `Daily Allowance: ${formatCurrencyDecimal(lastCalculationData.dailyAllowance)}${perDiemBasis}`,
+        `Per Diem Total: ${formatCurrency(lastCalculationData.totalPerDiem || lastCalculationData.totalAllowances)}`,
+        `Tax: ${formatCurrency(lastCalculationData.taxAmountEUR)}`,
+        `Social Security: ${formatCurrency(lastCalculationData.totalSocialSecurity || lastCalculationData.socialSecurityCost)}`,
+        `Admin Fees: ${formatCurrency(lastCalculationData.totalAdminFees)}`,
+        `Additional Cost Total: ${formatCurrency(lastCalculationData.additionalCostTotal)}`,
+        `Assignment Cost Total: ${formatCurrency(lastCalculationData.grandTotal)}`
+    ];
+
+    const summaryText = summaryLines.join('\n');
+    if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(summaryText)
+            .then(() => showToast('Estimate summary copied to clipboard.', 'success'))
+            .catch(() => showToast('Unable to copy summary. Please try again.', 'error'));
+    } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = summaryText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showToast('Estimate summary copied to clipboard.', 'success');
+        } catch (e) {
+            showToast('Unable to copy summary. Please try again.', 'error');
+        } finally {
+            document.body.removeChild(textArea);
+        }
+    }
+}
+
+function runPerDiemSanityChecks() {
+    const homeCountryEl = document.getElementById('homeCountry');
+    const hostCountryEl = document.getElementById('hostCountry');
+    if (!homeCountryEl || !hostCountryEl) {
+        console.warn('[Per Diem Checks] Required inputs not found.');
+        return [];
+    }
+
+    const originalState = {
+        homeCountry: homeCountryEl.value,
+        hostCountry: hostCountryEl.value,
+        hostCity: document.getElementById('hostCity')?.value || ''
+    };
+
+    const scenarios = [
+        { homeCountry: 'Finland', hostCountry: 'USA', hostCity: 'Standard (Other)', expected: 86 },
+        { homeCountry: 'Finland', hostCountry: 'USA', hostCity: 'New York', expected: 122 },
+        { homeCountry: 'Portugal', hostCountry: 'Brazil', hostCity: '', expected: 148.91 }
+    ];
+
+    const results = [];
+    scenarios.forEach((scenario) => {
+        homeCountryEl.value = scenario.homeCountry;
+        hostCountryEl.value = scenario.hostCountry;
+        updateCountryInfo();
+
+        if (scenario.hostCity) {
+            const hostCityEl = document.getElementById('hostCity');
+            if (hostCityEl) {
+                hostCityEl.value = scenario.hostCity;
+                updateCountryInfo();
+            }
+        }
+
+        const allowanceValue = parseFloat(document.getElementById('dailyAllowance')?.value);
+        const pass = Number.isFinite(allowanceValue) && Math.abs(allowanceValue - scenario.expected) < 0.01;
+        results.push({
+            scenario: `${scenario.homeCountry} -> ${scenario.hostCountry}${scenario.hostCity ? ` (${scenario.hostCity})` : ''}`,
+            expected: scenario.expected,
+            actual: allowanceValue,
+            pass
+        });
+    });
+
+    homeCountryEl.value = originalState.homeCountry;
+    hostCountryEl.value = originalState.hostCountry;
+    updateCountryInfo();
+    if (originalState.hostCity) {
+        const hostCityEl = document.getElementById('hostCity');
+        if (hostCityEl) {
+            hostCityEl.value = originalState.hostCity;
+            updateCountryInfo();
+        }
+    }
+
+    updateInputWarnings();
+
+    console.table(results);
+    return results;
+}
+
+window.runPerDiemSanityChecks = runPerDiemSanityChecks;
 
 // Tab switching
 function switchTab(tab) {
@@ -654,6 +1126,11 @@ function calculateCosts() {
         dailyAllowance,
         totalWorkingDays,
         totalCalendarDays,
+        perDiemSourceName: currentPerDiemContext?.sourceName || '',
+        perDiemSourceUrl: currentPerDiemContext?.sourceUrl || '',
+        perDiemSourceYear: currentPerDiemContext?.sourceYear || '',
+        perDiemBasisText: currentPerDiemContext?.basisText || '',
+        perDiemWarnings: currentPerDiemContext?.warnings || [],
 
         // Tax calculation details
         taxableIncomeEUR,
@@ -682,6 +1159,9 @@ function calculateCosts() {
         socialSecurityCost,
         totalAllowances
     };
+
+    // Expose to window for voice assistant access
+    window.lastCalculationData = lastCalculationData;
 
     // Get home country for display
     const homeCountry = document.getElementById('homeCountry').value;
@@ -754,7 +1234,7 @@ function calculateCosts() {
     if (taxSourceEl) {
         const sourceUrl = countryTaxRules?.taxSourceUrl || config.taxSourceUrl || '#';
         const sourceName = countryTaxRules?.taxSource || config.taxSource || 'View Source';
-        taxSourceEl.innerHTML = `<a href="${sourceUrl}" target="_blank" class="text-cozm-teal hover:underline">${sourceName}</a>`;
+        taxSourceEl.innerHTML = `<a href="${sourceUrl}" target="_blank" rel="noopener noreferrer" class="text-cozm-teal hover:underline">${sourceName}</a>`;
     }
 
     // Social Security details - show employer/employee breakdown
@@ -783,7 +1263,7 @@ function calculateCosts() {
     } else if (config.noTreatyWarning) {
         if (socialWarningEl) {
             const ssSourceUrl = config.socialSecSourceUrl || 'https://www.kela.fi/international-legislation';
-            socialWarningEl.innerHTML = `<a href="${ssSourceUrl}" target="_blank" class="text-amber-600 hover:underline">No Reciprocal Agreement ⚠️</a>`;
+            socialWarningEl.innerHTML = `<a href="${ssSourceUrl}" target="_blank" rel="noopener noreferrer" class="text-amber-600 hover:underline">No Reciprocal Agreement ⚠️</a>`;
         }
         if (socialWarningRow) socialWarningRow.style.display = 'flex';
         // Reset label to "Warning"
@@ -1113,6 +1593,12 @@ function updateCalculationWorkings(calc) {
     const rateDate = exchangeRatesCache.date || 'static fallback';
     const taxSource = calc.countryTaxRules ? calc.countryTaxRules.taxSource : 'Default rates';
     const taxSourceUrl = calc.countryTaxRules ? calc.countryTaxRules.taxSourceUrl : '#';
+    const perDiemSourceLabel = calc.perDiemSourceName
+        ? `${calc.perDiemSourceName}${calc.perDiemSourceYear ? ` (${calc.perDiemSourceYear})` : ''}`
+        : 'Per diem source';
+    const perDiemSourceMarkup = calc.perDiemSourceUrl
+        ? `<a href="${calc.perDiemSourceUrl}" target="_blank" rel="noopener noreferrer" class="text-cozm-teal hover:underline">${perDiemSourceLabel}</a>`
+        : `<span class="text-gray-500">${perDiemSourceLabel}</span>`;
 
     // Calculate employer and employee SS rates for display
     const employerSSRate = ((calc.config.employerSocialSec || 0) * 100).toFixed(1);
@@ -1175,7 +1661,7 @@ function updateCalculationWorkings(calc) {
                         <tr><td>Assignment Length</td><td>× ${calc.assignmentLength} months</td></tr>
                         <tr class="subtotal-row"><td>Gross Salary (EUR)</td><td>${formatCurrency(calc.grossSalary)}</td></tr>
                         <tr class="section-header"><td colspan="2">Per Diem Calculation (Tax-Exempt)</td></tr>
-                        <tr><td>Daily Rate (<a href="${perDiemSourceUrl}" target="_blank" class="text-cozm-teal hover:underline">${perDiemSource}</a>)</td><td>${formatCurrency(calc.dailyAllowance)}</td></tr>
+                        <tr><td>Daily Rate (${perDiemSourceMarkup})</td><td>${formatCurrency(calc.dailyAllowance)}</td></tr>
                         <tr><td>Working Days</td><td>× ${calc.totalWorkingDays} days</td></tr>
                         <tr class="subtotal-row"><td>Total Per Diem (EUR)</td><td>${formatCurrency(calc.totalPerDiem || calc.totalAllowances)}</td></tr>
                     </table>
@@ -1218,7 +1704,7 @@ function updateCalculationWorkings(calc) {
                         <tr><td>Taxable Income (${calc.config.currency})</td><td>${formatLocalCurrency(calc.taxableIncomeLocal, calc.hostCountry)}</td></tr>
                         <tr><td>Calculation Method</td><td>${calc.taxCalculationMethod}</td></tr>
                         <tr><td>Effective Rate</td><td>${calc.effectiveTaxRate.toFixed(1)}%</td></tr>
-                        <tr><td>Source</td><td><a href="${taxSourceUrl}" target="_blank" class="text-cozm-teal hover:underline">${taxSource}</a></td></tr>
+                        <tr><td>Source</td><td><a href="${taxSourceUrl}" target="_blank" rel="noopener noreferrer" class="text-cozm-teal hover:underline">${taxSource}</a></td></tr>
                         <tr><td>Tax (${calc.config.currency})</td><td>${formatLocalCurrency(calc.taxAmountLocal, calc.hostCountry)}</td></tr>
                         <tr class="subtotal-row"><td>Tax (EUR)</td><td>${formatCurrency(calc.taxAmountEUR)}</td></tr>
                         <tr><td>Tax Per Day (EUR)</td><td>${formatCurrencyDecimal(calc.taxPerDayEUR)}</td></tr>
@@ -2080,6 +2566,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadTaxRules();
     await fetchExchangeRates();
     updateCountryInfo();
+    setupTooltipAccessibility();
+    attachInputWarningListeners();
+    updateInputWarnings();
     initVoiceRecognition();
 
     // Setup drag and drop
@@ -2142,5 +2631,6 @@ function autoPopulateDemo() {
     if (workingDaysEl) workingDaysEl.value = demoData.workingDays;
 
     // Visual feedback
+    updateInputWarnings();
     showToast('Demo data loaded - click Generate Estimate', 'success');
 }

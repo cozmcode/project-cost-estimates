@@ -116,3 +116,8 @@ Contains progressive tax brackets and non-resident rates for each country. When 
 - British English throughout (organisation, authorise, colour)
 - Date format: UK style "1 January 2025"
 - Company name: **"The Cozm"** (never "Cozm" alone)
+
+## Important Rules for Claude
+
+- **Do not add new UI elements or features without explicit user approval** - Always check with the user before adding buttons, controls, or functionality not specifically requested
+- When fixing bugs, make minimal changes - avoid adding "improvements" or "enhancements" beyond what was asked

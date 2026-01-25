@@ -25,7 +25,7 @@
         console.log('[AUTH] Login page loaded, redirect counter cleared');
 
         // Clear all auth data helper (for mobile Safari issues)
-        window.clearAllAuth = function () {
+        window.clearAllAuth = function  () {
             try {
                 sessionStorage.clear();
                 localStorage.removeItem('fse-cost-calc-auth');
@@ -834,67 +834,92 @@
             document.getElementById('label-compliance').textContent = document.getElementById('slider-compliance').value + '%';
         }
 
-        // Run Optimization
-        function runOptimization() {
-            // 1. Get Inputs
-            const project = {
-                country: document.getElementById('projectDestination').value,
-                role: document.getElementById('projectRole').value,
-                durationMonths: parseInt(document.getElementById('projectDuration').value),
-                count: parseInt(document.getElementById('projectCount').value)
-            };
+        // Run Optimization (async to support API calls)
+        async function runOptimization() {
+            // Show loading state
+            const runButton = document.querySelector('#section-staffing .btn-primary');
+            const originalText = runButton.innerHTML;
+            runButton.innerHTML = '<span class="flex items-center gap-2"><svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Optimizing...</span>';
+            runButton.disabled = true;
 
-            const weights = {
-                speed: parseInt(document.getElementById('slider-speed').value),
-                cost: parseInt(document.getElementById('slider-cost').value),
-                compliance: parseInt(document.getElementById('slider-compliance').value)
-            };
+            try {
+                // 1. Get Inputs
+                const project = {
+                    country: document.getElementById('projectDestination').value,
+                    role: document.getElementById('projectRole').value,
+                    durationMonths: parseInt(document.getElementById('projectDuration').value),
+                    count: parseInt(document.getElementById('projectCount').value)
+                };
 
-            // 2. Run Engine (Black Box)
-            const results = staffingEngine.optimizeTeam(project, weights);
+                const weights = {
+                    speed: parseInt(document.getElementById('slider-speed').value),
+                    cost: parseInt(document.getElementById('slider-cost').value),
+                    compliance: parseInt(document.getElementById('slider-compliance').value)
+                };
 
-            // 3. Render Results
-            const tbody = document.getElementById('staffing-results-body');
-            tbody.innerHTML = '';
+                // 2. Run Engine (now async)
+                const results = await staffingEngine.optimizeTeam(project, weights);
 
-            results.forEach((candidate, index) => {
-                const visaClass = candidate.details.visaDays === 0 ? 'text-green-600 bg-green-50' : 'text-orange-600 bg-orange-50';
+                // 3. Render Results
+                const tbody = document.getElementById('staffing-results-body');
+                tbody.innerHTML = '';
 
-                const tr = document.createElement('tr');
-                tr.className = 'bg-white border-b hover:bg-gray-50';
-                tr.innerHTML = `
-                    <td class="px-6 py-4 font-bold text-gray-900">#${index + 1}</td>
-                    <td class="px-6 py-4">
-                        <div class="font-bold text-gray-900">${candidate.first_name} ${candidate.last_name}</div>
-                        <div class="text-xs text-gray-500">${candidate.nationality} • From ${candidate.current_location}</div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="px-2 py-1 rounded-full text-xs font-bold ${visaClass}">
-                            ${candidate.details.visaType}
-                        </span>
-                        <div class="text-xs text-gray-500 mt-1">${candidate.details.visaDays} days processing</div>
-                    </td>
-                    <td class="px-6 py-4 font-medium">
-                        €${candidate.details.totalCost.toLocaleString()}
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-2">
-                            <div class="w-full bg-gray-200 rounded-full h-2.5 max-w-[100px]">
-                                <div class="bg-cozm-teal h-2.5 rounded-full" style="width: ${candidate.finalScore}%"></div>
+                results.forEach((candidate, index) => {
+                    const details = candidate.scores.details;
+                    const visaClass = details.visaDays === 0 ? 'text-green-600 bg-green-50' : 'text-orange-600 bg-orange-50';
+                    
+                    // Get CO2 footprint for this route
+                    const carbonKey = `${candidate.current_location}_${project.country}`;
+                    const carbonKg = MOCK_DATA.carbonFootprint?.[carbonKey] || 0;
+                    const carbonClass = carbonKg < 500 ? 'text-green-600' : carbonKg < 1500 ? 'text-yellow-600' : 'text-red-500';
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'bg-white border-b hover:bg-gray-50';
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 font-bold text-gray-900">#${index + 1}</td>
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-900">${candidate.first_name} ${candidate.last_name}</div>
+                            <div class="text-xs text-gray-500">${candidate.nationality} • From ${candidate.current_location}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 rounded-full text-xs font-bold ${visaClass}">
+                                ${details.visaType}
+                            </span>
+                            <div class="text-xs text-gray-500 mt-1">${details.visaDays} days processing</div>
+                        </td>
+                        <td class="px-6 py-4 font-medium">
+                            €${details.totalCost.toLocaleString()}
+                            <div class="text-xs ${carbonClass} mt-1 flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+                                ${carbonKg > 0 ? carbonKg + ' kg CO₂' : 'No flight'}
                             </div>
-                            <span class="text-xs font-bold">${candidate.finalScore}</span>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <button class="text-cozm-teal hover:text-cozm-dark-teal font-bold text-sm">Select</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <div class="w-full bg-gray-200 rounded-full h-2.5 max-w-[100px]">
+                                    <div class="bg-cozm-teal h-2.5 rounded-full" style="width: ${candidate.finalScore}%"></div>
+                                </div>
+                                <span class="text-xs font-bold">${candidate.finalScore}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <button class="text-cozm-teal hover:text-cozm-dark-teal font-bold text-sm">Select</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
 
-            document.getElementById('staffing-results').classList.remove('hidden');
-            // Scroll to results
-            document.getElementById('staffing-results').scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('staffing-results').classList.remove('hidden');
+                // Scroll to results
+                document.getElementById('staffing-results').scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+                console.error('[Staffing Engine] Error:', error);
+                alert('Error running optimization. Check console for details.');
+            } finally {
+                // Restore button
+                runButton.innerHTML = originalText;
+                runButton.disabled = false;
+            }
         }
     </script>
 </body>

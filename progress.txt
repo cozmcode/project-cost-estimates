@@ -1,0 +1,232 @@
+# RALPH Progress Log
+Feature: Voice assistant form state awareness
+Started: 2025-01-25T13:30:00Z
+
+---
+
+## Iteration 1 - 2025-01-25T13:35:00Z
+Story: STORY-01 - Add get_form_state tool to return current form values
+Status: COMPLETE
+
+Changes made:
+- supabase/functions/realtime-token/index.ts: Added get_form_state tool definition
+- js/voice-commands.js: Added getFormState() method to RealtimeManager class
+
+Learnings:
+- Tool description is key - tells model WHEN to use the tool
+- Including "ALWAYS call this first" in description guides model behavior
+
+Verification:
+- Edge function deployed successfully
+- Endpoint returns token (tool is included in session config)
+
+---
+
+## Iteration 2 - 2025-01-25T13:40:00Z
+Story: STORY-02 - Send initial form state to model on session connect
+Status: COMPLETE
+
+Changes made:
+- js/voice-commands.js: Added sendInitialFormState() method
+- Called automatically when data channel opens after WebRTC connection
+
+Learnings:
+- Sending form state as a "user" message with [SYSTEM CONTEXT] prefix gives model context
+- Model will now know current values before user speaks
+
+Verification:
+- Code review confirms sendInitialFormState() is called in dataChannel.onopen
+
+---
+
+## Iteration 3 - 2025-01-25T13:45:00Z
+Story: STORY-03 - Update system instructions to use form context
+Status: COMPLETE
+
+Changes made:
+- supabase/functions/realtime-token/index.ts: Updated SYSTEM_INSTRUCTIONS
+- Added "FORM STATE AWARENESS" section with clear instructions
+- Updated examples to show partial requests (just change destination, keep rest)
+
+Learnings:
+- System instructions need explicit guidance about what NOT to ask
+- Examples in system prompt help model understand expected behavior
+
+Verification:
+- Edge function deployed successfully
+- Model should now use existing form values when user says "calculate costs"
+
+---
+
+## Iteration 4 - 2025-01-25T14:00:00Z
+Story: BUG-FIX - set_destination not actually changing dropdown value
+Status: COMPLETE
+
+Problem:
+- User said "change host country to United Kingdom"
+- Model confirmed the change, but dropdown value didn't actually change
+- Root cause: Model returns "United Kingdom" but dropdown expects "UK" value
+
+Changes made:
+- js/voice-commands.js: Added countryValueMap in handleFunctionCall for set_destination
+- Maps spoken names to dropdown values: "United Kingdom" → "UK", "United States" → "USA", etc.
+- Added verification to confirm value was actually set, returns error if not
+
+Learnings:
+- Model's tool enum values don't always match what it naturally says
+- Always verify DOM changes actually took effect
+- Return meaningful errors to model so it can inform user of failures
+
+Verification:
+- Code review confirms mapping covers common variations
+- Fallback to original value if not in map (for direct matches like "Brazil")
+
+---
+
+## Summary
+All 3 original stories + 1 bug fix completed.
+
+Key changes:
+1. get_form_state tool added - model can query current form values
+2. Initial form state sent on connect - model has context before user speaks
+3. System instructions updated - model instructed to use existing values
+4. Country name mapping - "United Kingdom" → "UK" etc. for set_destination
+
+The voice assistant should now:
+- Know what's currently in the form when the session starts
+- Not ask for values that are already set
+- Only ask for missing information
+- Proceed with calculations using existing values
+- Correctly set destination when user says full country names
+
+---
+
+# RALPH Progress Log - Staffing Engine Improvements
+Feature: Staffing Engine Improvements - Dynamic cost scoring, skills-based filtering, and expanded compliance logic
+Started: 2026-01-25T15:00:00Z
+
+---
+
+## Iteration 1 - 2026-01-25T15:10:00Z
+Story: STORY-01 - Make cost anchors dynamic based on duration
+Status: COMPLETE
+
+Changes made:
+- js/staffing-engine.js: Changed cost scoring from fixed anchors to duration-scaled anchors
+- Base monthly anchors: min €4,000/month, max €12,000/month
+- Formula: minCostAnchor = (baseMinMonthly * durationMonths) + 500
+- Formula: maxCostAnchor = (baseMaxMonthly * durationMonths) + 2000
+
+Learnings:
+- Dynamic anchors ensure fair comparison across different project durations
+- Adding flight cost buffer to anchors accounts for variable travel costs
+
+Verification:
+- Browser: 6mo Alex Silva €38,000 (score 80), 3mo Alex Silva €19,400 (score 83)
+- Cost scores remain in 0-100 range
+- Shorter projects have proportionally lower cost anchors
+
+---
+
+## Iteration 2 - 2026-01-25T15:30:00Z
+Story: STORY-02 - Add skills-based weighting to candidate scoring
+Status: COMPLETE
+
+Changes made:
+- app.html: Added skills selector UI with 9 skill chips (Wartsila 31, Start-up, Safety Lead, etc.)
+- app.html: Added toggleSkill() and getSelectedSkills() functions
+- app.html: Added Skills Match column to results table with percentage display
+- css/app.css: Added .skill-chip styling with selected state
+- js/staffing-engine.js: Added skillsMatch calculation in calculateScores()
+- js/staffing-engine.js: Added skills bonus (up to +15 points) in optimizeTeam()
+
+Learnings:
+- Skills match should be calculated even when no skills selected (returns N/A)
+- Bonus scoring shouldn't push total above 100
+- Colour coding helps users quickly identify skill match quality
+
+Verification:
+- Browser: With Wartsila 31 + Start-up selected:
+  - Alex Silva: 1/2 (50%) match, score 82
+  - Juho Virtanen: 2/2 (100%) match, score 80
+- Browser: With no skills selected: N/A shown, scores unchanged (74, 65)
+- All 4 acceptance criteria verified
+
+---
+
+## Iteration 3 - 2026-01-25T16:00:00Z
+Story: STORY-03 - Expand compliance logic with jurisdiction-specific rules
+Status: COMPLETE
+
+Changes made:
+- js/staffing-engine.js: Added comprehensive jurisdiction-specific compliance rules
+  - USA: ESTA/VWP limited to 90 days (CRITICAL), B1/B2 prohibits paid work (WARNING)
+  - Singapore: Employment Pass required, warnings for tourist/visitor visas
+  - Brazil: VITEM V required for work >3 months on waiver
+  - General: Tourist/Visitor visas flagged for long-term work
+- app.html: Added risk display in results table with colour-coded warnings
+  - CRITICAL: Red, bold
+  - WARNING: Orange
+  - NOTE: Yellow
+
+Learnings:
+- Risk severity levels (CRITICAL/WARNING/NOTE) help users prioritise compliance concerns
+- Compliance score should reflect actual legal risk (20-40 for serious violations)
+- Employment Pass in Singapore is the correct work authorisation
+
+Verification:
+- Browser USA: "CRITICAL: ESTA/VWP limited to 90 days" shown for 6-month project
+- Browser Singapore: "WARNING: Employment Pass likely required" for non-EP visa
+- Compliance scores properly penalised (dropped to 53-63 for high-risk scenarios)
+- All 4 acceptance criteria verified
+
+---
+
+## Summary - Staffing Engine Improvements
+All 3 stories complete!
+
+Key changes:
+1. STORY-01: Dynamic cost anchors scale with project duration
+2. STORY-02: Skills-based filtering with UI selector and score bonus
+3. STORY-03: Jurisdiction-specific compliance rules for USA, Singapore, Brazil
+
+The Staffing Engine now provides:
+- Fair cost comparison across different project durations
+- Skills matching to find best-fit candidates
+- Compliance risk warnings for visa/work authorisation issues
+
+---
+
+## Post-RALPH: Brand Colour Update - 2026-01-25
+
+**Request**: Apply brand colours from brandcolours.jpeg to all new Staffing Engine elements
+
+**Brand Palette Applied**:
+- Teal Blue (#40AEBC): Primary accent, selected states, full skill match
+- Dark Indigo (#181C31): Headings, gradient start
+- Pastel Red (#BD4040): Critical warnings, low compliance
+- Gold (#BD8941): Partial match, processing status, warnings
+- Light Gray (#EEEEEE): Borders, unselected states
+- Light Sky Blue (#83849E): Secondary text, unselected chip text
+
+**CSS Changes** (css/app.css):
+- Updated `.skill-chip` styling: gradient background when selected, brand border/text colours
+- Added new brand-specific classes:
+  - `.risk-badge` (critical/warning/note variants)
+  - `.skills-badge` (full-match/partial-match/low-match/no-match)
+  - `.visa-badge` (in-country/processing)
+  - `.score-bar` and `.score-bar-fill` with gradient
+  - `.carbon-indicator` (low/medium/high)
+  - `.compliance-bar` styling
+
+**HTML Changes** (app.html):
+- Updated results rendering to use brand CSS classes instead of Tailwind utilities
+- Expanded destination country dropdown to match Cost Analysis tab (10 countries)
+- Replaced inline Tailwind colours with CSS custom properties
+
+**Verification**:
+- Skill chips show gradient on selection
+- Risk badges display with brand red (CRITICAL), gold (WARNING), teal (NOTE)
+- Skills match badges use brand teal (100%), gold (50%+), red (<50%)
+- Score progress bars use dark indigo to teal gradient
+- All 10 destination countries available in dropdown
