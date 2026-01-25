@@ -283,9 +283,25 @@
                     case 'set_destination':
                         const destSelect = document.getElementById('destination-country');
                         if (destSelect && args.country) {
-                            destSelect.value = args.country;
+                            // Map natural language country names to dropdown values
+                            const countryValueMap = {
+                                'United Kingdom': 'UK',
+                                'United States': 'USA',
+                                'United States of America': 'USA',
+                                'United Arab Emirates': 'UAE',
+                                'South Africa': 'SouthAfrica'
+                            };
+                            const countryValue = countryValueMap[args.country] || args.country;
+                            destSelect.value = countryValue;
                             destSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                            result.message = `Destination set to ${args.country}`;
+
+                            // Verify the value was actually set
+                            if (destSelect.value === countryValue) {
+                                result.message = `Destination set to ${args.country}`;
+                            } else {
+                                result.success = false;
+                                result.error = `Could not set destination to ${args.country}. Valid options are: ${Array.from(destSelect.options).map(o => o.text).join(', ')}`;
+                            }
                         }
                         break;
 

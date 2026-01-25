@@ -58,16 +58,43 @@ Verification:
 
 ---
 
+## Iteration 4 - 2025-01-25T14:00:00Z
+Story: BUG-FIX - set_destination not actually changing dropdown value
+Status: COMPLETE
+
+Problem:
+- User said "change host country to United Kingdom"
+- Model confirmed the change, but dropdown value didn't actually change
+- Root cause: Model returns "United Kingdom" but dropdown expects "UK" value
+
+Changes made:
+- js/voice-commands.js: Added countryValueMap in handleFunctionCall for set_destination
+- Maps spoken names to dropdown values: "United Kingdom" → "UK", "United States" → "USA", etc.
+- Added verification to confirm value was actually set, returns error if not
+
+Learnings:
+- Model's tool enum values don't always match what it naturally says
+- Always verify DOM changes actually took effect
+- Return meaningful errors to model so it can inform user of failures
+
+Verification:
+- Code review confirms mapping covers common variations
+- Fallback to original value if not in map (for direct matches like "Brazil")
+
+---
+
 ## Summary
-All 3 stories completed in 3 iterations.
+All 3 original stories + 1 bug fix completed.
 
 Key changes:
 1. get_form_state tool added - model can query current form values
 2. Initial form state sent on connect - model has context before user speaks
 3. System instructions updated - model instructed to use existing values
+4. Country name mapping - "United Kingdom" → "UK" etc. for set_destination
 
 The voice assistant should now:
 - Know what's currently in the form when the session starts
 - Not ask for values that are already set
 - Only ask for missing information
 - Proceed with calculations using existing values
+- Correctly set destination when user says full country names
