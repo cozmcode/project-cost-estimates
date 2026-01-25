@@ -9,7 +9,7 @@ class StaffingEngine {
 
     /**
      * Find the best candidates for a project based on weighting
-     * @param {Object} project - { role, country, durationMonths, count }
+     * @param {Object} project - { role, country, durationMonths, count, requiredSkills }
      * @param {Object} weights - { cost: 0-100, speed: 0-100, compliance: 0-100 }
      */
     async optimizeTeam(project, weights) {
@@ -27,9 +27,18 @@ class StaffingEngine {
             const wSpeed = totalWeight ? weights.speed / totalWeight : 0.33;
             const wComp = totalWeight ? weights.compliance / totalWeight : 0.33;
 
-            const finalScore = (scores.costScore * wCost) +
+            let finalScore = (scores.costScore * wCost) +
                 (scores.speedScore * wSpeed) +
                 (scores.complianceScore * wComp);
+
+            // Apply skills bonus if required skills are specified
+            // Bonus: up to +15 points for full skills match (doesn't push above 100)
+            const requiredSkills = project.requiredSkills || [];
+            if (requiredSkills.length > 0) {
+                const skillsMatchPercent = scores.details.skillsMatch?.percentage || 0;
+                const skillsBonus = (skillsMatchPercent / 100) * 15;
+                finalScore = Math.min(100, finalScore + skillsBonus);
+            }
 
             return {
                 ...candidate,
@@ -98,6 +107,14 @@ class StaffingEngine {
             }
         }
 
+        // --- Skills Match ---
+        const requiredSkills = project.requiredSkills || [];
+        const candidateSkills = candidate.skills || [];
+        const matchedSkills = requiredSkills.filter(skill => candidateSkills.includes(skill));
+        const skillsMatchPercentage = requiredSkills.length > 0
+            ? Math.round((matchedSkills.length / requiredSkills.length) * 100)
+            : 0;
+
         return {
             speedScore: Math.round(speedScore),
             costScore: Math.round(costScore),
@@ -106,7 +123,12 @@ class StaffingEngine {
                 visaDays: visaDetails.days,
                 visaType: visaDetails.type,
                 totalCost: totalAssignmentCost,
-                risks
+                risks,
+                skillsMatch: {
+                    percentage: skillsMatchPercentage,
+                    matched: matchedSkills,
+                    total: requiredSkills.length
+                }
             }
         };
     }

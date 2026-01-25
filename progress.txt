@@ -98,3 +98,58 @@ The voice assistant should now:
 - Only ask for missing information
 - Proceed with calculations using existing values
 - Correctly set destination when user says full country names
+
+---
+
+# RALPH Progress Log - Staffing Engine Improvements
+Feature: Staffing Engine Improvements - Dynamic cost scoring, skills-based filtering, and expanded compliance logic
+Started: 2026-01-25T15:00:00Z
+
+---
+
+## Iteration 1 - 2026-01-25T15:10:00Z
+Story: STORY-01 - Make cost anchors dynamic based on duration
+Status: COMPLETE
+
+Changes made:
+- js/staffing-engine.js: Changed cost scoring from fixed anchors to duration-scaled anchors
+- Base monthly anchors: min €4,000/month, max €12,000/month
+- Formula: minCostAnchor = (baseMinMonthly * durationMonths) + 500
+- Formula: maxCostAnchor = (baseMaxMonthly * durationMonths) + 2000
+
+Learnings:
+- Dynamic anchors ensure fair comparison across different project durations
+- Adding flight cost buffer to anchors accounts for variable travel costs
+
+Verification:
+- Browser: 6mo Alex Silva €38,000 (score 80), 3mo Alex Silva €19,400 (score 83)
+- Cost scores remain in 0-100 range
+- Shorter projects have proportionally lower cost anchors
+
+---
+
+## Iteration 2 - 2026-01-25T15:30:00Z
+Story: STORY-02 - Add skills-based weighting to candidate scoring
+Status: COMPLETE
+
+Changes made:
+- app.html: Added skills selector UI with 9 skill chips (Wartsila 31, Start-up, Safety Lead, etc.)
+- app.html: Added toggleSkill() and getSelectedSkills() functions
+- app.html: Added Skills Match column to results table with percentage display
+- css/app.css: Added .skill-chip styling with selected state
+- js/staffing-engine.js: Added skillsMatch calculation in calculateScores()
+- js/staffing-engine.js: Added skills bonus (up to +15 points) in optimizeTeam()
+
+Learnings:
+- Skills match should be calculated even when no skills selected (returns N/A)
+- Bonus scoring shouldn't push total above 100
+- Colour coding helps users quickly identify skill match quality
+
+Verification:
+- Browser: With Wartsila 31 + Start-up selected:
+  - Alex Silva: 1/2 (50%) match, score 82
+  - Juho Virtanen: 2/2 (100%) match, score 80
+- Browser: With no skills selected: N/A shown, scores unchanged (74, 65)
+- All 4 acceptance criteria verified
+
+---

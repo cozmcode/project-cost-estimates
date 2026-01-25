@@ -1,48 +1,73 @@
 {
-  "feature": "Voice assistant form state awareness - AI should know current form values and not ask for information already on screen",
-  "created": "2025-01-25T13:30:00Z",
+  "feature": "Staffing Engine Improvements - Dynamic cost scoring, skills-based filtering, and expanded compliance logic",
+  "created": "2026-01-25T13:00:00Z",
+  "project": {
+    "type": "vanilla-js",
+    "testCommand": null,
+    "typecheckCommand": null,
+    "lintCommand": null,
+    "devServer": "python3 -m http.server 8000",
+    "baseUrl": "http://localhost:8000/app.html"
+  },
   "stories": [
     {
       "id": "STORY-01",
-      "title": "Add get_form_state tool to return current form values",
+      "title": "Make cost anchors dynamic based on duration",
       "priority": 1,
       "acceptance_criteria": [
-        "AC1: Add get_form_state tool definition to edge function",
-        "AC2: Implement get_form_state handler in voice-commands.js that reads all form fields",
-        "AC3: Tool returns: homeCountry, destinationCountry, salary, duration, dailyAllowance, workingDays"
+        "AC1: Cost anchors scale proportionally with project duration (3mo, 6mo, 12mo)",
+        "AC2: 3-month project uses lower anchors than 12-month project",
+        "AC3: Cost scores remain in 0-100 range regardless of duration"
       ],
       "verification": {
-        "browser": "Open app, click Voice Commands, check console for get_form_state in tools list"
+        "tests": "Manual - no test framework",
+        "typecheck": "N/A - vanilla JS",
+        "lint": "N/A",
+        "browser": "Open Staffing tab, compare cost scores for same candidate at 3mo vs 12mo duration"
       },
       "passes": true
     },
     {
       "id": "STORY-02",
-      "title": "Send initial form state to model on session connect",
+      "title": "Add skills-based weighting to candidate scoring",
       "priority": 2,
       "acceptance_criteria": [
-        "AC1: After WebRTC data channel opens, automatically call get_form_state",
-        "AC2: Send form state as a system message to the model",
-        "AC3: Model receives context about current form values before user speaks"
+        "AC1: UI allows user to specify required skills for the project",
+        "AC2: Candidates with matching skills get a bonus to their score",
+        "AC3: Skills match percentage shown in results table",
+        "AC4: Existing functionality unchanged when no skills selected"
       ],
       "verification": {
-        "browser": "Open app with form pre-filled, click Voice Commands, check console shows form state sent"
+        "tests": "Manual - no test framework",
+        "typecheck": "N/A - vanilla JS",
+        "lint": "N/A",
+        "browser": "Select skills in UI, run optimization, verify skill-matching candidates rank higher"
       },
       "passes": true
     },
     {
       "id": "STORY-03",
-      "title": "Update system instructions to use form context",
+      "title": "Expand compliance logic with jurisdiction-specific rules",
       "priority": 3,
       "acceptance_criteria": [
-        "AC1: System prompt tells model to check current form state before asking for values",
-        "AC2: Model should say 'I see you have X set to Y' when relevant values exist",
-        "AC3: Model only asks for missing information, not all fields"
+        "AC1: USA compliance rules added (ESTA limited to 90 days, B1/B2 cannot work)",
+        "AC2: Singapore compliance rules added (Employment Pass required for work)",
+        "AC3: Risk notes displayed in results table",
+        "AC4: Compliance score properly penalises high-risk scenarios"
       ],
       "verification": {
-        "browser": "With Brazil selected, say 'calculate costs' - model should proceed without asking destination"
+        "tests": "Manual - no test framework",
+        "typecheck": "N/A - vanilla JS",
+        "lint": "N/A",
+        "browser": "Run optimization for USA/Singapore, verify risk warnings appear for non-compliant visa types"
       },
-      "passes": true
+      "passes": false
     }
+  ],
+  "notes": [
+    "Project uses vanilla HTML/CSS/JS with no build step",
+    "Main files: js/staffing-engine.js, js/mock-data.js, app.html",
+    "No automated tests - verification is browser-based",
+    "Skills available in mock data: Wartsila 31, Start-up, Safety Lead, Commissioning, Mechanical, Overhaul, PMP, Logistics, Electrical"
   ]
 }
