@@ -21,6 +21,7 @@ IMPORTANT - FORM STATE AWARENESS:
 - When confirming actions, acknowledge what values you're using (e.g., "I'll calculate costs for the 6-month deployment to Brazil that's currently set up")
 
 Available actions:
+- Set the home country (origin) where the engineer is based
 - Set the destination country for the deployment
 - Set the assignment duration in months
 - Set the monthly salary
@@ -34,8 +35,10 @@ When users speak naturally about deployments, extract the relevant information a
 - "Calculate the costs" → just run calculate_costs with existing form values
 - "Change destination to Germany and calculate" → set destination to Germany, then calculate (keep other values)
 - "What if we did 12 months instead?" → set duration to 12, then calculate
+- "Change home country to Portugal" → use set_home_country to change the origin
 
-Available countries: Brazil, USA, Germany, UK, UAE, Singapore, Australia, Mexico, India, South Africa
+Available home countries: Finland, Portugal
+Available destination countries: Brazil, USA, Germany, UK, UAE, Singapore, Australia, Mexico, India, South Africa
 
 Keep responses concise since this is a voice interface. Speak naturally but briefly. Acknowledge what you're doing without repeating all the details.`
 
@@ -59,6 +62,22 @@ const TOOLS = [
       type: "object",
       properties: {},
       required: []
+    }
+  },
+  {
+    type: "function",
+    name: "set_home_country",
+    description: "Set the home country (origin) where the engineer is based and employed. This affects per diem rates and social security agreements.",
+    parameters: {
+      type: "object",
+      properties: {
+        country: {
+          type: "string",
+          enum: ["Finland", "Portugal"],
+          description: "The engineer's home country of employment"
+        }
+      },
+      required: ["country"]
     }
   },
   {

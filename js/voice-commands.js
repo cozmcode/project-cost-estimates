@@ -288,6 +288,28 @@
                         }
                         break;
 
+                    case 'set_home_country':
+                        const homeSelect = document.getElementById('homeCountry');
+                        if (homeSelect && args.country) {
+                            this.log(`Setting home country to: "${args.country}"`);
+                            homeSelect.value = args.country;
+                            homeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+
+                            if (homeSelect.value === args.country) {
+                                result.message = `Home country set to ${args.country}`;
+                                this.log(`Home country successfully set to ${args.country}`);
+                            } else {
+                                result.success = false;
+                                result.error = `Could not set home country to ${args.country}. Valid options are: Finland, Portugal`;
+                                this.error(`Failed to set home country. Current value: ${homeSelect.value}`);
+                            }
+                        } else {
+                            result.success = false;
+                            result.error = homeSelect ? 'No country provided' : 'Home country dropdown not found';
+                            this.error('set_home_country failed:', result.error);
+                        }
+                        break;
+
                     case 'set_destination':
                         const destSelect = document.getElementById('hostCountry');
                         if (destSelect && args.country) {
