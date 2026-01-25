@@ -331,7 +331,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'gpt-realtime-mini',
-        voice: 'coral',  // Supported voices: alloy, ash, ballad, coral, echo, sage, shimmer, verse, marin, cedar
+        voice: 'shimmer',  // Female voice, lighter/neutral tone (less American than coral)
         instructions: SYSTEM_INSTRUCTIONS,
         tools: TOOLS,
         input_audio_transcription: {

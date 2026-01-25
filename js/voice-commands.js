@@ -244,8 +244,8 @@
                     break;
 
                 case 'response.function_call_arguments.done':
-                    // Function call completed, execute it
-                    addChatMessage(`→ ${event.name}(${event.arguments})`, 'function');
+                    // Execute function without displaying in chat (cleaner UX)
+                    this.log(`Function call: ${event.name}(${event.arguments})`);
                     this.handleFunctionCall(event.call_id, event.name, JSON.parse(event.arguments));
                     break;
 
@@ -678,7 +678,7 @@
         }
 
         /**
-         * Get detailed tax breakdown explanation
+         * Get detailed tax breakdown explanation with step-by-step arithmetic
          */
         getTaxExplanation() {
             // Expand the tax section in the UI
@@ -699,38 +699,42 @@
             const currencySymbol = config.currencySymbol || '€';
             const formatLocal = (val) => currencySymbol + Math.round(val).toLocaleString('en-GB');
 
-            // Build bracket breakdown
+            // Build bracket breakdown with arithmetic
             const brackets = [];
             if (data.taxBracketBreakdown && data.taxBracketBreakdown.length > 0) {
                 for (const bracket of data.taxBracketBreakdown) {
                     const ratePercent = (bracket.rate * 100).toFixed(0) + '%';
                     const minFormatted = formatLocal(bracket.min);
                     const maxFormatted = bracket.max ? formatLocal(bracket.max) : '∞';
+                    const taxableInBracket = bracket.taxableAmount || 0;
                     brackets.push({
                         bracket: `${ratePercent} on ${minFormatted} to ${maxFormatted}`,
-                        amount: formatLocal(bracket.taxAmount)
+                        taxableAmount: formatLocal(taxableInBracket),
+                        taxAmount: formatLocal(bracket.taxAmount),
+                        rate: ratePercent
                     });
                 }
             }
 
-            // Build natural language explanation
+            // Build natural language explanation with step-by-step arithmetic
             const parts = [];
-            parts.push(`Tax is ${formatCurrency(data.taxAmountEUR)} on ${formatLocal(data.taxableIncomeLocal)} taxable income.`);
-
             const countryName = config.name || data.hostCountry;
-            if (data.taxCalculationMethod) {
-                parts.push(`${countryName} uses ${data.taxCalculationMethod.toLowerCase()}.`);
+
+            parts.push(`Tax breakdown on ${formatLocal(data.taxableIncomeLocal)} taxable income.`);
+
+            // Show each bracket with arithmetic (e.g., "£11,320 at 20% equals £2,264")
+            if (data.taxBracketBreakdown && data.taxBracketBreakdown.length > 0) {
+                for (const bracket of data.taxBracketBreakdown) {
+                    const ratePercent = (bracket.rate * 100).toFixed(0);
+                    const taxableInBracket = formatLocal(bracket.taxableAmount || 0);
+                    const taxFromBracket = formatLocal(bracket.taxAmount);
+                    parts.push(`${taxableInBracket} at ${ratePercent}% equals ${taxFromBracket}.`);
+                }
             }
 
-            // Describe brackets if progressive
-            if (brackets.length > 1) {
-                const bracketDescriptions = brackets.map(b => `${b.bracket} equals ${b.amount}`);
-                parts.push(`The brackets are: ${bracketDescriptions.join('; ')}.`);
-            } else if (brackets.length === 1) {
-                parts.push(`Flat rate of ${brackets[0].bracket}.`);
-            }
-
-            parts.push(`The effective rate is ${data.effectiveTaxRate?.toFixed(1) || 0}%.`);
+            // Show total and conversion to EUR
+            parts.push(`Total tax is ${formatLocal(data.taxAmountLocal)} which converts to ${formatCurrency(data.taxAmountEUR)}.`);
+            parts.push(`Effective rate is ${data.effectiveTaxRate?.toFixed(1) || 0}%.`);
 
             return {
                 success: true,
