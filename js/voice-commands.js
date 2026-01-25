@@ -322,6 +322,10 @@
                         result = this.getResultsExplanation();
                         break;
 
+                    case 'get_form_state':
+                        result = this.getFormState();
+                        break;
+
                     default:
                         result = { success: false, error: `Unknown function: ${name}` };
                 }
@@ -332,6 +336,44 @@
 
             // Send function result back to the model
             this.sendFunctionResult(callId, result);
+        }
+
+        /**
+         * Get current form state - all field values
+         */
+        getFormState() {
+            const homeCountryEl = document.getElementById('home-country');
+            const destinationEl = document.getElementById('destination-country');
+            const salaryEl = document.getElementById('monthly-salary');
+            const durationEl = document.getElementById('assignment-months');
+            const dailyAllowanceEl = document.getElementById('daily-allowance');
+            const workingDaysEl = document.getElementById('working-days');
+
+            const state = {
+                success: true,
+                homeCountry: homeCountryEl ? homeCountryEl.value : null,
+                destinationCountry: destinationEl ? destinationEl.value : null,
+                monthlySalary: salaryEl ? parseFloat(salaryEl.value) || null : null,
+                durationMonths: durationEl ? parseInt(durationEl.value) || null : null,
+                dailyAllowance: dailyAllowanceEl ? parseFloat(dailyAllowanceEl.value) || null : null,
+                workingDaysPerMonth: workingDaysEl ? parseInt(workingDaysEl.value) || null : null
+            };
+
+            // Build a human-readable summary
+            const parts = [];
+            if (state.homeCountry) parts.push(`Home country: ${state.homeCountry}`);
+            if (state.destinationCountry) parts.push(`Destination: ${state.destinationCountry}`);
+            if (state.monthlySalary) parts.push(`Salary: €${state.monthlySalary.toLocaleString()}`);
+            if (state.durationMonths) parts.push(`Duration: ${state.durationMonths} months`);
+            if (state.dailyAllowance) parts.push(`Daily allowance: €${state.dailyAllowance}`);
+            if (state.workingDaysPerMonth) parts.push(`Working days/month: ${state.workingDaysPerMonth}`);
+
+            state.summary = parts.length > 0
+                ? `Current form values: ${parts.join(', ')}`
+                : 'Form is empty - no values set yet';
+
+            this.log('Form state:', state);
+            return state;
         }
 
         /**

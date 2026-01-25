@@ -137,6 +137,16 @@ const TOOLS = [
       properties: {},
       required: []
     }
+  },
+  {
+    type: "function",
+    name: "get_form_state",
+    description: "Get the current values of all form fields. ALWAYS call this first before asking the user for any information, so you know what's already filled in. Returns: homeCountry, destinationCountry, salary, duration, dailyAllowance, workingDays.",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: []
+    }
   }
 ]
 
