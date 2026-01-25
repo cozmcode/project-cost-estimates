@@ -422,6 +422,10 @@
                         </div>
                         <!-- Mobile: Action buttons in header row -->
                         <div class="flex md:hidden items-center gap-2">
+                            <button id="voiceBtnMobile" onclick="toggleVoice()"
+                                class="p-2 rounded-lg bg-white text-gray-600 border border-gray-200" title="Voice Commands">
+                                <span class="text-lg">🎤</span>
+                            </button>
                             <button onclick="autoPopulateDemo()"
                                 class="p-2 rounded-lg bg-cozm-light-teal text-cozm-teal" title="Auto-populate">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -473,6 +477,17 @@
 
                     <!-- Desktop: Action buttons -->
                     <div class="hidden md:flex items-center gap-4 border-l border-gray-200 pl-8">
+                        <!-- Voice Controls -->
+                        <div class="voice-controls">
+                            <div class="tts-status loading" id="ttsStatus">
+                                <div class="tts-spinner"></div>
+                                <span id="ttsStatusText">Loading TTS...</span>
+                            </div>
+                            <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">
+                                <span class="mic-icon">🎤</span>
+                                <span id="voiceBtnText">Voice Commands</span>
+                            </button>
+                        </div>
                         <button onclick="autoPopulateDemo()"
                             class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cozm-light-teal text-cozm-teal font-semibold hover:bg-cozm-teal hover:text-white transition-all text-sm"
                             title="Auto-populate with sample data">
@@ -567,6 +582,8 @@
                                     <input type="number" id="monthlySalary" value="7000" class="input-field w-full"
                                         min="0" step="100">
                                 </div>
+                                <p class="text-[11px] text-cozm-gold mt-2 hidden" id="monthlySalaryWarning"
+                                    aria-live="polite"></p>
                             </div>
 
                             <div>
@@ -581,6 +598,8 @@
                                     <option value="18">18 months</option>
                                     <option value="24">24 months</option>
                                 </select>
+                                <p class="text-[11px] text-cozm-gold mt-2 hidden" id="assignmentLengthWarning"
+                                    aria-live="polite"></p>
                             </div>
 
                             <div>
@@ -597,7 +616,7 @@
                                                 d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                         </svg></span>
                                 </div>
-                                <p class="text-[11px] mt-2" id="perDiemInfo"></p>
+                                <p class="text-[11px] mt-2" id="perDiemInfo" aria-live="polite"></p>
                             </div>
 
                             <div>
@@ -606,10 +625,18 @@
                                             days per month (typically 22 for full-time)</span></span></label>
                                 <input type="number" id="workingDays" value="22" class="input-field w-full" min="1"
                                     max="31">
+                                <p class="text-[11px] text-cozm-gold mt-2 hidden" id="workingDaysWarning"
+                                    aria-live="polite"></p>
                             </div>
                         </div>
 
-                        <div class="mt-6 md:mt-10 flex justify-center md:justify-end">
+                        <div class="mt-6 md:mt-10 flex flex-wrap items-center justify-center md:justify-end gap-3">
+                            <button class="btn-secondary w-full md:w-auto" onclick="autoPopulateDemo()">
+                                Reset to Demo Defaults
+                            </button>
+                            <button class="btn-secondary w-full md:w-auto" onclick="copyEstimateSummary()">
+                                Copy Estimate Summary
+                            </button>
                             <button class="btn-primary w-full md:w-auto" onclick="calculateCosts()">
                                 <span class="flex items-center justify-center gap-3">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -900,7 +927,8 @@
                                             </span>
                                             <a class="breakdown-warning-badge hidden" id="socialSecBadge"
                                                 href="https://www.kela.fi/international-legislation" target="_blank"
-                                                onclick="event.stopPropagation()">No Reciprocal Agreement</a>
+                                                rel="noopener noreferrer" onclick="event.stopPropagation()">No Reciprocal
+                                                Agreement</a>
                                         </div>
                                         <div class="breakdown-header-right">
                                             <span class="breakdown-value" id="summarySocialSec">€0</span>
@@ -1266,11 +1294,16 @@
 
     </div>
 
+    <!-- Voice Toast Notification -->
+    <div class="voice-toast" id="voiceToast"></div>
+
     <!-- Scripts -->
     <!-- NOTE: Supabase scripts are loaded in <head> to prevent race condition with auth check -->
     <script src="js/mock-data.js"></script>
     <script src="js/staffing-engine.js"></script>
+    <script src="data/per-diem-data.js?v=1.0.0"></script>
     <script src="js/app-logic.js?v=1.0.4"></script>
+    <script src="js/voice-commands.js?v=1.0.0"></script>
 
     <!-- Staffing UI Interaction Script -->
     <script>

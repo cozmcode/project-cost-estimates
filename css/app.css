@@ -1152,6 +1152,16 @@ h1, h2, h3 {
     display: block;
 }
 
+.tooltip-wrapper:focus-within .tooltip-content {
+    display: block;
+}
+
+.help-icon:focus,
+.help-icon:focus-visible {
+    outline: 2px solid var(--cozm-teal);
+    outline-offset: 2px;
+}
+
 /* Tab styles */
 .tab-active {
     font-weight: 600;
@@ -1693,5 +1703,159 @@ h1, h2, h3 {
     .nav-tab svg {
         width: 16px;
         height: 16px;
+    }
+}
+
+/* ===== VOICE COMMANDS UI ===== */
+
+/* Voice button */
+.voice-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.voice-btn:hover {
+    background: #f3f4f6;
+}
+
+.voice-btn.listening {
+    background: #fef2f2;
+    color: #dc2626;
+    animation: voicePulse 1s infinite;
+}
+
+.voice-btn .mic-icon {
+    font-size: 1rem;
+}
+
+/* TTS Status indicator */
+.tts-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tts-status.loading {
+    color: #f59e0b;
+}
+
+.tts-status.ready {
+    color: #10b981;
+}
+
+.tts-status.error {
+    color: #dc2626;
+}
+
+.tts-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid #f59e0b;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes voicePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+}
+
+/* Voice feedback toast */
+.voice-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--cozm-dark-indigo);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 1000;
+    max-width: 90%;
+    text-align: center;
+}
+
+.voice-toast.visible {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+/* Voice controls container */
+.voice-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Mobile voice button listening state */
+#voiceBtnMobile.listening {
+    background: #fef2f2 !important;
+    border-color: #dc2626 !important;
+    animation: voicePulse 1s infinite;
+}
+
+/* Mobile adjustments for voice UI */
+@media (max-width: 768px) {
+    .voice-btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    .voice-btn span:not(.mic-icon) {
+        display: none;
+    }
+
+    .tts-status {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+
+    .tts-status span:not(.tts-spinner):last-child {
+        display: none;
+    }
+
+    .voice-toast {
+        font-size: 0.8rem;
+        padding: 10px 16px;
+        bottom: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .voice-controls {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .voice-btn,
+    .tts-status {
+        width: 100%;
+        justify-content: center;
     }
 }
