@@ -203,6 +203,8 @@
             switch (event.type) {
                 case 'session.created':
                     this.log('Session created:', event.session?.id);
+                    addChatMessage('Session connected', 'system');
+                    showVoiceChatPanel();
                     break;
 
                 case 'session.updated':
@@ -223,6 +225,7 @@
                     const transcript = event.transcript;
                     this.log('User said:', transcript);
                     showVoiceToast(`Heard: "${transcript.substring(0, 50)}..."`);
+                    addChatMessage(transcript, 'user');
                     break;
 
                 case 'response.audio.delta':
@@ -235,10 +238,14 @@
 
                 case 'response.audio_transcript.done':
                     this.log('Assistant said:', event.transcript);
+                    if (event.transcript) {
+                        addChatMessage(event.transcript, 'assistant');
+                    }
                     break;
 
                 case 'response.function_call_arguments.done':
                     // Function call completed, execute it
+                    addChatMessage(`→ ${event.name}(${event.arguments})`, 'function');
                     this.handleFunctionCall(event.call_id, event.name, JSON.parse(event.arguments));
                     break;
 
@@ -250,6 +257,7 @@
                 case 'error':
                     this.error('Server error:', event.error);
                     showVoiceToast('Error: ' + (event.error?.message || 'Unknown'));
+                    addChatMessage('Error: ' + (event.error?.message || 'Unknown'), 'system');
                     break;
 
                 default:
@@ -281,7 +289,7 @@
                         break;
 
                     case 'set_destination':
-                        const destSelect = document.getElementById('destination-country');
+                        const destSelect = document.getElementById('hostCountry');
                         if (destSelect && args.country) {
                             // Map natural language country names to dropdown values
                             const countryValueMap = {
@@ -292,34 +300,49 @@
                                 'South Africa': 'SouthAfrica'
                             };
                             const countryValue = countryValueMap[args.country] || args.country;
+                            this.log(`Setting destination: "${args.country}" -> "${countryValue}"`);
                             destSelect.value = countryValue;
                             destSelect.dispatchEvent(new Event('change', { bubbles: true }));
 
                             // Verify the value was actually set
                             if (destSelect.value === countryValue) {
                                 result.message = `Destination set to ${args.country}`;
+                                this.log(`Destination successfully set to ${countryValue}`);
                             } else {
                                 result.success = false;
                                 result.error = `Could not set destination to ${args.country}. Valid options are: ${Array.from(destSelect.options).map(o => o.text).join(', ')}`;
+                                this.error(`Failed to set destination. Current value: ${destSelect.value}`);
                             }
+                        } else {
+                            result.success = false;
+                            result.error = destSelect ? 'No country provided' : 'Host country dropdown not found';
+                            this.error('set_destination failed:', result.error);
                         }
                         break;
 
                     case 'set_duration':
-                        const monthsInput = document.getElementById('assignment-months');
-                        if (monthsInput && args.months) {
-                            monthsInput.value = args.months;
-                            monthsInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        const monthsSelect = document.getElementById('assignmentLength');
+                        if (monthsSelect && args.months) {
+                            monthsSelect.value = args.months;
+                            monthsSelect.dispatchEvent(new Event('change', { bubbles: true }));
                             result.message = `Duration set to ${args.months} months`;
+                            this.log(`Duration set to ${args.months} months`);
+                        } else {
+                            result.success = false;
+                            result.error = monthsSelect ? 'No months provided' : 'Assignment length dropdown not found';
                         }
                         break;
 
                     case 'set_salary':
-                        const salaryInput = document.getElementById('monthly-salary');
+                        const salaryInput = document.getElementById('monthlySalary');
                         if (salaryInput && args.salary) {
                             salaryInput.value = args.salary;
                             salaryInput.dispatchEvent(new Event('change', { bubbles: true }));
                             result.message = `Salary set to €${args.salary.toLocaleString()}`;
+                            this.log(`Salary set to €${args.salary}`);
+                        } else {
+                            result.success = false;
+                            result.error = salaryInput ? 'No salary provided' : 'Monthly salary input not found';
                         }
                         break;
 
@@ -392,12 +415,12 @@
          * Get current form state - all field values
          */
         getFormState() {
-            const homeCountryEl = document.getElementById('home-country');
-            const destinationEl = document.getElementById('destination-country');
-            const salaryEl = document.getElementById('monthly-salary');
-            const durationEl = document.getElementById('assignment-months');
-            const dailyAllowanceEl = document.getElementById('daily-allowance');
-            const workingDaysEl = document.getElementById('working-days');
+            const homeCountryEl = document.getElementById('homeCountry');
+            const destinationEl = document.getElementById('hostCountry');
+            const salaryEl = document.getElementById('monthlySalary');
+            const durationEl = document.getElementById('assignmentLength');
+            const dailyAllowanceEl = document.getElementById('dailyAllowance');
+            const workingDaysEl = document.getElementById('workingDays');
 
             const state = {
                 success: true,
@@ -431,8 +454,8 @@
          */
         getResultsExplanation() {
             const totalCostEl = document.querySelector('.total-cost-value') || document.querySelector('[id*="total"]');
-            const destinationEl = document.getElementById('destination-country');
-            const monthsEl = document.getElementById('assignment-months');
+            const destinationEl = document.getElementById('hostCountry');
+            const monthsEl = document.getElementById('assignmentLength');
 
             if (totalCostEl && totalCostEl.textContent.includes('€')) {
                 return {
@@ -706,7 +729,7 @@
         if (transcript.includes('destination') || transcript.includes('going to') || transcript.includes('deploy to')) {
             for (const [keyword, country] of Object.entries(countryMatches)) {
                 if (transcript.includes(keyword)) {
-                    const destSelect = document.getElementById('destination-country');
+                    const destSelect = document.getElementById('hostCountry');
                     if (destSelect) {
                         destSelect.value = country;
                         destSelect.dispatchEvent(new Event('change'));
@@ -724,10 +747,10 @@
         if (monthsMatch || transcript.includes('months') || transcript.includes('duration')) {
             const months = monthsMatch ? parseInt(monthsMatch[1]) : null;
             if (months && months > 0 && months <= 60) {
-                const monthsInput = document.getElementById('assignment-months');
-                if (monthsInput) {
-                    monthsInput.value = months;
-                    monthsInput.dispatchEvent(new Event('change'));
+                const monthsSelect = document.getElementById('assignmentLength');
+                if (monthsSelect) {
+                    monthsSelect.value = months;
+                    monthsSelect.dispatchEvent(new Event('change'));
                     speak('Duration set to ' + months + ' months');
                 }
             } else {
@@ -741,7 +764,7 @@
         if (salaryMatch || transcript.includes('salary')) {
             const salary = salaryMatch ? parseInt(salaryMatch[1]) : null;
             if (salary) {
-                const salaryInput = document.getElementById('monthly-salary');
+                const salaryInput = document.getElementById('monthlySalary');
                 if (salaryInput) {
                     salaryInput.value = salary;
                     salaryInput.dispatchEvent(new Event('change'));
@@ -766,8 +789,8 @@
      */
     function explainResults() {
         const totalCostEl = document.querySelector('.total-cost-value') || document.querySelector('[id*="total"]');
-        const destinationEl = document.getElementById('destination-country');
-        const monthsEl = document.getElementById('assignment-months');
+        const destinationEl = document.getElementById('hostCountry');
+        const monthsEl = document.getElementById('assignmentLength');
 
         if (totalCostEl && totalCostEl.textContent.includes('€')) {
             const destination = destinationEl ? destinationEl.value : 'the destination';
@@ -880,6 +903,71 @@
         toast.hideTimeout = setTimeout(() => {
             toast.classList.remove('visible');
         }, 3000);
+    }
+
+    // =========================================================================
+    // VOICE CHAT PANEL
+    // =========================================================================
+
+    /**
+     * Toggle voice chat panel visibility
+     */
+    function toggleVoiceChatPanel() {
+        const panel = document.getElementById('voiceChatPanel');
+        if (panel) {
+            panel.classList.toggle('hidden');
+        }
+    }
+
+    /**
+     * Show the voice chat panel
+     */
+    function showVoiceChatPanel() {
+        const panel = document.getElementById('voiceChatPanel');
+        if (panel) {
+            panel.classList.remove('hidden');
+        }
+    }
+
+    /**
+     * Add a message to the voice chat panel
+     * @param {string} text - Message text
+     * @param {string} type - 'user', 'assistant', 'system', or 'function'
+     */
+    function addChatMessage(text, type = 'system') {
+        const messagesContainer = document.getElementById('voiceChatMessages');
+        if (!messagesContainer) return;
+
+        // Remove empty state message if present
+        const emptyMsg = messagesContainer.querySelector('.voice-chat-empty');
+        if (emptyMsg) emptyMsg.remove();
+
+        // Create message element
+        const msgEl = document.createElement('div');
+        msgEl.className = `voice-chat-message ${type}`;
+        msgEl.textContent = text;
+
+        // Add to container
+        messagesContainer.appendChild(msgEl);
+
+        // Scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Keep only last 50 messages
+        const messages = messagesContainer.querySelectorAll('.voice-chat-message');
+        if (messages.length > 50) {
+            messages[0].remove();
+        }
+    }
+
+    /**
+     * Clear all chat messages
+     */
+    function clearChatMessages() {
+        const messagesContainer = document.getElementById('voiceChatMessages');
+        if (messagesContainer) {
+            messagesContainer.innerHTML = '<div class="voice-chat-empty">Voice conversation will appear here when active...</div>';
+        }
     }
 
     // =========================================================================
@@ -1065,6 +1153,9 @@
         window.speak = speak;
         window.showVoiceToast = showVoiceToast;
         window.diagnoseMicrophone = diagnoseMicrophone;
+        window.toggleVoiceChatPanel = toggleVoiceChatPanel;
+        window.addChatMessage = addChatMessage;
+        window.clearChatMessages = clearChatMessages;
 
         console.log('[VOICE] Voice module ready');
     }

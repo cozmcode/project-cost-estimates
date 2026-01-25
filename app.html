@@ -1092,6 +1092,21 @@
                                         <option value="12">1 Year</option>
                                     </select>
                                 </div>
+                                <div>
+                                    <label class="form-label">Required Skills <span class="text-gray-400 font-normal">(optional)</span></label>
+                                    <div id="skillsSelector" class="flex flex-wrap gap-2 mt-2">
+                                        <button type="button" class="skill-chip" data-skill="Wartsila 31" onclick="toggleSkill(this)">Wartsila 31</button>
+                                        <button type="button" class="skill-chip" data-skill="Start-up" onclick="toggleSkill(this)">Start-up</button>
+                                        <button type="button" class="skill-chip" data-skill="Safety Lead" onclick="toggleSkill(this)">Safety Lead</button>
+                                        <button type="button" class="skill-chip" data-skill="Commissioning" onclick="toggleSkill(this)">Commissioning</button>
+                                        <button type="button" class="skill-chip" data-skill="Mechanical" onclick="toggleSkill(this)">Mechanical</button>
+                                        <button type="button" class="skill-chip" data-skill="Overhaul" onclick="toggleSkill(this)">Overhaul</button>
+                                        <button type="button" class="skill-chip" data-skill="PMP" onclick="toggleSkill(this)">PMP</button>
+                                        <button type="button" class="skill-chip" data-skill="Logistics" onclick="toggleSkill(this)">Logistics</button>
+                                        <button type="button" class="skill-chip" data-skill="Electrical" onclick="toggleSkill(this)">Electrical</button>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-2">Click to select skills. Matching candidates score higher.</p>
+                                </div>
                             </div>
                         </div>
 
@@ -1195,6 +1210,7 @@
                                     <tr>
                                         <th class="px-6 py-3">Rank</th>
                                         <th class="px-6 py-3">Candidate</th>
+                                        <th class="px-6 py-3">Skills Match</th>
                                         <th class="px-6 py-3">Visa Status (Speed)</th>
                                         <th class="px-6 py-3">Est. Cost</th>
                                         <th class="px-6 py-3">AI Score</th>
@@ -1281,13 +1297,24 @@
     <!-- Voice Toast Notification -->
     <div class="voice-toast" id="voiceToast"></div>
 
+    <!-- Voice Chat Panel (shows conversation transcript) -->
+    <div id="voiceChatPanel" class="voice-chat-panel hidden">
+        <div class="voice-chat-header">
+            <span class="voice-chat-title">Voice Conversation</span>
+            <button class="voice-chat-close" onclick="toggleVoiceChatPanel()">&times;</button>
+        </div>
+        <div id="voiceChatMessages" class="voice-chat-messages">
+            <div class="voice-chat-empty">Voice conversation will appear here when active...</div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <!-- NOTE: Supabase scripts are loaded in <head> to prevent race condition with auth check -->
     <script src="js/mock-data.js"></script>
     <script src="js/staffing-engine.js"></script>
     <script src="data/per-diem-data.js?v=1.0.0"></script>
     <script src="js/app-logic.js?v=1.0.5"></script>
-    <script src="js/voice-commands.js?v=2.0.0"></script>
+    <script src="js/voice-commands.js?v=2.1.0"></script>
 
     <!-- Staffing UI Interaction Script -->
     <script>
@@ -1318,6 +1345,17 @@
             document.getElementById('label-compliance').textContent = document.getElementById('slider-compliance').value + '%';
         }
 
+        // Toggle skill chip selection
+        function toggleSkill(button) {
+            button.classList.toggle('selected');
+        }
+
+        // Get array of selected skills
+        function getSelectedSkills() {
+            const chips = document.querySelectorAll('#skillsSelector .skill-chip.selected');
+            return Array.from(chips).map(chip => chip.dataset.skill);
+        }
+
         // Run Optimization (async to support API calls)
         async function runOptimization() {
             // Show loading state
@@ -1332,7 +1370,8 @@
                     country: document.getElementById('projectDestination').value,
                     role: document.getElementById('projectRole').value,
                     durationMonths: parseInt(document.getElementById('projectDuration').value),
-                    count: parseInt(document.getElementById('projectCount').value)
+                    count: parseInt(document.getElementById('projectCount').value),
+                    requiredSkills: getSelectedSkills()
                 };
 
                 const weights = {
@@ -1357,6 +1396,15 @@
                     const carbonKg = MOCK_DATA.carbonFootprint?.[carbonKey] || 0;
                     const carbonClass = carbonKg < 500 ? 'text-green-600' : carbonKg < 1500 ? 'text-yellow-600' : 'text-red-500';
 
+                    // Skills match calculation
+                    const skillsMatch = details.skillsMatch || { percentage: 0, matched: [], total: 0 };
+                    const skillsMatchClass = skillsMatch.percentage === 100 ? 'text-green-600 bg-green-50' :
+                                            skillsMatch.percentage >= 50 ? 'text-yellow-600 bg-yellow-50' :
+                                            skillsMatch.percentage > 0 ? 'text-orange-600 bg-orange-50' : 'text-gray-400 bg-gray-50';
+                    const skillsDisplay = skillsMatch.total > 0
+                        ? `${skillsMatch.matched.length}/${skillsMatch.total} (${skillsMatch.percentage}%)`
+                        : 'N/A';
+
                     const tr = document.createElement('tr');
                     tr.className = 'bg-white border-b hover:bg-gray-50';
                     tr.innerHTML = `
@@ -1364,6 +1412,12 @@
                         <td class="px-6 py-4">
                             <div class="font-bold text-gray-900">${candidate.first_name} ${candidate.last_name}</div>
                             <div class="text-xs text-gray-500">${candidate.nationality} • From ${candidate.current_location}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 rounded-full text-xs font-bold ${skillsMatchClass}">
+                                ${skillsDisplay}
+                            </span>
+                            ${skillsMatch.matched.length > 0 ? `<div class="text-xs text-gray-500 mt-1">${skillsMatch.matched.join(', ')}</div>` : ''}
                         </td>
                         <td class="px-6 py-4">
                             <span class="px-2 py-1 rounded-full text-xs font-bold ${visaClass}">
