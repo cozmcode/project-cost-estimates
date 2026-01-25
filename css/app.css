@@ -249,7 +249,7 @@ h1, h2, h3 {
     to { opacity: 1; transform: translateY(0); }
 }
 
-.hidden { display: none !important; }
+/* Removed custom .hidden rule - Tailwind CDN provides this, and !important was breaking responsive utilities like md:flex */
 
 /* Custom Scrollbar for sleekness */
 ::-webkit-scrollbar {
@@ -1827,8 +1827,10 @@ h1, h2, h3 {
         font-size: 0.8rem;
     }
 
+    /* Keep voice button text visible on mobile for better UX */
     .voice-btn span:not(.mic-icon) {
-        display: none;
+        display: inline; /* Changed from 'none' to keep text visible */
+        font-size: 0.75rem;
     }
 
     .tts-status {
@@ -1836,8 +1838,9 @@ h1, h2, h3 {
         font-size: 0.75rem;
     }
 
+    /* Keep TTS status text visible on mobile */
     .tts-status span:not(.tts-spinner):last-child {
-        display: none;
+        display: inline; /* Changed from 'none' to keep text visible */
     }
 
     .voice-toast {

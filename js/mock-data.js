@@ -58,21 +58,22 @@ const MOCK_DATA = {
 
     // 2. Visa Rules Knowledge Base (Speed Logic)
     // Format: key = "origin_destination"
+    // Updated to use API-compatible field names (waitDays, visaType)
     visaRules: {
         // Destination: Brazil
-        'Finland_Brazil': { days: 0, type: 'Visa Waiver (90 days)', notes: 'Business meetings allowed. Tech work requires Work Visa (5 days)' },
-        'Portugal_Brazil': { days: 0, type: 'Visa Waiver', notes: 'Special Treaty' },
-        'India_Brazil': { days: 25, type: 'Consular Visa Required', notes: 'Must apply at embassy' },
-        'UK_Brazil': { days: 0, type: 'Visa Waiver', notes: 'Reciprocal agreement' },
+        'Finland_Brazil': { waitDays: 0, visaType: 'Visa Waiver (90 days)', notes: 'Business meetings allowed. Tech work requires Work Visa (5 days)' },
+        'Portugal_Brazil': { waitDays: 0, visaType: 'Visa Waiver', notes: 'Special Treaty' },
+        'India_Brazil': { waitDays: 25, visaType: 'Consular Visa Required', notes: 'Must apply at embassy' },
+        'UK_Brazil': { waitDays: 0, visaType: 'Visa Waiver', notes: 'Reciprocal agreement' },
 
         // Destination: USA
-        'Finland_USA': { days: 3, type: 'ESTA Waiver', notes: 'Instant approval for most' },
-        'Portugal_USA': { days: 3, type: 'ESTA Waiver', notes: 'Instant approval' },
-        'India_USA': { days: 60, type: 'B1/B2 Interview Required', notes: 'Long wait times for interview' },
+        'Finland_USA': { waitDays: 3, visaType: 'ESTA Waiver', notes: 'Instant approval for most' },
+        'Portugal_USA': { waitDays: 3, visaType: 'ESTA Waiver', notes: 'Instant approval' },
+        'India_USA': { waitDays: 60, visaType: 'B1/B2 Interview Required', notes: 'Long wait times for interview' },
 
         // Destination: Singapore
-        'Finland_Singapore': { days: 14, type: 'Employment Pass', notes: 'Online application' },
-        'India_Singapore': { days: 21, type: 'Employment Pass', notes: 'Online application' }
+        'Finland_Singapore': { waitDays: 14, visaType: 'Employment Pass', notes: 'Online application' },
+        'India_Singapore': { waitDays: 21, visaType: 'Employment Pass', notes: 'Online application' }
     },
 
     // 3. Distance Matrix (Cost Logic - Flight Estimation)
@@ -91,5 +92,23 @@ const MOCK_DATA = {
         'Finland_Singapore': 1000,
         'India_Singapore': 400, // Much cheaper/closer
         'UAE_Singapore': 500
+    },
+
+    // 4. Carbon Footprint Estimates (kg CO2 per passenger, one-way)
+    // Based on IATA/ICAO methodology averages for economy class
+    carbonFootprint: {
+        'Finland_Brazil': 1850,    // Long-haul intercontinental
+        'Portugal_Brazil': 1420,   // Slightly shorter route
+        'India_Brazil': 2100,      // Very long route
+        'UAE_Brazil': 1650,
+        'Brazil_Brazil': 0,        // No flight
+
+        'Finland_USA': 1200,       // Transatlantic
+        'Portugal_USA': 1050,
+        'India_USA': 2400,         // Very long route
+
+        'Finland_Singapore': 1580,
+        'India_Singapore': 450,    // Regional flight
+        'UAE_Singapore': 680
     }
 };

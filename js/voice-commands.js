@@ -24,38 +24,39 @@
      * Loads the ~100MB model in the background
      */
     async function initKokoroTTS() {
-        const statusEl = document.getElementById('ttsStatus');
-        const statusText = document.getElementById('ttsStatusText');
-
-        if (!statusEl) {
-            console.warn('[VOICE] TTS status element not found');
-            return;
-        }
+        console.log('[VOICE] Starting Kokoro TTS initialisation...');
 
         try {
-            statusText.textContent = 'Loading Kokoro TTS (~100MB)...';
+            // Import Kokoro directly from CDN (import maps don't resolve nested WASM dependencies)
+            console.log('[VOICE] Importing Kokoro module from CDN...');
+            const module = await import('https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/dist/kokoro.web.js');
+            const { KokoroTTS } = module;
+            console.log('[VOICE] Kokoro module loaded, initialising model...');
 
-            // Dynamic import of Kokoro
-            const { KokoroTTS } = await import('https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/dist/kokoro.web.js');
-
+            // Use explicit WASM device to avoid WebGPU initialisation failures
             kokoroTTS = await KokoroTTS.from_pretrained(
                 "onnx-community/Kokoro-82M-ONNX",
-                { dtype: "q8" }
+                {
+                    dtype: "q8",
+                    device: "wasm"
+                }
             );
 
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             isKokoroReady = true;
 
-            statusEl.classList.remove('loading');
-            statusEl.classList.add('ready');
-            statusEl.innerHTML = '<span>✓</span><span id="ttsStatusText">Kokoro TTS Ready</span>';
-
             console.log('[VOICE] Kokoro TTS loaded successfully');
+
+            // Log available voices for debugging
+            if (kokoroTTS.list_voices) {
+                console.log('[VOICE] Available voices:', kokoroTTS.list_voices());
+            }
         } catch (error) {
-            console.error('[VOICE] Failed to load Kokoro TTS:', error);
-            statusEl.classList.remove('loading');
-            statusEl.classList.add('error');
-            statusEl.innerHTML = '<span>⚠</span><span id="ttsStatusText">TTS Unavailable (using fallback)</span>';
+            console.error('[VOICE] Failed to load Kokoro TTS');
+            console.error('[VOICE] Error type:', error.constructor.name);
+            console.error('[VOICE] Error message:', error.message);
+            console.error('[VOICE] Error stack:', error.stack);
+            console.warn('[VOICE] Falling back to browser TTS');
         }
     }
 
@@ -362,21 +363,38 @@
         // Use Kokoro if ready, otherwise fall back to browser TTS
         if (isKokoroReady && kokoroTTS) {
             try {
+                console.log('[VOICE] Generating speech with Kokoro...');
+
                 // Generate audio with Kokoro (using British female voice)
                 const audio = await kokoroTTS.generate(text, {
                     voice: "bf_emma"  // British female voice
                 });
+
+                console.log('[VOICE] Audio generated, type:', typeof audio, audio);
 
                 // Resume audio context if suspended (browser autoplay policy)
                 if (audioContext.state === 'suspended') {
                     await audioContext.resume();
                 }
 
-                // Get the raw audio data
-                const rawAudio = audio.toWav();
+                // Get the raw audio data - handle different return types
+                let wavData;
+                if (typeof audio.toWav === 'function') {
+                    wavData = audio.toWav();
+                } else if (audio instanceof Blob) {
+                    wavData = await audio.arrayBuffer();
+                } else if (audio.buffer) {
+                    wavData = audio;
+                } else {
+                    throw new Error('Unknown audio format from Kokoro');
+                }
 
-                // Decode and play
-                const audioBuffer = await audioContext.decodeAudioData(rawAudio.buffer);
+                console.log('[VOICE] WAV data type:', typeof wavData, wavData);
+
+                // Decode and play - handle ArrayBuffer vs typed array
+                const arrayBuffer = wavData.buffer ? wavData.buffer : wavData;
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+
                 const source = audioContext.createBufferSource();
                 source.buffer = audioBuffer;
                 source.connect(audioContext.destination);
@@ -389,11 +407,13 @@
                     currentAudioSource = null;
                 };
             } catch (error) {
-                console.error('[VOICE] Kokoro TTS error:', error);
+                console.error('[VOICE] Kokoro TTS error:', error.message);
+                console.error('[VOICE] Error stack:', error.stack);
                 // Fall back to browser TTS
                 speakWithBrowserTTS(text);
             }
         } else {
+            console.log('[VOICE] Kokoro not ready, using browser TTS. isKokoroReady:', isKokoroReady);
             // Fall back to browser TTS
             speakWithBrowserTTS(text);
         }
