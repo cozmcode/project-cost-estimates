@@ -139,7 +139,37 @@ const TOOLS = [
   {
     type: "function",
     name: "explain_results",
-    description: "Read out and explain the current calculation results displayed on screen.",
+    description: "Give an overview of all calculation results including total cost, tax, social security, per diem, and admin fees. Use the specific tools (explain_tax, explain_social_security, explain_per_diem) when the user asks for detailed breakdowns of those categories.",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: []
+    }
+  },
+  {
+    type: "function",
+    name: "explain_tax",
+    description: "Explain the host country tax calculation in detail, including tax brackets, rates, and how the total was computed. Call this when the user asks about taxes, tax rates, tax breakdown, or why tax is a certain amount.",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: []
+    }
+  },
+  {
+    type: "function",
+    name: "explain_social_security",
+    description: "Explain the social security calculation, including employer and employee portions, and why it might be zero due to reciprocal agreements. Call this when the user asks about social security, employer contributions, or why social security is zero.",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: []
+    }
+  },
+  {
+    type: "function",
+    name: "explain_per_diem",
+    description: "Explain the per diem (daily allowance) calculation, including daily rate, working days, and data sources. Call this when the user asks about per diem, daily allowance, travel allowances, or how per diem is calculated.",
     parameters: {
       type: "object",
       properties: {},

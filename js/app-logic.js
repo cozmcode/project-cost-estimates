@@ -1160,6 +1160,9 @@ function calculateCosts() {
         totalAllowances
     };
 
+    // Expose to window for voice assistant access
+    window.lastCalculationData = lastCalculationData;
+
     // Get home country for display
     const homeCountry = document.getElementById('homeCountry').value;
 

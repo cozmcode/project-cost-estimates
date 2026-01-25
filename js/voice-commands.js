@@ -364,6 +364,18 @@
                         result = this.getResultsExplanation();
                         break;
 
+                    case 'explain_tax':
+                        result = this.getTaxExplanation();
+                        break;
+
+                    case 'explain_social_security':
+                        result = this.getSocialSecurityExplanation();
+                        break;
+
+                    case 'explain_per_diem':
+                        result = this.getPerDiemExplanation();
+                        break;
+
                     case 'get_form_state':
                         result = this.getFormState();
                         break;
@@ -450,29 +462,246 @@
         }
 
         /**
-         * Get explanation of current results
+         * Get full explanation of current results (overview of all cost components)
          */
         getResultsExplanation() {
-            const totalCostEl = document.querySelector('.total-cost-value') || document.querySelector('[id*="total"]');
-            const destinationEl = document.getElementById('hostCountry');
-            const monthsEl = document.getElementById('assignmentLength');
+            const data = window.lastCalculationData;
 
-            if (totalCostEl && totalCostEl.textContent.includes('€')) {
-                return {
-                    success: true,
-                    hasResults: true,
-                    totalCost: totalCostEl.textContent,
-                    destination: destinationEl ? destinationEl.value : 'Unknown',
-                    months: monthsEl ? monthsEl.value : 'Unknown',
-                    message: `Total cost is ${totalCostEl.textContent} for ${monthsEl?.value || 'the'} months to ${destinationEl?.value || 'destination'}`
-                };
-            } else {
+            // Check if we have calculation data
+            if (!data) {
                 return {
                     success: true,
                     hasResults: false,
                     message: 'No results displayed yet. Please fill in the form and calculate.'
                 };
             }
+
+            const formatCurrency = (val) => '€' + Math.round(val).toLocaleString('en-GB');
+            const destination = data.config?.name || data.hostCountry || 'destination';
+            const months = data.assignmentLength || 'the';
+
+            // Build comprehensive breakdown
+            const breakdown = {
+                salary: {
+                    amount: formatCurrency(data.grossSalary),
+                    note: `Base salary for ${months} months`
+                },
+                tax: {
+                    amount: formatCurrency(data.taxAmountEUR),
+                    rate: `${data.effectiveTaxRate?.toFixed(1) || 0}%`
+                },
+                socialSecurity: {
+                    amount: formatCurrency(data.totalSocialSecurity || data.socialSecurityCost || 0),
+                    reason: data.socialSecExclusionReason || (data.socialSecIncluded ? 'Included' : 'Excluded')
+                },
+                perDiem: {
+                    amount: formatCurrency(data.totalPerDiem || data.totalAllowances),
+                    dailyRate: formatCurrency(data.dailyAllowance),
+                    workingDays: data.totalWorkingDays
+                },
+                adminFees: {
+                    amount: formatCurrency(data.totalAdminFees)
+                }
+            };
+
+            // Build natural language message
+            const parts = [];
+            parts.push(`Total additional cost is ${formatCurrency(data.additionalCostTotal)} for ${months} months to ${destination}.`);
+            parts.push(`Tax is ${breakdown.tax.amount} at ${breakdown.tax.rate} effective rate.`);
+
+            const ssAmount = data.totalSocialSecurity || data.socialSecurityCost || 0;
+            if (ssAmount === 0) {
+                parts.push(`Social security is ${formatCurrency(0)}${data.socialSecExclusionReason ? ' due to ' + data.socialSecExclusionReason : ''}.`);
+            } else {
+                parts.push(`Social security is ${formatCurrency(ssAmount)}.`);
+            }
+
+            parts.push(`Per diem is ${breakdown.perDiem.amount} at ${breakdown.perDiem.dailyRate} per day for ${breakdown.perDiem.workingDays} working days.`);
+            parts.push(`Admin fees are ${breakdown.adminFees.amount}.`);
+
+            return {
+                success: true,
+                hasResults: true,
+                totalCost: formatCurrency(data.additionalCostTotal),
+                duration: `${months} months`,
+                destination: destination,
+                breakdown: breakdown,
+                message: parts.join(' ')
+            };
+        }
+
+        /**
+         * Get detailed tax breakdown explanation
+         */
+        getTaxExplanation() {
+            const data = window.lastCalculationData;
+
+            if (!data) {
+                return {
+                    success: true,
+                    hasResults: false,
+                    message: 'No results displayed yet. Please calculate costs first to see tax details.'
+                };
+            }
+
+            const formatCurrency = (val) => '€' + Math.round(val).toLocaleString('en-GB');
+            const config = data.config || {};
+            const currencySymbol = config.currencySymbol || '€';
+            const formatLocal = (val) => currencySymbol + Math.round(val).toLocaleString('en-GB');
+
+            // Build bracket breakdown
+            const brackets = [];
+            if (data.taxBracketBreakdown && data.taxBracketBreakdown.length > 0) {
+                for (const bracket of data.taxBracketBreakdown) {
+                    const ratePercent = (bracket.rate * 100).toFixed(0) + '%';
+                    const minFormatted = formatLocal(bracket.min);
+                    const maxFormatted = bracket.max ? formatLocal(bracket.max) : '∞';
+                    brackets.push({
+                        bracket: `${ratePercent} on ${minFormatted} to ${maxFormatted}`,
+                        amount: formatLocal(bracket.taxAmount)
+                    });
+                }
+            }
+
+            // Build natural language explanation
+            const parts = [];
+            parts.push(`Tax is ${formatCurrency(data.taxAmountEUR)} on ${formatLocal(data.taxableIncomeLocal)} taxable income.`);
+
+            const countryName = config.name || data.hostCountry;
+            if (data.taxCalculationMethod) {
+                parts.push(`${countryName} uses ${data.taxCalculationMethod.toLowerCase()}.`);
+            }
+
+            // Describe brackets if progressive
+            if (brackets.length > 1) {
+                const bracketDescriptions = brackets.map(b => `${b.bracket} equals ${b.amount}`);
+                parts.push(`The brackets are: ${bracketDescriptions.join('; ')}.`);
+            } else if (brackets.length === 1) {
+                parts.push(`Flat rate of ${brackets[0].bracket}.`);
+            }
+
+            parts.push(`The effective rate is ${data.effectiveTaxRate?.toFixed(1) || 0}%.`);
+
+            return {
+                success: true,
+                hasResults: true,
+                taxAmount: formatCurrency(data.taxAmountEUR),
+                taxableIncome: formatLocal(data.taxableIncomeLocal),
+                method: data.taxCalculationMethod || 'Unknown',
+                effectiveRate: `${data.effectiveTaxRate?.toFixed(1) || 0}%`,
+                brackets: brackets,
+                message: parts.join(' ')
+            };
+        }
+
+        /**
+         * Get social security breakdown explanation
+         */
+        getSocialSecurityExplanation() {
+            const data = window.lastCalculationData;
+
+            if (!data) {
+                return {
+                    success: true,
+                    hasResults: false,
+                    message: 'No results displayed yet. Please calculate costs first to see social security details.'
+                };
+            }
+
+            const formatCurrency = (val) => '€' + Math.round(val).toLocaleString('en-GB');
+            const totalSS = data.totalSocialSecurity || data.socialSecurityCost || 0;
+            const employerSS = data.employerSocialSec || 0;
+            const employeeSS = data.employeeSocialSec || 0;
+            const config = data.config || {};
+            const countryName = config.name || data.hostCountry;
+            const homeCountry = document.getElementById('homeCountry')?.value || 'Finland';
+
+            // Build explanation
+            const parts = [];
+            parts.push(`Social security is ${formatCurrency(totalSS)}.`);
+
+            if (totalSS === 0) {
+                if (data.hasAgreement) {
+                    parts.push(`${homeCountry} has a reciprocal social security agreement with ${countryName}, so contributions remain payable in ${homeCountry} only.`);
+                } else if (data.socialSecExclusionReason) {
+                    parts.push(`Reason: ${data.socialSecExclusionReason}.`);
+                } else {
+                    parts.push(`No host country social security contributions are required.`);
+                }
+            } else {
+                parts.push(`Employer portion is ${formatCurrency(employerSS)}.`);
+                parts.push(`Employee portion is ${formatCurrency(employeeSS)}.`);
+
+                const employerRate = ((config.employerSocialSec || 0) * 100).toFixed(1);
+                const employeeRate = ((config.employeeSocialSec || 0) * 100).toFixed(1);
+                parts.push(`Rates are ${employerRate}% employer and ${employeeRate}% employee.`);
+            }
+
+            return {
+                success: true,
+                hasResults: true,
+                totalAmount: formatCurrency(totalSS),
+                employerPortion: formatCurrency(employerSS),
+                employeePortion: formatCurrency(employeeSS),
+                hasAgreement: data.hasAgreement || false,
+                reason: data.socialSecExclusionReason || (totalSS === 0 ? 'Reciprocal agreement' : 'Contributions required'),
+                message: parts.join(' ')
+            };
+        }
+
+        /**
+         * Get per diem breakdown explanation
+         */
+        getPerDiemExplanation() {
+            const data = window.lastCalculationData;
+
+            if (!data) {
+                return {
+                    success: true,
+                    hasResults: false,
+                    message: 'No results displayed yet. Please calculate costs first to see per diem details.'
+                };
+            }
+
+            const formatCurrency = (val) => '€' + Math.round(val).toLocaleString('en-GB');
+            const formatDecimal = (val) => '€' + val.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const totalPerDiem = data.totalPerDiem || data.totalAllowances || 0;
+            const dailyRate = data.dailyAllowance || 0;
+            const workingDays = data.totalWorkingDays || 0;
+            const countryName = data.config?.name || data.hostCountry;
+            const homeCountry = document.getElementById('homeCountry')?.value || 'Finland';
+
+            // Build explanation
+            const parts = [];
+            parts.push(`Per diem is ${formatCurrency(totalPerDiem)} total.`);
+            parts.push(`Daily allowance is ${formatDecimal(dailyRate)}.`);
+
+            if (data.perDiemBasisText) {
+                parts.push(`This is based on ${data.perDiemBasisText}.`);
+            } else {
+                parts.push(`This is based on ${homeCountry}'s destination rate for ${countryName}.`);
+            }
+
+            parts.push(`Over ${workingDays} working days, this totals ${formatCurrency(totalPerDiem)}.`);
+            parts.push(`Per diem is typically tax-exempt.`);
+
+            // Add source info if available
+            if (data.perDiemSourceName) {
+                parts.push(`Source: ${data.perDiemSourceName}.`);
+            }
+
+            return {
+                success: true,
+                hasResults: true,
+                totalAmount: formatCurrency(totalPerDiem),
+                dailyRate: formatDecimal(dailyRate),
+                workingDays: workingDays,
+                basis: data.perDiemBasisText || `${homeCountry} destination rate for ${countryName}`,
+                source: data.perDiemSourceName || null,
+                taxExempt: true,
+                message: parts.join(' ')
+            };
         }
 
         /**
