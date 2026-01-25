@@ -101,8 +101,16 @@ class StaffingEngine {
         // Jurisdiction-specific compliance rules
         const durationDays = project.durationMonths * 30;
 
+        // Define US regions for compliance purposes
+        const usRegions = ['USA', 'NewEngland', 'California', 'Texas', 'Florida', 'NewYork'];
+        const isUSDestination = usRegions.includes(project.country);
+
+        // Define UK cities for compliance purposes
+        const ukCities = ['UK', 'London', 'Manchester', 'Edinburgh', 'Birmingham'];
+        const isUKDestination = ukCities.includes(project.country);
+
         // === USA Compliance Rules ===
-        if (project.country === 'USA') {
+        if (isUSDestination) {
             // ESTA/VWP limited to 90 days, cannot be used for paid work
             if (visaDetails.type.includes('ESTA') || visaDetails.type.includes('VWP') || visaDetails.type.includes('Waiver')) {
                 if (durationDays > 90) {

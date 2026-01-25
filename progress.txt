@@ -194,3 +194,39 @@ The Staffing Engine now provides:
 - Fair cost comparison across different project durations
 - Skills matching to find best-fit candidates
 - Compliance risk warnings for visa/work authorisation issues
+
+---
+
+## Post-RALPH: Brand Colour Update - 2026-01-25
+
+**Request**: Apply brand colours from brandcolours.jpeg to all new Staffing Engine elements
+
+**Brand Palette Applied**:
+- Teal Blue (#40AEBC): Primary accent, selected states, full skill match
+- Dark Indigo (#181C31): Headings, gradient start
+- Pastel Red (#BD4040): Critical warnings, low compliance
+- Gold (#BD8941): Partial match, processing status, warnings
+- Light Gray (#EEEEEE): Borders, unselected states
+- Light Sky Blue (#83849E): Secondary text, unselected chip text
+
+**CSS Changes** (css/app.css):
+- Updated `.skill-chip` styling: gradient background when selected, brand border/text colours
+- Added new brand-specific classes:
+  - `.risk-badge` (critical/warning/note variants)
+  - `.skills-badge` (full-match/partial-match/low-match/no-match)
+  - `.visa-badge` (in-country/processing)
+  - `.score-bar` and `.score-bar-fill` with gradient
+  - `.carbon-indicator` (low/medium/high)
+  - `.compliance-bar` styling
+
+**HTML Changes** (app.html):
+- Updated results rendering to use brand CSS classes instead of Tailwind utilities
+- Expanded destination country dropdown to match Cost Analysis tab (10 countries)
+- Replaced inline Tailwind colours with CSS custom properties
+
+**Verification**:
+- Skill chips show gradient on selection
+- Risk badges display with brand red (CRITICAL), gold (WARNING), teal (NOTE)
+- Skills match badges use brand teal (100%), gold (50%+), red (<50%)
+- Score progress bars use dark indigo to teal gradient
+- All 10 destination countries available in dropdown
