@@ -1,0 +1,48 @@
+{
+  "feature": "Voice assistant form state awareness - AI should know current form values and not ask for information already on screen",
+  "created": "2025-01-25T13:30:00Z",
+  "stories": [
+    {
+      "id": "STORY-01",
+      "title": "Add get_form_state tool to return current form values",
+      "priority": 1,
+      "acceptance_criteria": [
+        "AC1: Add get_form_state tool definition to edge function",
+        "AC2: Implement get_form_state handler in voice-commands.js that reads all form fields",
+        "AC3: Tool returns: homeCountry, destinationCountry, salary, duration, dailyAllowance, workingDays"
+      ],
+      "verification": {
+        "browser": "Open app, click Voice Commands, check console for get_form_state in tools list"
+      },
+      "passes": true
+    },
+    {
+      "id": "STORY-02",
+      "title": "Send initial form state to model on session connect",
+      "priority": 2,
+      "acceptance_criteria": [
+        "AC1: After WebRTC data channel opens, automatically call get_form_state",
+        "AC2: Send form state as a system message to the model",
+        "AC3: Model receives context about current form values before user speaks"
+      ],
+      "verification": {
+        "browser": "Open app with form pre-filled, click Voice Commands, check console shows form state sent"
+      },
+      "passes": true
+    },
+    {
+      "id": "STORY-03",
+      "title": "Update system instructions to use form context",
+      "priority": 3,
+      "acceptance_criteria": [
+        "AC1: System prompt tells model to check current form state before asking for values",
+        "AC2: Model should say 'I see you have X set to Y' when relevant values exist",
+        "AC3: Model only asks for missing information, not all fields"
+      ],
+      "verification": {
+        "browser": "With Brazil selected, say 'calculate costs' - model should proceed without asking destination"
+      },
+      "passes": true
+    }
+  ]
+}
