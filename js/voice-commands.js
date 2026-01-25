@@ -520,6 +520,35 @@
                         }
                         break;
 
+                    case 'highlight_map':
+                        if (typeof window.highlightMapCountry === 'function' && args.country) {
+                            const found = window.highlightMapCountry(args.country);
+                            if (found) {
+                                result.message = `Highlighted ${args.country} on the analytics map`;
+                            } else {
+                                result.success = false;
+                                result.error = `Country "${args.country}" not found on the map`;
+                            }
+                        } else {
+                            result.success = false;
+                            result.error = 'Map highlight function not available or no country provided';
+                        }
+                        break;
+
+                    case 'run_optimization':
+                        if (typeof window.runOptimization === 'function') {
+                            // Switch to staffing tab first
+                            if (typeof window.switchMainTab === 'function') {
+                                window.switchMainTab('staffing');
+                            }
+                            window.runOptimization();
+                            result.message = 'Running staffing optimization engine';
+                        } else {
+                            result.success = false;
+                            result.error = 'Optimization function not available';
+                        }
+                        break;
+
                     case 'stop_voice':
                         result.message = 'Voice commands stopped';
                         this.log('Stopping voice via function call');
@@ -583,8 +612,19 @@
             const dailyAllowanceEl = document.getElementById('dailyAllowance');
             const workingDaysEl = document.getElementById('workingDays');
 
+            // Detect current tab
+            let currentTab = 'calculator';
+            const staffSection = document.getElementById('section-staffing');
+            const analyticsSection = document.getElementById('section-analytics');
+            if (staffSection && !staffSection.classList.contains('hidden')) {
+                currentTab = 'staffing';
+            } else if (analyticsSection && !analyticsSection.classList.contains('hidden')) {
+                currentTab = 'analytics';
+            }
+
             const state = {
                 success: true,
+                currentTab: currentTab,
                 homeCountry: homeCountryEl ? homeCountryEl.value : null,
                 destinationCountry: destinationEl ? destinationEl.value : null,
                 monthlySalary: salaryEl ? parseFloat(salaryEl.value) || null : null,
@@ -595,6 +635,7 @@
 
             // Build a human-readable summary
             const parts = [];
+            parts.push(`Current page: ${currentTab}`);
             if (state.homeCountry) parts.push(`Home country: ${state.homeCountry}`);
             if (state.destinationCountry) parts.push(`Destination: ${state.destinationCountry}`);
             if (state.monthlySalary) parts.push(`Salary: €${state.monthlySalary.toLocaleString()}`);
@@ -603,7 +644,7 @@
             if (state.workingDaysPerMonth) parts.push(`Working days/month: ${state.workingDaysPerMonth}`);
 
             state.summary = parts.length > 0
-                ? `Current form values: ${parts.join(', ')}`
+                ? `Current state - ${parts.join(', ')}`
                 : 'Form is empty - no values set yet';
 
             this.log('Form state:', state);
@@ -1213,6 +1254,43 @@
             speak('Switching to staffing engine.');
             if (typeof window.switchMainTab === 'function') {
                 window.switchMainTab('staffing');
+            }
+            return;
+        }
+
+        // Switch to Analytics
+        if (transcript.includes('analytics') || transcript.includes('map') || transcript.includes('insights')) {
+            speak('Switching to global deployment insights.');
+            if (typeof window.switchMainTab === 'function') {
+                window.switchMainTab('analytics');
+            }
+            return;
+        }
+
+        // Highlight map (Analytics)
+        if (transcript.includes('show costs in') || transcript.includes('highlight') || transcript.includes('zoom to')) {
+            for (const [keyword, country] of Object.entries(countryMatches)) {
+                if (transcript.includes(keyword)) {
+                    if (typeof window.highlightMapCountry === 'function') {
+                        const found = window.highlightMapCountry(country);
+                        if (found) {
+                            speak('Highlighting ' + country + ' on the map.');
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Run optimization (Staffing)
+        if (transcript.includes('run engine') || transcript.includes('optimize') || transcript.includes('find best')) {
+            speak('Running the resource optimization engine.');
+            if (typeof window.runOptimization === 'function') {
+                // Ensure we are on staffing tab
+                if (typeof window.switchMainTab === 'function') {
+                    window.switchMainTab('staffing');
+                }
+                window.runOptimization();
             }
             return;
         }

@@ -207,3 +207,6 @@ async function runOptimization() {
         }
     }
 }
+
+// Expose to window for voice control
+window.runOptimization = runOptimization;
