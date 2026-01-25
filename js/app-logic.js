@@ -13,10 +13,10 @@ const countryConfig = {
         exchangeRate: 6.0,          // Default, updated by fetchExchangeRates()
         taxRate: 0.25,              // 25% non-resident flat rate
         deduction: 0,
-        socialSec: 0.35,        // 35% total (employer ~28% + employee ~7%)
+        socialSec: 0.35,        // 35% total (employer ~27.5% + employee variable)
         socialSecCap: null,         // No cap for employers
-        employeeSocialSecRate: 0.11, // Employee portion
-        employeeSocialSecCap: 8157.41, // BRL monthly cap for employee
+        employeeSocialSecRate: 0.11, // Employee INSS rate (up to 14% progressive, using ~11% average)
+        employeeSocialSecCap: 8475.55, // BRL monthly salary ceiling - above this, contribution is capped at ~BRL 988.09
         hasTreatyWithFinland: false,
         noTreatyWarning: true
     },
