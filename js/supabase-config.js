@@ -8,6 +8,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const PRE_APPROVED_EMAILS = [
     // The Cozm team
     'benjamin@thecozm.com',
+    'benjamin.oghene@thecozm.com',
     'graham@thecozm.com',
     'harish@thecozm.com',
     'umama@thecozm.com',
@@ -22,7 +23,8 @@ const PRE_APPROVED_EMAILS = [
     'avni@thecozm.com',
     'siobhan@thecozm.com',
     'sayeed@thecozm.com',
-    'ise@thecozm.com'
+    'ise@thecozm.com',
+    'khadeeja001@hotmail.com'
 ];
 
 // Superuser emails

@@ -20,8 +20,12 @@ A secure, authentication-gated cost estimation tool for Field Service Engineer (
 
 ### Pre-approved Users
 - benjamin@thecozm.com (Superuser)
+- benjamin.oghene@thecozm.com
 - graham@thecozm.com
 - harish@thecozm.com
+- siobhan@thecozm.com
+- khadeeja001@hotmail.com
+
 
 ## Tech Stack
 
