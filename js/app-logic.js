@@ -667,8 +667,15 @@ function updateInputWarnings() {
     }
 
     if (workingDaysEl) {
-        const workingDays = parseFloat(workingDaysEl.value);
+        let workingDays = parseFloat(workingDaysEl.value);
         let workingDaysWarning = '';
+
+        // Enforce max of 31 days per month
+        if (workingDays > 31) {
+            workingDays = 31;
+            workingDaysEl.value = 31;
+        }
+
         if (!Number.isFinite(workingDays) || workingDays <= 0) {
             workingDaysWarning = 'Working days must be greater than 0.';
         } else if (workingDays < 18 || workingDays > 26) {
