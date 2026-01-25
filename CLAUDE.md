@@ -149,3 +149,19 @@ The Voice button MUST remain in `app.html` in TWO locations:
 3. Search for `toggleVoice` - must have onclick handlers
 
 If these are missing, the edit has accidentally removed the voice functionality.
+
+## Troubleshooting
+
+See **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** for common issues and solutions, including:
+
+- Authentication redirect loops and session errors
+- GitHub Pages deployment issues
+- Voice button protection
+- Browser-specific problems
+
+**Quick fixes:**
+| Issue | Solution |
+|-------|----------|
+| Session Error loop | Add `?dev=true` to URL |
+| Changes not live | `git push` and wait 2 mins |
+| Button onclick error | Ensure function defined before `return` |
