@@ -1373,7 +1373,7 @@
                         </div>
 
                         <!-- Cost by Hub Bar Chart -->
-                        <div class="analytics-chart-card">
+                        <div class="analytics-chart-card analytics-card" data-analytics-card="costs">
                             <h3 class="analytics-chart-title">Average Deployment Cost</h3>
                             <p class="analytics-chart-subtitle">Monthly cost per engineer by hub</p>
                             <div class="analytics-bar-container">
@@ -1384,26 +1384,14 @@
                     </div>
 
                     <!-- Interactive World Map - Full Width -->
-                    <div class="analytics-map-card">
+                    <div class="analytics-map-card analytics-card" data-analytics-card="map">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
                             <h3 class="text-sm font-bold text-white uppercase tracking-widest">Global Hub Network</h3>
-                            <div class="flex flex-wrap gap-3">
-                                <span class="flex items-center gap-1.5 text-[10px] text-gray-400">
-                                    <span class="w-2 h-2 rounded-full bg-[#4ADE80]"></span> Low Cost
-                                </span>
-                                <span class="flex items-center gap-1.5 text-[10px] text-gray-400">
-                                    <span class="w-2 h-2 rounded-full bg-[#FACC15]"></span> Medium
-                                </span>
-                                <span class="flex items-center gap-1.5 text-[10px] text-gray-400">
-                                    <span class="w-2 h-2 rounded-full bg-[#F87171]"></span> High
-                                </span>
-                                <span class="flex items-center gap-1.5 text-[10px] text-gray-400">
-                                    <span class="w-2 h-2 rounded-full bg-white border border-gray-600"></span> HQ
-                                </span>
-                            </div>
+                            <div class="flex flex-wrap gap-3" id="analytics-map-legend"></div>
                         </div>
                         <!-- Map Container -->
                         <div id="analytics-map"></div>
+                        <div class="analytics-callout" id="analytics-callout"></div>
                         <p class="text-[10px] text-gray-500 mt-2 text-right">Interactive: Zoom & click markers for details</p>
                     </div>
                 </div>
