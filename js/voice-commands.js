@@ -113,6 +113,9 @@
                     this.isConnected = true;
                     showVoiceToast('Voice assistant connected. Speak naturally!');
 
+                    // Send tools definition to model
+                    this.sendTools();
+
                     // Send initial form state to model so it knows current values
                     this.sendInitialFormState();
                 };
@@ -568,6 +571,225 @@
 
             // Send function result back to the model
             this.sendFunctionResult(callId, result);
+        }
+
+        /**
+         * Send tool definitions to the model
+         */
+        sendTools() {
+            if (!this.dataChannel || this.dataChannel.readyState !== 'open') {
+                this.error('Cannot send tools - data channel not open');
+                return;
+            }
+
+            const sessionUpdate = {
+                type: 'session.update',
+                session: {
+                    tools: [
+                        {
+                            type: 'function',
+                            name: 'calculate_costs',
+                            description: 'Run the cost calculation based on current form values. Call this when the user asks to calculate, estimate, or show costs.'
+                        },
+                        {
+                            type: 'function',
+                            name: 'reset_form',
+                            description: 'Clear all form inputs and reset to default state.'
+                        },
+                        {
+                            type: 'function',
+                            name: 'set_home_country',
+                            description: 'Set the home country (origin).',
+                            parameters: {
+                                type: 'object',
+                                properties: {
+                                    country: { type: 'string', description: 'Country name (e.g. Finland, Portugal)' }
+                                },
+                                required: ['country']
+                            }
+                        },
+                        {
+                            type: 'function',
+                            name: 'set_destination',
+                            description: 'Set the host country (destination).',
+                            parameters: {
+                                type: 'object',
+                                properties: {
+                                    country: { type: 'string', description: 'Country name (e.g. Brazil, USA, Singapore)' }
+                                },
+                                required: ['country']
+                            }
+                        },
+                        {
+                            type: 'function',
+                            name: 'set_destination_city',
+                            description: 'Set the destination city (only for countries with city-specific rates like UK or USA).',
+                            parameters: {
+                                type: 'object',
+                                properties: {
+                                    city: { type: 'string', description: 'City name (e.g. London, New York)' }
+                                },
+                                required: ['city']
+                            }
+                        },
+                        {
+                            type: 'function',
+                            name: 'set_duration',
+                            description: 'Set the assignment duration in months.',
+                            parameters: {
+                                type: 'object',
+                                properties: {
+                                    months: { type: 'integer', description: 'Number of months (1-60)' }
+                                },
+                                required: ['months']
+                            }
+                        },
+                        {
+                            type: 'function',
+                            name: 'set_salary',
+                            description: 'Set the monthly gross salary.',
+                            parameters: {
+                                type: 'object',
+                                properties: {
+                                    salary: { type: 'number', description: 'Monthly salary amount' }
+                                },
+                                required: ['salary']
+                            }
+                        },
+                        {
+                            type: 'function',
+                            name: 'set_daily_allowance',
+                            description: 'Set the daily per diem allowance amount.',
+                            parameters: {
+                                type: 'object',
+                                properties: {
+                                    amount: { type: 'number', description: 'Daily allowance amount' }
+                                },
+                                required: ['amount']
+                            }
+                        },
+                        {
+                            type: 'function',
+                            name: 'set_working_days',
+                            description: 'Set the number of working days per month.',
+                            parameters: {
+                                type: 'object',
+                                properties: {
+                                    days: { type: 'integer', description: 'Working days (usually 20-25)' }
+                                },
+                                required: ['days']
+                            }
+                        },
+                        {
+                            type: 'function',
+                            name: 'switch_tab',
+                            description: 'Switch to a specific application tab/section.',
+                            parameters: {
+                                type: 'object',
+                                properties: {
+                                    tab: { 
+                                        type: 'string', 
+                                        enum: ['calculator', 'staffing', 'analytics'],
+                                        description: 'The tab to switch to' 
+                                    }
+                                },
+                                required: ['tab']
+                            }
+                        },
+                        {
+                            type: 'function',
+                            name: 'load_demo_data',
+                            description: 'Populate the form with sample/demo data for testing.'
+                        },
+                        {
+                            type: 'function',
+                            name: 'explain_results',
+                            description: 'Provide a verbal explanation of the calculation results.'
+                        },
+                        {
+                            type: 'function',
+                            name: 'explain_tax',
+                            description: 'Explain how the tax amount was calculated.'
+                        },
+                        {
+                            type: 'function',
+                            name: 'explain_social_security',
+                            description: 'Explain the social security costs and rules.'
+                        },
+                        {
+                            type: 'function',
+                            name: 'explain_per_diem',
+                            description: 'Explain the per diem allowance calculation.'
+                        },
+                        {
+                            type: 'function',
+                            name: 'explain_admin_fees',
+                            description: 'Explain the administrative fees.'
+                        },
+                        {
+                            type: 'function',
+                            name: 'get_form_state',
+                            description: 'Get the current values of all form inputs.'
+                        },
+                        {
+                            type: 'function',
+                            name: 'toggle_social_security',
+                            description: 'Enable or disable social security inclusion.',
+                            parameters: {
+                                type: 'object',
+                                properties: {
+                                    enabled: { type: 'boolean', description: 'True to include, False to exclude' },
+                                    scenario: { type: 'string', enum: ['no_agreement', 'with_agreement', 'both'], description: 'Which scenario setting to toggle' }
+                                },
+                                required: ['enabled']
+                            }
+                        },
+                        {
+                            type: 'function',
+                            name: 'set_currency_display',
+                            description: 'Switch display currency between EUR and Local.',
+                            parameters: {
+                                type: 'object',
+                                properties: {
+                                    currency: { type: 'string', enum: ['EUR', 'LOCAL'], description: 'Currency mode' }
+                                },
+                                required: ['currency']
+                            }
+                        },
+                        {
+                            type: 'function',
+                            name: 'open_settings',
+                            description: 'Open the settings configuration panel.'
+                        },
+                        {
+                            type: 'function',
+                            name: 'highlight_map',
+                            description: 'Highlight a specific country on the analytics map.',
+                            parameters: {
+                                type: 'object',
+                                properties: {
+                                    country: { type: 'string', description: 'Country name to highlight' }
+                                },
+                                required: ['country']
+                            }
+                        },
+                        {
+                            type: 'function',
+                            name: 'run_optimization',
+                            description: 'Run the staffing optimization engine to find best candidates.'
+                        },
+                        {
+                            type: 'function',
+                            name: 'stop_voice',
+                            description: 'Stop the voice assistant and end the session.'
+                        }
+                    ],
+                    tool_choice: 'auto'
+                }
+            };
+
+            this.dataChannel.send(JSON.stringify(sessionUpdate));
+            this.log('Sent tools definition to model');
         }
 
         /**
