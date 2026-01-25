@@ -63,18 +63,24 @@ class StaffingEngine {
         }
 
         // --- Cost Score (Salary + Flight) ---
-        // Logic: Relative to the pool. Lowest cost in pool = 100pts.
-        // For this demo, we use hardcoded "Global Max/Min" anchors to keep it simple
+        // Logic: Dynamic anchors that scale with project duration
         const flightKey = `${candidate.current_location}_${project.country}`;
         const flightCost = this.flightCosts[flightKey] || 1000;
 
         // Monthly Salary * Duration + Flight
         const totalAssignmentCost = (candidate.base_salary_eur * project.durationMonths) + flightCost;
 
-        // Heuristic: Min reasonable cost for 6mo = 30k, Max = 100k
-        // 30k = 100pts, 100k = 0pts
-        const minCostAnchor = 30000;
-        const maxCostAnchor = 100000;
+        // Dynamic cost anchors based on duration
+        // Base monthly anchors: min €4,000/month, max €12,000/month (salary + proportional flight)
+        // This ensures fair scoring regardless of project length
+        const baseMinMonthly = 4000;  // Low-cost candidate (e.g., India-based)
+        const baseMaxMonthly = 12000; // High-cost candidate (e.g., senior Finland-based)
+
+        // Scale anchors by duration, add flight cost buffer
+        const minCostAnchor = (baseMinMonthly * project.durationMonths) + 500;
+        const maxCostAnchor = (baseMaxMonthly * project.durationMonths) + 2000;
+
+        // Calculate score: minCostAnchor = 100pts, maxCostAnchor = 0pts
         let costScore = ((maxCostAnchor - totalAssignmentCost) / (maxCostAnchor - minCostAnchor)) * 100;
         costScore = Math.min(100, Math.max(0, costScore));
 
