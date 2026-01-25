@@ -7,11 +7,13 @@ let mapInitialized = false;
 
 // Mock data for hubs (matching the analytics text)
 const HUBS = [
-    { name: 'Brazil', coords: [-14.2350, -51.9253], count: 24, cost: 9800, color: '#40AEBC' }, // Teal
-    { name: 'USA', coords: [37.0902, -95.7129], count: 45, cost: 12500, color: '#BD8941' }, // Gold
-    { name: 'Singapore', coords: [1.3521, 103.8198], count: 18, cost: 11200, color: '#83849E' }, // Grey
-    { name: 'Germany', coords: [51.1657, 10.4515], count: 32, cost: 10100, color: '#3FAFBE' }, // Light Teal
-    { name: 'Finland', coords: [61.9241, 25.7482], count: 71, cost: 0, color: '#ffffff' } // HQ
+    { name: 'India', coords: [20.5937, 78.9629], count: 44, cost: 7200, color: '#4ADE80', type: 'Low Cost' }, // Green
+    { name: 'Portugal', coords: [39.3999, -8.2245], count: 23, cost: 8500, color: '#4ADE80', type: 'Low Cost' }, // Green
+    { name: 'Brazil', coords: [-14.2350, -51.9253], count: 24, cost: 9800, color: '#FACC15', type: 'Medium Cost' }, // Yellow
+    { name: 'Germany', coords: [51.1657, 10.4515], count: 32, cost: 10100, color: '#FACC15', type: 'Medium Cost' }, // Yellow
+    { name: 'Singapore', coords: [1.3521, 103.8198], count: 18, cost: 11200, color: '#F87171', type: 'High Cost' }, // Red
+    { name: 'USA', coords: [37.0902, -95.7129], count: 45, cost: 12500, color: '#F87171', type: 'High Cost' }, // Red
+    { name: 'Finland', coords: [61.9241, 25.7482], count: 71, cost: 0, color: '#ffffff', type: 'HQ' } // HQ
 ];
 
 // Initialize the map
@@ -70,7 +72,7 @@ function initAnalyticsMap() {
         // Tooltip
         marker.bindPopup(`
             <div class="text-sm font-sans">
-                <strong style="color: ${hub.color}">${hub.name}</strong><br>
+                <strong style="color: ${hub.color}">${hub.name}</strong> <span class="text-xs text-gray-500">(${hub.type})</span><br>
                 Staff: ${hub.count}<br>
                 ${hub.cost > 0 ? `Avg Cost: €${hub.cost.toLocaleString()}` : 'Headquarters'}
             </div>
