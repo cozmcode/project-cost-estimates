@@ -153,3 +153,44 @@ Verification:
 - All 4 acceptance criteria verified
 
 ---
+
+## Iteration 3 - 2026-01-25T16:00:00Z
+Story: STORY-03 - Expand compliance logic with jurisdiction-specific rules
+Status: COMPLETE
+
+Changes made:
+- js/staffing-engine.js: Added comprehensive jurisdiction-specific compliance rules
+  - USA: ESTA/VWP limited to 90 days (CRITICAL), B1/B2 prohibits paid work (WARNING)
+  - Singapore: Employment Pass required, warnings for tourist/visitor visas
+  - Brazil: VITEM V required for work >3 months on waiver
+  - General: Tourist/Visitor visas flagged for long-term work
+- app.html: Added risk display in results table with colour-coded warnings
+  - CRITICAL: Red, bold
+  - WARNING: Orange
+  - NOTE: Yellow
+
+Learnings:
+- Risk severity levels (CRITICAL/WARNING/NOTE) help users prioritise compliance concerns
+- Compliance score should reflect actual legal risk (20-40 for serious violations)
+- Employment Pass in Singapore is the correct work authorisation
+
+Verification:
+- Browser USA: "CRITICAL: ESTA/VWP limited to 90 days" shown for 6-month project
+- Browser Singapore: "WARNING: Employment Pass likely required" for non-EP visa
+- Compliance scores properly penalised (dropped to 53-63 for high-risk scenarios)
+- All 4 acceptance criteria verified
+
+---
+
+## Summary - Staffing Engine Improvements
+All 3 stories complete!
+
+Key changes:
+1. STORY-01: Dynamic cost anchors scale with project duration
+2. STORY-02: Skills-based filtering with UI selector and score bonus
+3. STORY-03: Jurisdiction-specific compliance rules for USA, Singapore, Brazil
+
+The Staffing Engine now provides:
+- Fair cost comparison across different project durations
+- Skills matching to find best-fit candidates
+- Compliance risk warnings for visa/work authorisation issues

@@ -1405,6 +1405,16 @@
                         ? `${skillsMatch.matched.length}/${skillsMatch.total} (${skillsMatch.percentage}%)`
                         : 'N/A';
 
+                    // Compliance risks
+                    const risks = details.risks || [];
+                    const complianceScore = candidate.scores.complianceScore;
+                    const complianceClass = complianceScore >= 80 ? 'text-green-600' :
+                                           complianceScore >= 50 ? 'text-yellow-600' :
+                                           'text-red-600';
+                    const riskHtml = risks.length > 0
+                        ? risks.map(r => `<div class="text-xs ${r.includes('CRITICAL') ? 'text-red-600 font-bold' : r.includes('WARNING') ? 'text-orange-600' : 'text-yellow-600'} mt-1">${r}</div>`).join('')
+                        : '';
+
                     const tr = document.createElement('tr');
                     tr.className = 'bg-white border-b hover:bg-gray-50';
                     tr.innerHTML = `
@@ -1424,6 +1434,7 @@
                                 ${details.visaType}
                             </span>
                             <div class="text-xs text-gray-500 mt-1">${details.visaDays} days processing</div>
+                            ${riskHtml}
                         </td>
                         <td class="px-6 py-4 font-medium">
                             €${details.totalCost.toLocaleString()}

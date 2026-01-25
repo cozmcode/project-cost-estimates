@@ -61,7 +61,7 @@
         "lint": "N/A",
         "browser": "Run optimization for USA/Singapore, verify risk warnings appear for non-compliant visa types"
       },
-      "passes": false
+      "passes": true
     }
   ],
   "notes": [

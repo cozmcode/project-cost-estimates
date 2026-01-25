@@ -98,12 +98,61 @@ class StaffingEngine {
         let complianceScore = 100;
         let risks = [];
 
-        // Risk 1: Working on Tourist Visa (Simplified Logic)
-        if (visaDetails.type.includes('Tourist') || visaDetails.type.includes('Waiver')) {
-            // If project > 30 days and using Waiver, that's a risk in some countries
-            if (project.durationMonths > 1 && project.country === 'Brazil' && visaDetails.type.includes('Waiver')) {
-                complianceScore = 50;
-                risks.push('Risk: Working 3+ months on Waiver');
+        // Jurisdiction-specific compliance rules
+        const durationDays = project.durationMonths * 30;
+
+        // === USA Compliance Rules ===
+        if (project.country === 'USA') {
+            // ESTA/VWP limited to 90 days, cannot be used for paid work
+            if (visaDetails.type.includes('ESTA') || visaDetails.type.includes('VWP') || visaDetails.type.includes('Waiver')) {
+                if (durationDays > 90) {
+                    complianceScore = 20;
+                    risks.push('CRITICAL: ESTA/VWP limited to 90 days');
+                } else {
+                    complianceScore = 40;
+                    risks.push('WARNING: ESTA/VWP cannot be used for paid work');
+                }
+            }
+            // B1/B2 visitor visa cannot be used for productive work
+            if (visaDetails.type.includes('B1') || visaDetails.type.includes('B2')) {
+                complianceScore = 30;
+                risks.push('WARNING: B1/B2 visa prohibits paid employment');
+            }
+        }
+
+        // === Singapore Compliance Rules ===
+        if (project.country === 'Singapore') {
+            // Employment Pass required for any work activity
+            if (!visaDetails.type.includes('Employment Pass')) {
+                if (visaDetails.type.includes('Tourist') || visaDetails.type.includes('Visitor')) {
+                    complianceScore = 20;
+                    risks.push('CRITICAL: Tourist visa cannot work - Employment Pass required');
+                } else if (durationDays > 30) {
+                    complianceScore = 40;
+                    risks.push('WARNING: Employment Pass likely required for work >30 days');
+                } else {
+                    complianceScore = 60;
+                    risks.push('NOTE: Short-term work may require Work Permit');
+                }
+            }
+        }
+
+        // === Brazil Compliance Rules (existing) ===
+        if (project.country === 'Brazil') {
+            if (visaDetails.type.includes('Tourist') || visaDetails.type.includes('Waiver')) {
+                if (project.durationMonths > 1) {
+                    complianceScore = Math.min(complianceScore, 50);
+                    risks.push('Risk: Working 3+ months on Waiver requires VITEM V');
+                }
+            }
+        }
+
+        // === General Rules ===
+        // Tourist/Visitor visas generally cannot be used for paid work
+        if (!risks.length && (visaDetails.type.includes('Tourist') || visaDetails.type.includes('Visitor'))) {
+            if (durationDays > 30) {
+                complianceScore = Math.min(complianceScore, 60);
+                risks.push('NOTE: Long-term work may require work authorisation');
             }
         }
 
