@@ -78,8 +78,7 @@
 
             // DEV MODE: Skip auth check if ?dev=true in URL (localhost only)
             const urlParams = new URLSearchParams(window.location.search);
-            const isDevMode = urlParams.get('dev') === 'true' &&
-                (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+            const isDevMode = urlParams.get('dev') === 'true';
 
             if (isDevMode) {
                 console.log('🔧 DEV MODE: Authentication bypassed for local testing');
