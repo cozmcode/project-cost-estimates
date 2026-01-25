@@ -99,6 +99,24 @@
                 return;
             }
 
+            // Clear all auth data and retry (for mobile Safari issues)
+            // Define this BEFORE the redirect loop guard so it's available when error UI is shown
+            window.clearAllAndRetry = function () {
+                try {
+                    sessionStorage.clear();
+                    localStorage.removeItem('fse-cost-calc-auth');
+                    // Clear any other Supabase auth tokens
+                    Object.keys(localStorage).forEach(key => {
+                        if (key.includes('supabase') || key.includes('auth')) {
+                            localStorage.removeItem(key);
+                        }
+                    });
+                } catch (e) {
+                    console.warn('[AUTH] Could not clear storage:', e);
+                }
+                window.location.href = 'index.html';
+            };
+
             // REDIRECT LOOP GUARD - Lower threshold to 2 for faster loop detection
             const redirectCount = parseInt(sessionStorage.getItem('auth_redirect_count') || '0');
             console.log('[AUTH] Redirect count:', redirectCount);
@@ -131,23 +149,6 @@
                 }
                 return;
             }
-
-            // Clear all auth data and retry (for mobile Safari issues)
-            window.clearAllAndRetry = function () {
-                try {
-                    sessionStorage.clear();
-                    localStorage.removeItem('fse-cost-calc-auth');
-                    // Clear any other Supabase auth tokens
-                    Object.keys(localStorage).forEach(key => {
-                        if (key.includes('supabase') || key.includes('auth')) {
-                            localStorage.removeItem(key);
-                        }
-                    });
-                } catch (e) {
-                    console.warn('[AUTH] Could not clear storage:', e);
-                }
-                window.location.href = 'index.html';
-            };
 
             function redirectToLogin(reason) {
                 console.log('[AUTH] Redirecting to login:', reason);
