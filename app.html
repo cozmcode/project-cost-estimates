@@ -1336,84 +1336,75 @@
             <!-- Analytics Section -->
             <div id="section-analytics" class="hidden animate-fade-in">
                 <div class="card p-4 md:p-8 mb-6 md:mb-8">
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
                         <div class="text-center md:text-left">
                             <h2 class="text-lg md:text-xl font-extrabold text-gray-900 tracking-tight">Global
                                 Deployment Insights</h2>
                             <p class="text-xs md:text-sm text-gray-500 mt-1">Real-time analysis of your global roster
                                 capabilities and cost trends.</p>
                         </div>
+                        <!-- Key Stats Summary -->
+                        <div class="flex items-center gap-6">
+                            <div class="text-center">
+                                <p id="analytics-total-engineers" class="text-2xl font-extrabold text-cozm-teal">257</p>
+                                <p class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Engineers</p>
+                            </div>
+                            <div class="text-center">
+                                <p id="analytics-hub-count" class="text-2xl font-extrabold text-green-500">7</p>
+                                <p class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Hubs</p>
+                            </div>
+                            <div class="text-center">
+                                <p id="analytics-avg-cost" class="text-2xl font-extrabold text-indigo-500">€9.9k</p>
+                                <p class="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Avg Cost</p>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                        <!-- Roster Overview -->
-                        <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                            <h3 class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4">Roster Overview
-                            </h3>
-                            <div class="flex items-center justify-between mb-6">
-                                <div>
-                                    <p class="text-3xl font-extrabold text-cozm-teal">158</p>
-                                    <p class="text-xs text-gray-500 font-medium">Total Engineers</p>
-                                </div>
-                                <div>
-                                    <p class="text-3xl font-extrabold text-green-500">82%</p>
-                                    <p class="text-xs text-gray-500 font-medium">Deployment Ready</p>
-                                </div>
-                                <div>
-                                    <p class="text-3xl font-extrabold text-indigo-500">12</p>
-                                    <p class="text-xs text-gray-500 font-medium">Countries</p>
-                                </div>
+                    <!-- Charts Row -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <!-- Roster Distribution Donut Chart -->
+                        <div class="analytics-chart-card">
+                            <h3 class="analytics-chart-title">Roster Distribution</h3>
+                            <p class="analytics-chart-subtitle">Engineer headcount by hub location</p>
+                            <div class="analytics-chart-container">
+                                <canvas id="analytics-donut-chart"></canvas>
                             </div>
-                            <div class="space-y-4">
-                                <div class="flex justify-between text-xs font-medium text-gray-600 mb-1">
-                                    <span>Finland</span>
-                                    <span>45%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-cozm-teal h-2 rounded-full" style="width: 45%"></div>
-                                </div>
-
-                                <div class="flex justify-between text-xs font-medium text-gray-600 mb-1">
-                                    <span>India</span>
-                                    <span>28%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-cozm-teal h-2 rounded-full" style="width: 28%"></div>
-                                </div>
-
-                                <div class="flex justify-between text-xs font-medium text-gray-600 mb-1">
-                                    <span>Portugal</span>
-                                    <span>15%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-cozm-teal h-2 rounded-full" style="width: 15%"></div>
-                                </div>
-                            </div>
+                            <p class="text-[10px] text-gray-400 mt-3 text-center">Click a segment to highlight on map</p>
                         </div>
 
-                        <!-- Interactive World Map -->
-                        <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 shadow-xl overflow-hidden relative">
-                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                                <h3 class="text-sm font-bold text-white uppercase tracking-widest">Global Operations</h3>
-                                <div class="flex flex-wrap gap-3">
-                                    <span class="flex items-center gap-1.5 text-[10px] text-gray-400">
-                                        <span class="w-2 h-2 rounded-full bg-[#4ADE80]"></span> Low Cost
-                                    </span>
-                                    <span class="flex items-center gap-1.5 text-[10px] text-gray-400">
-                                        <span class="w-2 h-2 rounded-full bg-[#FACC15]"></span> Medium
-                                    </span>
-                                    <span class="flex items-center gap-1.5 text-[10px] text-gray-400">
-                                        <span class="w-2 h-2 rounded-full bg-[#F87171]"></span> High
-                                    </span>
-                                    <span class="flex items-center gap-1.5 text-[10px] text-gray-400">
-                                        <span class="w-2 h-2 rounded-full bg-white border border-gray-600"></span> HQ
-                                    </span>
-                                </div>
+                        <!-- Cost by Hub Bar Chart -->
+                        <div class="analytics-chart-card">
+                            <h3 class="analytics-chart-title">Average Deployment Cost</h3>
+                            <p class="analytics-chart-subtitle">Monthly cost per engineer by hub</p>
+                            <div class="analytics-bar-container">
+                                <canvas id="analytics-bar-chart"></canvas>
                             </div>
-                            <!-- Map Container -->
-                            <div id="analytics-map"></div>
-                            <p class="text-[10px] text-gray-500 mt-2 text-right">Interactive: Zoom & Click markers for details</p>
+                            <p class="text-[10px] text-gray-400 mt-3 text-center">Click a bar to highlight on map</p>
                         </div>
+                    </div>
+
+                    <!-- Interactive World Map - Full Width -->
+                    <div class="analytics-map-card">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                            <h3 class="text-sm font-bold text-white uppercase tracking-widest">Global Hub Network</h3>
+                            <div class="flex flex-wrap gap-3">
+                                <span class="flex items-center gap-1.5 text-[10px] text-gray-400">
+                                    <span class="w-2 h-2 rounded-full bg-[#4ADE80]"></span> Low Cost
+                                </span>
+                                <span class="flex items-center gap-1.5 text-[10px] text-gray-400">
+                                    <span class="w-2 h-2 rounded-full bg-[#FACC15]"></span> Medium
+                                </span>
+                                <span class="flex items-center gap-1.5 text-[10px] text-gray-400">
+                                    <span class="w-2 h-2 rounded-full bg-[#F87171]"></span> High
+                                </span>
+                                <span class="flex items-center gap-1.5 text-[10px] text-gray-400">
+                                    <span class="w-2 h-2 rounded-full bg-white border border-gray-600"></span> HQ
+                                </span>
+                            </div>
+                        </div>
+                        <!-- Map Container -->
+                        <div id="analytics-map"></div>
+                        <p class="text-[10px] text-gray-500 mt-2 text-right">Interactive: Zoom & click markers for details</p>
                     </div>
                 </div>
             </div>
