@@ -38,6 +38,10 @@ TOOL MAPPING (use these when user mentions):
 - "show in EUR" / "show in local currency" / "switch currency" / "pounds" → set_currency_display
 - "open settings" / "show settings" → open_settings
 - "stop" / "turn off voice" / "goodbye" / "that's all" → stop_voice
+- "how many engineers" / "roster overview" / "team size" → get_roster_stats
+- "country breakdown" / "engineers by country" → get_country_breakdown
+- "compare India and Germany" / "which is cheaper" → compare_countries
+- "highlight Brazil" / "show me India" / "zoom to Portugal" → highlight_map
 
 EXAMPLES:
 - User: "Portugal" → call set_home_country({country: "Portugal"}), say "Done."
@@ -192,8 +196,8 @@ const TOOLS = [
       properties: {
         tab: {
           type: "string",
-          enum: ["calculator", "staffing"],
-          description: "The tab to switch to: 'calculator' for cost estimation or 'staffing' for the staffing engine"
+          enum: ["calculator", "staffing", "analytics"],
+          description: "The tab to switch to: 'calculator' for cost estimation, 'staffing' for the staffing engine, or 'analytics' for global deployment insights"
         }
       },
       required: ["tab"]
@@ -323,6 +327,60 @@ const TOOLS = [
       type: "object",
       properties: {},
       required: []
+    }
+  },
+  {
+    type: "function",
+    name: "highlight_map",
+    description: "Highlight a specific country on the analytics map, zoom to it, and speak info about that hub (headcount, cost tier, average deployment cost). Call when user asks 'highlight Brazil', 'show me India on the map', 'zoom to Portugal'.",
+    parameters: {
+      type: "object",
+      properties: {
+        country: {
+          type: "string",
+          description: "Country name to highlight: India, Portugal, Brazil, Germany, Singapore, USA, or Finland"
+        }
+      },
+      required: ["country"]
+    }
+  },
+  {
+    type: "function",
+    name: "get_roster_stats",
+    description: "Get overall roster statistics including total engineers, deployment readiness percentage, number of hubs, and distribution by cost tier. Call when user asks 'how many engineers', 'roster overview', 'team size', 'deployment capacity'.",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: []
+    }
+  },
+  {
+    type: "function",
+    name: "get_country_breakdown",
+    description: "Get engineer distribution by country with headcount, percentage, cost tier, and average deployment cost. Call when user asks 'show countries', 'engineers by country', 'where are our people', 'country breakdown'.",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: []
+    }
+  },
+  {
+    type: "function",
+    name: "compare_countries",
+    description: "Compare deployment costs and headcount between two specific hub locations. Call when user asks to compare two countries like 'compare India and Germany', 'which is cheaper Brazil or Singapore'.",
+    parameters: {
+      type: "object",
+      properties: {
+        country1: {
+          type: "string",
+          description: "First country to compare (e.g., India, Brazil, Portugal)"
+        },
+        country2: {
+          type: "string",
+          description: "Second country to compare (e.g., Germany, USA, Singapore)"
+        }
+      },
+      required: ["country1", "country2"]
     }
   }
 ]

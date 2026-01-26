@@ -527,7 +527,13 @@
                         if (typeof window.highlightMapCountry === 'function' && args.country) {
                             const found = window.highlightMapCountry(args.country);
                             if (found) {
-                                result.message = `Highlighted ${args.country} on the analytics map`;
+                                // Get hub data for spoken feedback
+                                const hubInfo = this.getHubInfo(args.country);
+                                if (hubInfo) {
+                                    result.message = `Highlighted ${args.country} on the map. ${hubInfo.count} engineers, ${hubInfo.type}${hubInfo.cost > 0 ? `, average deployment cost €${hubInfo.cost.toLocaleString()}` : ' headquarters'}.`;
+                                } else {
+                                    result.message = `Highlighted ${args.country} on the analytics map`;
+                                }
                             } else {
                                 result.success = false;
                                 result.error = `Country "${args.country}" not found on the map`;
@@ -536,6 +542,18 @@
                             result.success = false;
                             result.error = 'Map highlight function not available or no country provided';
                         }
+                        break;
+
+                    case 'get_roster_stats':
+                        result = this.getRosterStats();
+                        break;
+
+                    case 'get_country_breakdown':
+                        result = this.getCountryBreakdown();
+                        break;
+
+                    case 'compare_countries':
+                        result = this.compareCountries(args.country1, args.country2);
                         break;
 
                     case 'run_optimization':
@@ -764,13 +782,36 @@
                         {
                             type: 'function',
                             name: 'highlight_map',
-                            description: 'Highlight a specific country on the analytics map.',
+                            description: 'Highlight a specific country on the analytics map and get spoken info about that hub.',
                             parameters: {
                                 type: 'object',
                                 properties: {
-                                    country: { type: 'string', description: 'Country name to highlight' }
+                                    country: { type: 'string', description: 'Country name to highlight (e.g., Brazil, India, Portugal, Germany, Singapore, USA, Finland)' }
                                 },
                                 required: ['country']
+                            }
+                        },
+                        {
+                            type: 'function',
+                            name: 'get_roster_stats',
+                            description: 'Get overall roster statistics including total engineers, deployment readiness, hub count, and distribution by cost tier. Call this when user asks "how many engineers", "roster overview", "team size", or similar.'
+                        },
+                        {
+                            type: 'function',
+                            name: 'get_country_breakdown',
+                            description: 'Get engineer distribution by country with headcount, percentage, and cost tier. Call this when user asks "show countries", "breakdown by country", "where are engineers located", or similar.'
+                        },
+                        {
+                            type: 'function',
+                            name: 'compare_countries',
+                            description: 'Compare deployment costs and headcount between two countries. Call this when user asks to compare two locations.',
+                            parameters: {
+                                type: 'object',
+                                properties: {
+                                    country1: { type: 'string', description: 'First country to compare' },
+                                    country2: { type: 'string', description: 'Second country to compare' }
+                                },
+                                required: ['country1', 'country2']
                             }
                         },
                         {
@@ -1233,6 +1274,200 @@
                 hasResults: true,
                 totalAmount: formatCurrency(totalAdminFees),
                 country: countryName,
+                message: parts.join(' ')
+            };
+        }
+
+        /**
+         * Get hub info for a specific country
+         */
+        getHubInfo(countryName) {
+            const hubs = window.ANALYTICS_HUBS;
+            if (!hubs) return null;
+
+            const key = countryName.toLowerCase();
+            return hubs.find(h => h.name.toLowerCase() === key);
+        }
+
+        /**
+         * Get overall roster statistics
+         */
+        getRosterStats() {
+            const hubs = window.ANALYTICS_HUBS;
+            if (!hubs || hubs.length === 0) {
+                return {
+                    success: false,
+                    error: 'Analytics data not available. Please switch to the Analytics tab first.'
+                };
+            }
+
+            const totalEngineers = hubs.reduce((sum, h) => sum + h.count, 0);
+            const hubCount = hubs.length;
+
+            // Count by cost tier
+            const lowCost = hubs.filter(h => h.type === 'Low Cost');
+            const mediumCost = hubs.filter(h => h.type === 'Medium Cost');
+            const highCost = hubs.filter(h => h.type === 'High Cost');
+            const hq = hubs.find(h => h.type === 'HQ');
+
+            // Calculate deployment readiness (mock: engineers not at HQ / total)
+            const deployable = hubs.filter(h => h.type !== 'HQ').reduce((sum, h) => sum + h.count, 0);
+            const readinessPercent = Math.round((deployable / totalEngineers) * 100);
+
+            // Find largest hub
+            const largestHub = [...hubs].sort((a, b) => b.count - a.count)[0];
+
+            // Build message
+            const parts = [];
+            parts.push(`You have ${totalEngineers} engineers across ${hubCount} locations.`);
+            parts.push(`${readinessPercent}% are deployment ready.`);
+            parts.push(`The largest hub is ${largestHub.name} with ${largestHub.count} engineers.`);
+            parts.push(`You have ${lowCost.length} low-cost hubs, ${mediumCost.length} medium-cost, and ${highCost.length} high-cost.`);
+
+            return {
+                success: true,
+                totalEngineers,
+                hubCount,
+                deploymentReadiness: `${readinessPercent}%`,
+                largestHub: largestHub.name,
+                lowCostHubs: lowCost.length,
+                mediumCostHubs: mediumCost.length,
+                highCostHubs: highCost.length,
+                headquarters: hq ? hq.name : null,
+                message: parts.join(' ')
+            };
+        }
+
+        /**
+         * Get engineer distribution by country with costs
+         */
+        getCountryBreakdown() {
+            const hubs = window.ANALYTICS_HUBS;
+            if (!hubs || hubs.length === 0) {
+                return {
+                    success: false,
+                    error: 'Analytics data not available. Please switch to the Analytics tab first.'
+                };
+            }
+
+            // Sort by headcount descending
+            const sorted = [...hubs].sort((a, b) => b.count - a.count);
+            const totalEngineers = hubs.reduce((sum, h) => sum + h.count, 0);
+
+            // Build breakdown array
+            const breakdown = sorted.map(hub => ({
+                country: hub.name,
+                count: hub.count,
+                percentage: Math.round((hub.count / totalEngineers) * 100),
+                costTier: hub.type,
+                avgCost: hub.cost > 0 ? `€${hub.cost.toLocaleString()}` : 'N/A (HQ)'
+            }));
+
+            // Build message (top 5)
+            const parts = [];
+            parts.push(`Engineer distribution by country:`);
+            sorted.slice(0, 5).forEach((hub, i) => {
+                const pct = Math.round((hub.count / totalEngineers) * 100);
+                if (hub.type === 'HQ') {
+                    parts.push(`${hub.name}: ${hub.count} engineers (${pct}%, headquarters).`);
+                } else {
+                    parts.push(`${hub.name}: ${hub.count} engineers (${pct}%, ${hub.type.toLowerCase()}).`);
+                }
+            });
+            if (sorted.length > 5) {
+                parts.push(`Plus ${sorted.length - 5} more locations.`);
+            }
+
+            return {
+                success: true,
+                totalEngineers,
+                breakdown,
+                message: parts.join(' ')
+            };
+        }
+
+        /**
+         * Compare deployment costs between two countries
+         */
+        compareCountries(country1, country2) {
+            const hubs = window.ANALYTICS_HUBS;
+            if (!hubs || hubs.length === 0) {
+                return {
+                    success: false,
+                    error: 'Analytics data not available. Please switch to the Analytics tab first.'
+                };
+            }
+
+            if (!country1 || !country2) {
+                return {
+                    success: false,
+                    error: 'Please specify two countries to compare.'
+                };
+            }
+
+            const hub1 = hubs.find(h => h.name.toLowerCase() === country1.toLowerCase());
+            const hub2 = hubs.find(h => h.name.toLowerCase() === country2.toLowerCase());
+
+            if (!hub1) {
+                return {
+                    success: false,
+                    error: `Country "${country1}" not found. Available: ${hubs.map(h => h.name).join(', ')}`
+                };
+            }
+
+            if (!hub2) {
+                return {
+                    success: false,
+                    error: `Country "${country2}" not found. Available: ${hubs.map(h => h.name).join(', ')}`
+                };
+            }
+
+            // Calculate cost difference
+            const cost1 = hub1.cost || 0;
+            const cost2 = hub2.cost || 0;
+            const costDiff = Math.abs(cost1 - cost2);
+            const cheaper = cost1 < cost2 ? hub1.name : (cost2 < cost1 ? hub2.name : null);
+            const percentDiff = cost1 > 0 && cost2 > 0 ? Math.round((costDiff / Math.max(cost1, cost2)) * 100) : 0;
+
+            // Build comparison message
+            const parts = [];
+            parts.push(`Comparing ${hub1.name} and ${hub2.name}:`);
+
+            // Headcount
+            parts.push(`${hub1.name} has ${hub1.count} engineers, ${hub2.name} has ${hub2.count}.`);
+
+            // Cost comparison
+            if (hub1.type === 'HQ') {
+                parts.push(`${hub1.name} is headquarters with no deployment cost.`);
+            } else if (hub2.type === 'HQ') {
+                parts.push(`${hub2.name} is headquarters with no deployment cost.`);
+            } else if (cheaper) {
+                parts.push(`${cheaper} is ${percentDiff}% cheaper at €${(cheaper === hub1.name ? cost1 : cost2).toLocaleString()} average deployment cost.`);
+                parts.push(`${cheaper === hub1.name ? hub2.name : hub1.name} costs €${(cheaper === hub1.name ? cost2 : cost1).toLocaleString()}.`);
+            } else {
+                parts.push(`Both have similar deployment costs at €${cost1.toLocaleString()}.`);
+            }
+
+            // Cost tier
+            parts.push(`${hub1.name} is ${hub1.type.toLowerCase()}, ${hub2.name} is ${hub2.type.toLowerCase()}.`);
+
+            return {
+                success: true,
+                country1: {
+                    name: hub1.name,
+                    count: hub1.count,
+                    cost: cost1,
+                    costTier: hub1.type
+                },
+                country2: {
+                    name: hub2.name,
+                    count: hub2.count,
+                    cost: cost2,
+                    costTier: hub2.type
+                },
+                cheaper,
+                costDifference: costDiff,
+                percentDifference: percentDiff,
                 message: parts.join(' ')
             };
         }
