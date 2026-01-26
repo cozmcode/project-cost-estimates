@@ -19,8 +19,8 @@
     "relocationSource": "KPMG Taxation of International Executives - Brazil",
     "relocationUrl": "https://assets.kpmg.com/content/dam/kpmgsites/xx/pdf/2023/01/TIES-Brazil.pdf",
     "perDiemTaxable": false,
-    "perDiemNote": "Per diems not taxable per CLT Art 457 section 2; no statutory limit but must be reasonable",
-    "perDiemSource": "Consolidation of Labor Laws (CLT)",
+    "perDiemNote": "Per diems not taxable per CLT Art 457 §2; also exempt from social security contributions. No statutory limit but must be reasonable.",
+    "perDiemSource": "Consolidation of Labor Laws (CLT) Article 457 §2",
     "perDiemUrl": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del5452.htm"
   },
   "USA": {

@@ -1057,9 +1057,9 @@
 
             // Build natural language explanation with step-by-step arithmetic
             const parts = [];
-            const countryName = config.name || data.hostCountry;
+            const countryName = config.name || data.hostCountry || 'the destination';
 
-            parts.push(`Tax breakdown on ${formatLocal(data.taxableIncomeLocal)} taxable income.`);
+            parts.push(`Tax breakdown for ${countryName} on ${formatLocal(data.taxableIncomeLocal)} taxable income.`);
 
             // Show each bracket with arithmetic (e.g., "£11,320 at 20% equals £2,264")
             if (data.taxBracketBreakdown && data.taxBracketBreakdown.length > 0) {
@@ -1078,6 +1078,7 @@
             return {
                 success: true,
                 hasResults: true,
+                country: countryName,
                 taxAmount: formatCurrency(data.taxAmountEUR),
                 taxableIncome: formatLocal(data.taxableIncomeLocal),
                 method: data.taxCalculationMethod || 'Unknown',

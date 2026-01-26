@@ -13,12 +13,17 @@ const countryConfig = {
         exchangeRate: 6.0,          // Default, updated by fetchExchangeRates()
         taxRate: 0.25,              // 25% non-resident flat rate
         deduction: 0,
-        socialSec: 0.35,        // 35% total (employer ~27.5% + employee variable)
+        socialSec: 0.35,            // 35% total (employer ~27.5% + employee ~7.5%)
+        employerSocialSec: 0.275,   // 27.5% employer (INSS 20% + FGTS 8% + RAT/SAT ~1.5% avg)
+        employeeSocialSec: 0.075,   // 7.5% employee INSS (progressive 7.5-14%, using lowest bracket avg)
         socialSecCap: null,         // No cap for employers
-        employeeSocialSecRate: 0.11, // Employee INSS rate (up to 14% progressive, using ~11% average)
-        employeeSocialSecCap: 8475.55, // BRL monthly salary ceiling - above this, contribution is capped at ~BRL 988.09
+        employeeSocialSecRate: 0.11, // Legacy: Employee INSS rate (up to 14% progressive)
+        employeeSocialSecCap: 8475.55, // BRL monthly salary ceiling - above this, contribution is capped
         hasTreatyWithFinland: false,
-        noTreatyWarning: true
+        noTreatyWarning: true,
+        socialSecSource: '<a href="https://taxsummaries.pwc.com/brazil/individual/other-taxes" target="_blank" rel="noopener noreferrer" class="text-cozm-teal hover:underline">PwC INSS rates 2025</a>',
+        socialSecSourceUrl: 'https://taxsummaries.pwc.com/brazil/individual/other-taxes',
+        socialSecNote: 'Finland has NO totalization agreement with Brazil. Dual social security contributions (Finnish + Brazilian INSS) are typically required. Under Wärtsilä policy, the company covers host country contributions.'
     },
     USA: {
         name: 'United States',
@@ -26,7 +31,9 @@ const countryConfig = {
         exchangeRate: 1.08,
         taxRate: 0.24,              // Approximate federal marginal rate
         deduction: 14600,           // Standard deduction (single, 2025)
-        socialSec: 0.153,       // 15.3% total (employer 7.65% + employee 7.65%)
+        socialSec: 0.153,           // 15.3% total (employer 7.65% + employee 7.65%)
+        employerSocialSec: 0.0765,  // 7.65% (Social Security 6.2% + Medicare 1.45%)
+        employeeSocialSec: 0.0765,  // 7.65% (Social Security 6.2% + Medicare 1.45%)
         socialSecCap: 176100,       // USD annual cap for Social Security
         hasTreatyWithFinland: true
     },
@@ -36,7 +43,9 @@ const countryConfig = {
         exchangeRate: 1.0,
         taxRate: 0.30,              // Approximate effective rate
         deduction: 0,
-        socialSec: 0.40,        // ~40% total (employer ~20% + employee ~20%)
+        socialSec: 0.40,            // ~40% total (employer ~20% + employee ~20%)
+        employerSocialSec: 0.20,    // ~20% (pension, health, unemployment, care insurance)
+        employeeSocialSec: 0.20,    // ~20% (pension, health, unemployment, care insurance)
         socialSecCap: 90600,        // EUR annual cap (2025)
         hasTreatyWithFinland: true  // EU regulation
     },
@@ -46,7 +55,9 @@ const countryConfig = {
         exchangeRate: 0.85,
         taxRate: 0.20,              // Basic rate
         deduction: 12570,           // Personal allowance (GBP)
-        socialSec: 0.268,       // NI: employer 13.8% + employee 12% (above threshold)
+        socialSec: 0.268,           // NI: employer 13.8% + employee 12% (above threshold)
+        employerSocialSec: 0.138,   // 13.8% employer NI
+        employeeSocialSec: 0.12,    // 12% employee NI (above threshold)
         socialSecCap: null,         // No cap for employer NI
         hasTreatyWithFinland: true
     },
@@ -66,10 +77,14 @@ const countryConfig = {
         exchangeRate: 1.45,
         taxRate: 0.22,              // Approximate marginal rate
         deduction: 0,
-        socialSec: 0.37,        // CPF: employer 17% + employee 20% (varies by age)
+        socialSec: 0.37,            // CPF: employer 17% + employee 20% (varies by age)
+        employerSocialSec: 0.17,    // 17% employer CPF
+        employeeSocialSec: 0.20,    // 20% employee CPF
         socialSecCap: 6800,         // SGD monthly cap (ordinary wage ceiling)
         hasTreatyWithFinland: false,
-        noTreatyWarning: true
+        noTreatyWarning: true,
+        socialSecSource: '<a href="https://www.cpf.gov.sg/employer/cpf-contribution-calculator" target="_blank" rel="noopener noreferrer" class="text-cozm-teal hover:underline">CPF rates 2025</a>',
+        socialSecSourceUrl: 'https://www.cpf.gov.sg/employer/cpf-contribution-calculator'
     },
     Australia: {
         name: 'Australia',
@@ -77,7 +92,9 @@ const countryConfig = {
         exchangeRate: 1.65,
         taxRate: 0.30,              // Non-resident rate
         deduction: 0,
-        socialSec: 0.115,       // Super guarantee 11.5% (employer only, 2024-25)
+        socialSec: 0.115,           // Super guarantee 11.5% (employer only, 2024-25)
+        employerSocialSec: 0.115,   // 11.5% employer only (Superannuation Guarantee)
+        employeeSocialSec: 0,       // 0% mandatory employee contribution
         socialSecCap: 62500,        // AUD quarterly cap
         hasTreatyWithFinland: true
     },
@@ -87,10 +104,14 @@ const countryConfig = {
         exchangeRate: 18.5,
         taxRate: 0.30,              // Approximate marginal rate
         deduction: 0,
-        socialSec: 0.35,        // ~35% total IMSS contributions
+        socialSec: 0.35,            // ~35% total IMSS contributions
+        employerSocialSec: 0.275,   // ~27.5% employer IMSS
+        employeeSocialSec: 0.075,   // ~7.5% employee IMSS
         socialSecCap: null,
         hasTreatyWithFinland: false,
-        noTreatyWarning: true
+        noTreatyWarning: true,
+        socialSecSource: '<a href="https://taxsummaries.pwc.com/mexico/individual/other-taxes" target="_blank" rel="noopener noreferrer" class="text-cozm-teal hover:underline">PwC IMSS rates 2025</a>',
+        socialSecSourceUrl: 'https://taxsummaries.pwc.com/mexico/individual/other-taxes'
     },
     India: {
         name: 'India',
@@ -98,7 +119,9 @@ const countryConfig = {
         exchangeRate: 90.0,
         taxRate: 0.30,              // Surcharge band
         deduction: 0,
-        socialSec: 0.24,        // PF: employer 12% + employee 12%
+        socialSec: 0.24,            // PF: employer 12% + employee 12%
+        employerSocialSec: 0.12,    // 12% employer EPF + EPS
+        employeeSocialSec: 0.12,    // 12% employee EPF
         socialSecCap: 15000,        // INR monthly cap for PF
         hasTreatyWithFinland: true
     },
@@ -108,10 +131,14 @@ const countryConfig = {
         exchangeRate: 19.5,
         taxRate: 0.31,              // Approximate marginal rate
         deduction: 0,
-        socialSec: 0.02,        // UIF: 1% employer + 1% employee
+        socialSec: 0.02,            // UIF: 1% employer + 1% employee
+        employerSocialSec: 0.01,    // 1% employer UIF
+        employeeSocialSec: 0.01,    // 1% employee UIF
         socialSecCap: 17712,        // ZAR monthly cap
         hasTreatyWithFinland: false,
-        noTreatyWarning: true
+        noTreatyWarning: true,
+        socialSecSource: '<a href="https://www.sars.gov.za/" target="_blank" rel="noopener noreferrer" class="text-cozm-teal hover:underline">SARS UIF rates</a>',
+        socialSecSourceUrl: 'https://www.sars.gov.za/'
     }
 };
 

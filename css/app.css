@@ -1223,6 +1223,19 @@ h1, h2, h3 {
     display: block;
 }
 
+/* Fix for tooltips in breakdown headers - ensure they're hidden by default */
+.breakdown-header .tooltip-content,
+.breakdown-header-left .tooltip-content {
+    display: none !important;
+    visibility: hidden;
+}
+
+.breakdown-header .tooltip-wrapper:hover .tooltip-content,
+.breakdown-header-left .tooltip-wrapper:hover .tooltip-content {
+    display: block !important;
+    visibility: visible;
+}
+
 .help-icon:focus,
 .help-icon:focus-visible {
     outline: 2px solid var(--cozm-teal);
