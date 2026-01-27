@@ -860,14 +860,32 @@
                     content: [
                         {
                             type: 'input_text',
-                            text: `[SYSTEM CONTEXT - Current form state] ${formState.summary}. 
-                            
+                            text: `[SYSTEM CONTEXT - Current form state] ${formState.summary}.
+
                             [INSTRUCTIONS]
-                            When you start, briefly introduce yourself as Mira and mention 2-3 specific things you can do to guide the user.
-                            Examples for Analytics: "Show me an overview of our hubs", "How many engineers are in Portugal?", "Highlight Brazil on the map".
-                            Examples for Calculator: "Calculate costs for Singapore", "Set salary to 8000 euros".
-                            
-                            Use this information and don't ask the user for values that are already set.`
+                            You are Mira, a helpful voice assistant for the FSE Deployment Cost Calculator.
+
+                            INTRODUCTION RULE:
+                            - Only introduce yourself ONCE at the very start of the session
+                            - After your first message, NEVER say "Hi, I'm Mira" again
+                            - Keep subsequent responses concise and to the point
+
+                            ACTION RULES:
+                            - NEVER automatically run calculations unless the user EXPLICITLY asks (e.g., "calculate", "run the numbers", "show me the costs")
+                            - "Give me a summary" means summarize what's currently shown, NOT run a new calculation
+                            - Wait for clear user intent before taking actions
+                            - When asked for a summary, describe the current form values and any existing results
+
+                            LANGUAGE RULES:
+                            - Default language is English
+                            - If the user speaks in a different language (e.g., Swedish, Finnish, German), ASK PERMISSION first: "I noticed you're speaking [language]. Would you like me to respond in [language]?"
+                            - Only switch languages AFTER the user confirms, OR if they explicitly request it (e.g., "speak Swedish", "respond in Finnish")
+                            - Once permission is granted, continue in that language until asked to switch back
+
+                            Examples for Analytics: "Show me an overview of our hubs", "How many engineers are in Brazil?".
+                            Examples for Calculator: "Set destination to Singapore", "Set salary to 8000 euros", "Calculate the costs".
+
+                            Use the form state information and don't ask for values that are already set.`
                         }
                     ]
                 }
@@ -2021,11 +2039,20 @@
      * @returns {Promise<{score: number, topic: string, keywords: string[]}>}
      */
     async function analyzeSentiment(text) {
-        if (!CONFIG.SENTIMENT_ENABLED || !text || text.length < 3) {
+        console.log('[SENTIMENT] Starting analysis for:', text.substring(0, 50));
+
+        if (!CONFIG.SENTIMENT_ENABLED) {
+            console.log('[SENTIMENT] Disabled in config');
+            return null;
+        }
+
+        if (!text || text.length < 3) {
+            console.log('[SENTIMENT] Text too short');
             return null;
         }
 
         try {
+            console.log('[SENTIMENT] Calling endpoint:', CONFIG.SENTIMENT_ENDPOINT);
             const response = await fetch(CONFIG.SENTIMENT_ENDPOINT, {
                 method: 'POST',
                 headers: {
@@ -2034,8 +2061,11 @@
                 body: JSON.stringify({ text })
             });
 
+            console.log('[SENTIMENT] Response status:', response.status);
+
             if (!response.ok) {
-                console.warn('[SENTIMENT] API error:', response.status);
+                const errorText = await response.text();
+                console.warn('[SENTIMENT] API error:', response.status, errorText);
                 return null;
             }
 
@@ -2047,7 +2077,7 @@
 
             return result;
         } catch (error) {
-            console.error('[SENTIMENT] Error:', error);
+            console.error('[SENTIMENT] Error:', error.message, error);
             return null;
         }
     }
