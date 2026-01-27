@@ -2051,6 +2051,79 @@ h1, h2, h3 {
     max-width: 100%;
 }
 
+/* Sentiment display styles */
+.voice-chat-sentiment {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 12px;
+    margin-top: 4px;
+    align-self: flex-end;
+    max-width: fit-content;
+}
+
+.voice-chat-sentiment .sentiment-label {
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.voice-chat-sentiment .sentiment-score {
+    font-weight: 700;
+    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+}
+
+.voice-chat-sentiment .sentiment-topic {
+    opacity: 0.6;
+    font-size: 0.65rem;
+}
+
+/* Sentiment color coding based on score */
+.voice-chat-sentiment.positive {
+    background: rgba(16, 185, 129, 0.15);
+    color: #059669;
+}
+
+.voice-chat-sentiment.neutral {
+    background: rgba(107, 114, 128, 0.15);
+    color: #6b7280;
+}
+
+.voice-chat-sentiment.negative {
+    background: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
+}
+
+/* Sentiment score bar (optional visual) */
+.sentiment-bar {
+    width: 40px;
+    height: 4px;
+    background: #e5e7eb;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.sentiment-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.sentiment-bar-fill.positive {
+    background: #10b981;
+}
+
+.sentiment-bar-fill.neutral {
+    background: #6b7280;
+}
+
+.sentiment-bar-fill.negative {
+    background: #ef4444;
+}
+
 @media (max-width: 768px) {
     .voice-chat-panel {
         right: 10px;

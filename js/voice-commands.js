@@ -22,10 +22,15 @@
         // API endpoints
         REALTIME_TOKEN_ENDPOINT: 'https://cwflqdfytvniozxcreiq.supabase.co/functions/v1/realtime-token',
         TTS_ENDPOINT: 'https://cwflqdfytvniozxcreiq.supabase.co/functions/v1/tts',
+        SENTIMENT_ENDPOINT: 'https://cwflqdfytvniozxcreiq.supabase.co/functions/v1/analyze-sentiment',
 
         // WebRTC configuration
         MAX_RECONNECT_ATTEMPTS: 3,
         SESSION_TIMEOUT_MS: 120000,  // 2 minutes max session
+
+        // Sentiment tracking
+        SENTIMENT_ENABLED: true,
+        SENTIMENT_SESSION_ID: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
 
         // Logging
         DEBUG: true
@@ -228,7 +233,8 @@
                     const transcript = event.transcript;
                     this.log('User said:', transcript);
                     showVoiceToast(`Heard: "${transcript.substring(0, 50)}..."`);
-                    addChatMessage(transcript, 'user');
+                    // Use sentiment-enabled chat message for user input
+                    addChatMessageWithSentiment(transcript, 'user', true);
                     break;
 
                 case 'response.audio.delta':
@@ -2002,6 +2008,225 @@
         const messagesContainer = document.getElementById('voiceChatMessages');
         if (messagesContainer) {
             messagesContainer.innerHTML = '<div class="voice-chat-empty">Voice conversation will appear here when active...</div>';
+        }
+    }
+
+    // =========================================================================
+    // SENTIMENT ANALYSIS
+    // =========================================================================
+
+    /**
+     * Analyze sentiment of a message using OpenAI via Supabase Edge Function
+     * @param {string} text - The message text to analyze
+     * @returns {Promise<{score: number, topic: string, keywords: string[]}>}
+     */
+    async function analyzeSentiment(text) {
+        if (!CONFIG.SENTIMENT_ENABLED || !text || text.length < 3) {
+            return null;
+        }
+
+        try {
+            const response = await fetch(CONFIG.SENTIMENT_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text })
+            });
+
+            if (!response.ok) {
+                console.warn('[SENTIMENT] API error:', response.status);
+                return null;
+            }
+
+            const result = await response.json();
+            console.log('[SENTIMENT] Analysis result:', result);
+
+            // Store sentiment to Supabase if user is authenticated
+            storeSentimentToDatabase(result, text);
+
+            return result;
+        } catch (error) {
+            console.error('[SENTIMENT] Error:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Store sentiment data to Supabase database
+     * @param {Object} sentiment - The sentiment analysis result
+     * @param {string} messageText - The original message text
+     */
+    async function storeSentimentToDatabase(sentiment, messageText) {
+        // Check if Supabase client is available
+        if (typeof window.supabase === 'undefined') {
+            console.log('[SENTIMENT] Supabase not available, skipping database storage');
+            return;
+        }
+
+        try {
+            // Get current user
+            const { data: { user } } = await window.supabase.auth.getUser();
+
+            // Get current calculation context
+            const calcData = window.lastCalculationData || {};
+            const homeCountry = document.getElementById('homeCountry')?.value;
+            const hostCountry = document.getElementById('hostCountry')?.value;
+            const duration = document.getElementById('assignmentLength')?.value;
+            const salary = document.getElementById('monthlySalary')?.value;
+
+            const sentimentLog = {
+                user_id: user?.id || null,
+                session_id: CONFIG.SENTIMENT_SESSION_ID,
+                message_text: messageText.substring(0, 500),
+                message_type: 'user',
+                sentiment_score: sentiment.score,
+                topic: sentiment.topic,
+                keywords: sentiment.keywords || [],
+                home_country: homeCountry,
+                host_country: hostCountry,
+                assignment_months: parseInt(duration) || null,
+                monthly_salary: parseFloat(salary) || null,
+                calculation_total: calcData.additionalCostTotal || null,
+                page_section: getCurrentPageSection()
+            };
+
+            const { error } = await window.supabase
+                .from('sentiment_logs')
+                .insert(sentimentLog);
+
+            if (error) {
+                console.warn('[SENTIMENT] Database insert error:', error.message);
+            } else {
+                console.log('[SENTIMENT] Stored to database');
+            }
+        } catch (error) {
+            console.warn('[SENTIMENT] Database storage error:', error);
+        }
+    }
+
+    /**
+     * Get current page section for context
+     * @returns {string}
+     */
+    function getCurrentPageSection() {
+        const calculatorSection = document.getElementById('section-calculator');
+        const analyticsSection = document.getElementById('section-analytics');
+        const staffingSection = document.getElementById('section-staffing');
+
+        if (calculatorSection && !calculatorSection.classList.contains('hidden')) return 'calculator';
+        if (analyticsSection && !analyticsSection.classList.contains('hidden')) return 'analytics';
+        if (staffingSection && !staffingSection.classList.contains('hidden')) return 'staffing';
+        return 'unknown';
+    }
+
+    /**
+     * Get sentiment class based on score
+     * @param {number} score - Sentiment score (-100 to +100)
+     * @returns {string} CSS class name
+     */
+    function getSentimentClass(score) {
+        if (score > 30) return 'positive';
+        if (score < -30) return 'negative';
+        return 'neutral';
+    }
+
+    /**
+     * Format topic for display
+     * @param {string} topic - Raw topic string
+     * @returns {string} Formatted topic
+     */
+    function formatTopic(topic) {
+        const topicMap = {
+            'tax': 'Tax',
+            'social_security': 'Social Security',
+            'per_diem': 'Per Diem',
+            'admin_fees': 'Admin Fees',
+            'salary': 'Salary',
+            'duration': 'Duration',
+            'general': 'General',
+            'positive_feedback': 'Feedback',
+            'negative_feedback': 'Concern',
+            'question': 'Question',
+            'confusion': 'Clarification'
+        };
+        return topicMap[topic] || topic;
+    }
+
+    /**
+     * Create sentiment display element
+     * @param {Object} sentiment - Sentiment analysis result
+     * @returns {HTMLElement}
+     */
+    function createSentimentElement(sentiment) {
+        const el = document.createElement('div');
+        const sentimentClass = getSentimentClass(sentiment.score);
+        el.className = `voice-chat-sentiment ${sentimentClass}`;
+
+        // Format score with + sign for positive
+        const scoreDisplay = sentiment.score > 0 ? `+${sentiment.score}` : sentiment.score;
+
+        el.innerHTML = `
+            <span class="sentiment-label">Sentiment:</span>
+            <span class="sentiment-score">${scoreDisplay}</span>
+            <span class="sentiment-topic">(${formatTopic(sentiment.topic)})</span>
+        `;
+
+        return el;
+    }
+
+    /**
+     * Add a message to the voice chat panel with optional sentiment analysis
+     * @param {string} text - Message text
+     * @param {string} type - 'user', 'assistant', 'system', or 'function'
+     * @param {boolean} analyzeSentimentFlag - Whether to analyze sentiment (default: true for user messages)
+     */
+    async function addChatMessageWithSentiment(text, type = 'system', analyzeSentimentFlag = null) {
+        const messagesContainer = document.getElementById('voiceChatMessages');
+        if (!messagesContainer) return;
+
+        // Remove empty state message if present
+        const emptyMsg = messagesContainer.querySelector('.voice-chat-empty');
+        if (emptyMsg) emptyMsg.remove();
+
+        // Create message element
+        const msgEl = document.createElement('div');
+        msgEl.className = `voice-chat-message ${type}`;
+        msgEl.textContent = text;
+
+        // Add to container
+        messagesContainer.appendChild(msgEl);
+
+        // Analyze sentiment for user messages (unless explicitly disabled)
+        const shouldAnalyze = analyzeSentimentFlag !== null ? analyzeSentimentFlag : (type === 'user');
+
+        if (shouldAnalyze && CONFIG.SENTIMENT_ENABLED) {
+            // Show loading indicator
+            const loadingEl = document.createElement('div');
+            loadingEl.className = 'voice-chat-sentiment neutral';
+            loadingEl.innerHTML = '<span class="sentiment-label">Analyzing...</span>';
+            messagesContainer.appendChild(loadingEl);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Analyze sentiment
+            const sentiment = await analyzeSentiment(text);
+
+            // Replace loading with actual sentiment
+            loadingEl.remove();
+
+            if (sentiment) {
+                const sentimentEl = createSentimentElement(sentiment);
+                messagesContainer.appendChild(sentimentEl);
+            }
+        }
+
+        // Scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Keep only last 50 messages (including sentiment elements)
+        const allMessages = messagesContainer.querySelectorAll('.voice-chat-message, .voice-chat-sentiment');
+        while (allMessages.length > 100) {
+            messagesContainer.firstChild.remove();
         }
     }
 
