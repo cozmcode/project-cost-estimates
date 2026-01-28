@@ -598,7 +598,7 @@
         }
 
         /**
-         * Send tool definitions to the model
+         * Send tool definitions and system instructions to the model
          */
         sendTools() {
             if (!this.dataChannel || this.dataChannel.readyState !== 'open') {
@@ -606,9 +606,26 @@
                 return;
             }
 
+            // Get current form state for context
+            const formState = this.getFormState();
+
+            // System instructions - this is the PROPER way to set assistant behaviour
+            const systemInstructions = `You are Mira, a helpful voice assistant for the FSE Deployment Cost Calculator.
+
+CRITICAL BEHAVIOUR RULES:
+1. INTRODUCTION: Introduce yourself ONLY in your very first response of the session. After that, NEVER say "Hi", "Hello", "I'm Mira", or any greeting again. Keep subsequent responses direct and concise.
+2. ACTIONS: NEVER run calculations automatically. Only call calculate_costs when the user EXPLICITLY says "calculate", "run the numbers", "show me the costs", or similar. If user says "give me a summary" or "what do you see", just describe the current form values - do NOT run a calculation.
+3. LANGUAGE: Default to English. If the user speaks another language, ASK "I noticed you're speaking [language]. Would you like me to respond in [language]?" Wait for their confirmation before switching.
+
+CURRENT FORM STATE:
+${formState.summary}
+
+Be helpful, concise, and use the tools provided when appropriate.`;
+
             const sessionUpdate = {
                 type: 'session.update',
                 session: {
+                    instructions: systemInstructions,
                     tools: [
                         {
                             type: 'function',
@@ -851,7 +868,7 @@
             const formState = this.getFormState();
             this.log('Sending initial form state to model:', formState.summary);
 
-            // Send as a conversation item so the model has context
+            // Send as a simple context message (system instructions are now in session.update)
             const event = {
                 type: 'conversation.item.create',
                 item: {
@@ -860,32 +877,7 @@
                     content: [
                         {
                             type: 'input_text',
-                            text: `[SYSTEM CONTEXT - Current form state] ${formState.summary}.
-
-                            [INSTRUCTIONS]
-                            You are Mira, a helpful voice assistant for the FSE Deployment Cost Calculator.
-
-                            INTRODUCTION RULE:
-                            - Only introduce yourself ONCE at the very start of the session
-                            - After your first message, NEVER say "Hi, I'm Mira" again
-                            - Keep subsequent responses concise and to the point
-
-                            ACTION RULES:
-                            - NEVER automatically run calculations unless the user EXPLICITLY asks (e.g., "calculate", "run the numbers", "show me the costs")
-                            - "Give me a summary" means summarize what's currently shown, NOT run a new calculation
-                            - Wait for clear user intent before taking actions
-                            - When asked for a summary, describe the current form values and any existing results
-
-                            LANGUAGE RULES:
-                            - Default language is English
-                            - If the user speaks in a different language (e.g., Swedish, Finnish, German), ASK PERMISSION first: "I noticed you're speaking [language]. Would you like me to respond in [language]?"
-                            - Only switch languages AFTER the user confirms, OR if they explicitly request it (e.g., "speak Swedish", "respond in Finnish")
-                            - Once permission is granted, continue in that language until asked to switch back
-
-                            Examples for Analytics: "Show me an overview of our hubs", "How many engineers are in Brazil?".
-                            Examples for Calculator: "Set destination to Singapore", "Set salary to 8000 euros", "Calculate the costs".
-
-                            Use the form state information and don't ask for values that are already set.`
+                            text: `[Current form state] ${formState.summary}. I'm ready to help with the deployment cost calculator.`
                         }
                     ]
                 }
