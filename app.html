@@ -594,7 +594,6 @@
                             <div>
                                 <label class="form-label">Home Country <span class="tooltip-wrapper"><span class="help-icon">i</span><span class="tooltip-content">The engineer's country of employment contract</span></span></label>
                                 <select id="screenHomeCountry" class="input-field w-full">
-                                    <option value="">Select...</option>
                                     <option value="Finland">Finland</option>
                                     <option value="Portugal">Portugal</option>
                                 </select>
@@ -602,7 +601,6 @@
                             <div>
                                 <label class="form-label">Host Country <span class="tooltip-wrapper"><span class="help-icon">i</span><span class="tooltip-content">The destination country where work will be performed</span></span></label>
                                 <select id="screenHostCountry" class="input-field w-full">
-                                    <option value="">Select...</option>
                                     <option value="Brazil">Brazil</option>
                                     <option value="USA">United States</option>
                                     <option value="Germany">Germany</option>
@@ -618,16 +616,15 @@
                             <div>
                                 <label class="form-label">Monthly Salary (EUR) <span class="tooltip-wrapper"><span class="help-icon">i</span><span class="tooltip-content">Gross monthly salary in EUR</span></span></label>
                                 <div class="currency-input">
-                                    <input type="number" id="screenMonthlySalary" class="input-field w-full" min="0" step="100" placeholder="e.g. 7000">
+                                    <input type="number" id="screenMonthlySalary" class="input-field w-full" min="0" step="100" value="7000">
                                 </div>
                             </div>
                             <div>
                                 <label class="form-label">Assignment Duration <span class="tooltip-wrapper"><span class="help-icon">i</span><span class="tooltip-content">Length of deployment. Assignments ≥183 days may trigger tax residency.</span></span></label>
                                 <select id="screenAssignmentLength" class="input-field w-full">
-                                    <option value="">Select...</option>
                                     <option value="1">1 month</option>
                                     <option value="3">3 months</option>
-                                    <option value="6">6 months</option>
+                                    <option value="6" selected>6 months</option>
                                     <option value="12">12 months</option>
                                     <option value="18">18 months</option>
                                     <option value="24">24 months</option>
@@ -643,7 +640,7 @@
                             </div>
                             <div>
                                 <label class="form-label">Role / Job Title</label>
-                                <input type="text" id="screenJobTitle" class="input-field w-full" placeholder="e.g. Field Service Engineer">
+                                <input type="text" id="screenJobTitle" class="input-field w-full" value="Field Service Engineer">
                             </div>
                         </div>
                         <div class="flex justify-end mt-8">

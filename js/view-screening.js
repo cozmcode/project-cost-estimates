@@ -280,13 +280,13 @@ function proceedToCostAnalysis() {
  */
 function resetScreening() {
     // Clear all form fields
-    document.getElementById('screenHomeCountry').value = '';
-    document.getElementById('screenHostCountry').value = '';
-    document.getElementById('screenMonthlySalary').value = '';
-    document.getElementById('screenAssignmentLength').value = '';
+    document.getElementById('screenHomeCountry').value = 'Finland';
+    document.getElementById('screenHostCountry').value = 'Brazil';
+    document.getElementById('screenMonthlySalary').value = '7000';
+    document.getElementById('screenAssignmentLength').value = '6';
     document.getElementById('screenWorkingDays').value = '22';
     document.getElementById('screenEmployeeName').value = '';
-    document.getElementById('screenJobTitle').value = '';
+    document.getElementById('screenJobTitle').value = 'Field Service Engineer';
     document.getElementById('screenJustification').value = '';
     document.getElementById('screenJustificationCount').textContent = '0';
     document.getElementById('screenLocalSearch').value = '';

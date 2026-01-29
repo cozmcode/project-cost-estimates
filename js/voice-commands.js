@@ -298,9 +298,13 @@
                         break;
 
                     case 'set_home_country':
-                        const homeSelect = document.getElementById('homeCountry');
+                        // Detect screening tab to target correct dropdown
+                        const screeningHome = document.getElementById('section-screening');
+                        const isScreeningHome = screeningHome && !screeningHome.classList.contains('hidden');
+                        const homeSelectId = isScreeningHome ? 'screenHomeCountry' : 'homeCountry';
+                        const homeSelect = document.getElementById(homeSelectId);
                         if (homeSelect && args.country) {
-                            this.log(`Setting home country to: "${args.country}"`);
+                            this.log(`Setting home country (${homeSelectId}) to: "${args.country}"`);
                             homeSelect.value = args.country;
                             homeSelect.dispatchEvent(new Event('change', { bubbles: true }));
 
@@ -321,9 +325,11 @@
 
                     case 'set_destination':
                         // Detect which tab is active to target the correct dropdown
+                        const screeningDest = document.getElementById('section-screening');
+                        const isScreeningDest = screeningDest && !screeningDest.classList.contains('hidden');
                         const staffingSection = document.getElementById('section-staffing');
                         const isStaffingTab = staffingSection && !staffingSection.classList.contains('hidden');
-                        const destSelectId = isStaffingTab ? 'projectDestination' : 'hostCountry';
+                        const destSelectId = isScreeningDest ? 'screenHostCountry' : isStaffingTab ? 'projectDestination' : 'hostCountry';
                         const destSelect = document.getElementById(destSelectId);
 
                         if (destSelect && args.country) {
@@ -387,12 +393,15 @@
                         break;
 
                     case 'set_duration':
-                        const monthsSelect = document.getElementById('assignmentLength');
+                        const screeningDur = document.getElementById('section-screening');
+                        const isScreeningDur = screeningDur && !screeningDur.classList.contains('hidden');
+                        const durationSelectId = isScreeningDur ? 'screenAssignmentLength' : 'assignmentLength';
+                        const monthsSelect = document.getElementById(durationSelectId);
                         if (monthsSelect && args.months) {
                             monthsSelect.value = args.months;
                             monthsSelect.dispatchEvent(new Event('change', { bubbles: true }));
                             result.message = `Duration set to ${args.months} months`;
-                            this.log(`Duration set to ${args.months} months`);
+                            this.log(`Duration set to ${args.months} months (${durationSelectId})`);
                         } else {
                             result.success = false;
                             result.error = monthsSelect ? 'No months provided' : 'Assignment length dropdown not found';
@@ -400,12 +409,15 @@
                         break;
 
                     case 'set_salary':
-                        const salaryInput = document.getElementById('monthlySalary');
+                        const screeningSal = document.getElementById('section-screening');
+                        const isScreeningSal = screeningSal && !screeningSal.classList.contains('hidden');
+                        const salaryInputId = isScreeningSal ? 'screenMonthlySalary' : 'monthlySalary';
+                        const salaryInput = document.getElementById(salaryInputId);
                         if (salaryInput && args.salary) {
                             salaryInput.value = args.salary;
                             salaryInput.dispatchEvent(new Event('change', { bubbles: true }));
                             result.message = `Salary set to €${args.salary.toLocaleString()}`;
-                            this.log(`Salary set to €${args.salary}`);
+                            this.log(`Salary set to €${args.salary} (${salaryInputId})`);
                         } else {
                             result.success = false;
                             result.error = salaryInput ? 'No salary provided' : 'Monthly salary input not found';
