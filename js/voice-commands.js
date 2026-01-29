@@ -320,7 +320,12 @@
                         break;
 
                     case 'set_destination':
-                        const destSelect = document.getElementById('hostCountry');
+                        // Detect which tab is active to target the correct dropdown
+                        const staffingSection = document.getElementById('section-staffing');
+                        const isStaffingTab = staffingSection && !staffingSection.classList.contains('hidden');
+                        const destSelectId = isStaffingTab ? 'projectDestination' : 'hostCountry';
+                        const destSelect = document.getElementById(destSelectId);
+
                         if (destSelect && args.country) {
                             // Map natural language country names to dropdown values
                             const countryValueMap = {
@@ -328,10 +333,12 @@
                                 'United States': 'USA',
                                 'United States of America': 'USA',
                                 'United Arab Emirates': 'UAE',
-                                'South Africa': 'SouthAfrica'
+                                'South Africa': 'SouthAfrica',
+                                'New England': 'NewEngland',
+                                'New York': 'NewYork'
                             };
                             const countryValue = countryValueMap[args.country] || args.country;
-                            this.log(`Setting destination: "${args.country}" -> "${countryValue}"`);
+                            this.log(`Setting destination (${destSelectId}): "${args.country}" -> "${countryValue}"`);
                             destSelect.value = countryValue;
                             destSelect.dispatchEvent(new Event('change', { bubbles: true }));
 
@@ -346,7 +353,7 @@
                             }
                         } else {
                             result.success = false;
-                            result.error = destSelect ? 'No country provided' : 'Host country dropdown not found';
+                            result.error = destSelect ? 'No country provided' : 'Destination dropdown not found';
                             this.error('set_destination failed:', result.error);
                         }
                         break;
@@ -576,6 +583,81 @@
                         }
                         break;
 
+                    case 'select_skills':
+                        if (args.skills && Array.isArray(args.skills)) {
+                            const allChips = document.querySelectorAll('#skillsSelector .skill-chip');
+                            let selectedCount = 0;
+                            allChips.forEach(chip => {
+                                if (args.skills.includes(chip.dataset.skill)) {
+                                    chip.classList.add('selected');
+                                    selectedCount++;
+                                } else {
+                                    chip.classList.remove('selected');
+                                }
+                            });
+                            // Auto-run optimisation after skill change
+                            if (typeof window.runOptimization === 'function') {
+                                window.runOptimization();
+                            }
+                            result.message = `Selected ${selectedCount} skill${selectedCount !== 1 ? 's' : ''}: ${args.skills.join(', ')}`;
+                            this.log(`Skills selected: ${args.skills.join(', ')}`);
+                        } else {
+                            result.success = false;
+                            result.error = 'No skills array provided';
+                        }
+                        break;
+
+                    case 'select_candidate':
+                        if (args.rank) {
+                            const rankNum = parseInt(args.rank);
+                            // Use the window function from view-staffing.js
+                            if (typeof window.selectCandidate === 'function') {
+                                window.selectCandidate(rankNum);
+                            }
+
+                            // Get candidate data from stored results
+                            const results = window.lastStaffingResults;
+                            if (results && results[rankNum - 1]) {
+                                const selected = results[rankNum - 1];
+                                window.selectedCandidate = selected;
+
+                                // Find cheapest alternative
+                                const cheapest = results.reduce((min, c) => c.cost < min.cost ? c : min, results[0]);
+                                if (cheapest.rank !== selected.rank && cheapest.cost < selected.cost) {
+                                    window.cheaperAlternative = cheapest;
+                                    result.message = `Selected #${selected.rank} ${selected.name} at €${selected.cost.toLocaleString()}. Note: there is a more cost-effective option — #${cheapest.rank} ${cheapest.name} at €${cheapest.cost.toLocaleString()} (saving €${(selected.cost - cheapest.cost).toLocaleString()}).`;
+                                } else {
+                                    window.cheaperAlternative = null;
+                                    result.message = `Selected #${selected.rank} ${selected.name} at €${selected.cost.toLocaleString()}. This is already the most cost-effective option.`;
+                                }
+                            } else {
+                                result.success = false;
+                                result.error = `No candidate found at rank ${rankNum}. Run the optimisation engine first.`;
+                            }
+                        } else {
+                            result.success = false;
+                            result.error = 'No rank number provided';
+                        }
+                        break;
+
+                    case 'request_approval':
+                        if (window.selectedCandidate) {
+                            result.message = `Approval request sent to business unit leader Benjamin Oghene for ${window.selectedCandidate.name} (€${window.selectedCandidate.cost.toLocaleString()}). Awaiting confirmation.`;
+                        } else {
+                            result.success = false;
+                            result.error = 'No candidate selected. Please select a candidate first.';
+                        }
+                        break;
+
+                    case 'generate_assignment_letter':
+                        if (window.selectedCandidate) {
+                            result.message = `Assignment letter generated for ${window.selectedCandidate.name}. The letter has been issued to the employee and service providers have been initiated for the deployment.`;
+                        } else {
+                            result.success = false;
+                            result.error = 'No candidate selected. Please select a candidate first.';
+                        }
+                        break;
+
                     case 'stop_voice':
                         result.message = 'Voice commands stopped';
                         this.log('Stopping voice via function call');
@@ -730,8 +812,8 @@ Be helpful, concise, and use the tools provided when appropriate.`;
                                 properties: {
                                     tab: { 
                                         type: 'string', 
-                                        enum: ['calculator', 'staffing', 'analytics'],
-                                        description: 'The tab to switch to' 
+                                        enum: ['screening', 'calculator', 'staffing', 'analytics'],
+                                        description: 'The tab to switch to. Use "screening" for move screening.' 
                                     }
                                 },
                                 required: ['tab']
@@ -841,6 +923,47 @@ Be helpful, concise, and use the tools provided when appropriate.`;
                             type: 'function',
                             name: 'run_optimization',
                             description: 'Run the staffing optimization engine to find best candidates.'
+                        },
+                        {
+                            type: 'function',
+                            name: 'select_skills',
+                            description: 'Select required skills on the Staffing Engine tab. Pass the skills to select — unmentioned skills will be deselected.',
+                            parameters: {
+                                type: 'object',
+                                properties: {
+                                    skills: {
+                                        type: 'array',
+                                        items: {
+                                            type: 'string',
+                                            enum: ['Technology', 'Strategic Workforce Planning', 'Expatriate Tax', 'Wartsila 31', 'Start-up', 'Safety Lead', 'Commissioning', 'Mechanical', 'Overhaul', 'PMP', 'Logistics', 'Electrical']
+                                        },
+                                        description: 'Array of skill names to select'
+                                    }
+                                },
+                                required: ['skills']
+                            }
+                        },
+                        {
+                            type: 'function',
+                            name: 'select_candidate',
+                            description: 'Select a candidate from staffing results by rank (1-10). Returns selected candidate info and cheaper alternative if available.',
+                            parameters: {
+                                type: 'object',
+                                properties: {
+                                    rank: { type: 'integer', description: 'Rank number of candidate to select (1 = top)' }
+                                },
+                                required: ['rank']
+                            }
+                        },
+                        {
+                            type: 'function',
+                            name: 'request_approval',
+                            description: 'Request approval from business unit leader Benjamin Oghene for the selected candidate.'
+                        },
+                        {
+                            type: 'function',
+                            name: 'generate_assignment_letter',
+                            description: 'Generate assignment letter for selected candidate and initiate service providers.'
                         },
                         {
                             type: 'function',
@@ -2139,10 +2262,12 @@ Be helpful, concise, and use the tools provided when appropriate.`;
      * @returns {string}
      */
     function getCurrentPageSection() {
+        const screeningSection = document.getElementById('section-screening');
         const calculatorSection = document.getElementById('section-calculator');
         const analyticsSection = document.getElementById('section-analytics');
         const staffingSection = document.getElementById('section-staffing');
 
+        if (screeningSection && !screeningSection.classList.contains('hidden')) return 'screening';
         if (calculatorSection && !calculatorSection.classList.contains('hidden')) return 'calculator';
         if (analyticsSection && !analyticsSection.classList.contains('hidden')) return 'analytics';
         if (staffingSection && !staffingSection.classList.contains('hidden')) return 'staffing';

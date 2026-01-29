@@ -50,7 +50,25 @@ EXAMPLES:
 - User: "Calculate" → call calculate_costs({}), announce result
 
 Available home countries: Finland, Portugal
-Available destinations: Brazil, USA, Germany, UK, UAE, Singapore, Australia, Mexico, India, South Africa`
+Available destinations: Brazil, USA, Germany, UK, UAE, Singapore, Australia, Mexico, India, South Africa, Jamaica
+US Regions: New England, California, Texas, Florida, New York
+UK Cities: London, Manchester, Edinburgh, Birmingham
+
+STAFFING ENGINE TAB:
+When on the Staffing Engine tab, you can also:
+- Set the project destination (same destinations as above, plus US Regions and UK Cities)
+- Select required skills: Technology, Strategic Workforce Planning, Expatriate Tax, Wartsila 31, Start-up, Safety Lead, Commissioning, Mechanical, Overhaul, PMP, Logistics, Electrical
+- Run the optimisation engine
+- Select a candidate from results by rank number (1-10)
+
+POST-SELECTION WORKFLOW:
+After a candidate is selected via select_candidate:
+1. The tool returns the selected candidate info AND a cheaper alternative if one exists
+2. If a cheaper alternative exists, YOU MUST mention it: "There is a more cost-effective option — #[rank] [name] at €[cost] vs your selection at €[cost]. Would you like to switch, or shall I request approval from business unit leader Benjamin Oghene?"
+3. If the user says "no" or declines the cheaper option, call generate_assignment_letter to proceed with the original selection
+4. If the user says "yes" or wants the cheaper option, call select_candidate with the cheaper rank, then call generate_assignment_letter
+5. If no cheaper alternative exists, ask "Shall I request approval from business unit leader Benjamin Oghene?"
+6. After approval (request_approval), call generate_assignment_letter to finalise`
 
 // Tool definitions for the FSE Cost Calculator
 const TOOLS = [
@@ -99,8 +117,8 @@ const TOOLS = [
       properties: {
         country: {
           type: "string",
-          enum: ["Brazil", "USA", "Germany", "UK", "UAE", "Singapore", "Australia", "Mexico", "India", "SouthAfrica"],
-          description: "The country where the engineer will be deployed"
+          enum: ["Brazil", "USA", "Germany", "UK", "UAE", "Singapore", "Australia", "Mexico", "India", "SouthAfrica", "Jamaica", "NewEngland", "California", "Texas", "Florida", "NewYork", "London", "Manchester", "Edinburgh", "Birmingham"],
+          description: "The country or region where the engineer will be deployed. Use NewEngland, California, Texas, Florida, NewYork for US regions. Use London, Manchester, Edinburgh, Birmingham for UK cities."
         }
       },
       required: ["country"]
@@ -381,6 +399,62 @@ const TOOLS = [
         }
       },
       required: ["country1", "country2"]
+    }
+  },
+  {
+    type: "function",
+    name: "select_skills",
+    description: "Select or deselect skills on the Staffing Engine tab. Pass the skills you want selected — any not in the list will be deselected.",
+    parameters: {
+      type: "object",
+      properties: {
+        skills: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: ["Technology", "Strategic Workforce Planning", "Expatriate Tax", "Wartsila 31", "Start-up", "Safety Lead", "Commissioning", "Mechanical", "Overhaul", "PMP", "Logistics", "Electrical"]
+          },
+          description: "Array of skill names to select"
+        }
+      },
+      required: ["skills"]
+    }
+  },
+  {
+    type: "function",
+    name: "select_candidate",
+    description: "Select a candidate from the staffing engine results by their rank number (1-10). Returns the selected candidate details and any cheaper alternative.",
+    parameters: {
+      type: "object",
+      properties: {
+        rank: {
+          type: "integer",
+          minimum: 1,
+          maximum: 10,
+          description: "The rank number of the candidate to select (1 = top ranked)"
+        }
+      },
+      required: ["rank"]
+    }
+  },
+  {
+    type: "function",
+    name: "request_approval",
+    description: "Request approval from business unit leader Benjamin Oghene for the selected candidate assignment.",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: []
+    }
+  },
+  {
+    type: "function",
+    name: "generate_assignment_letter",
+    description: "Generate the assignment letter for the selected candidate and initiate service providers. Call this after the user confirms they want to proceed with the selected candidate.",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: []
     }
   }
 ]

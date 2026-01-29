@@ -480,7 +480,16 @@
                     <!-- Navigation Tabs - Center on mobile -->
                     <div
                         class="flex items-center justify-center gap-1 bg-gray-100 rounded-xl p-1 md:p-1.5 w-full md:w-auto">
-                        <button id="nav-calculator" class="nav-tab nav-tab-active flex-1 md:flex-initial justify-center"
+                        <button id="nav-screening" class="nav-tab nav-tab-active flex-1 md:flex-initial justify-center"
+                            onclick="switchMainTab('screening')">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="hidden sm:inline">Move Screening</span>
+                            <span class="sm:hidden text-xs">Screen</span>
+                        </button>
+                        <button id="nav-calculator" class="nav-tab flex-1 md:flex-initial justify-center"
                             onclick="switchMainTab('calculator')">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -551,8 +560,180 @@
         </header>
 
         <main class="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-10">
+            <!-- Move Screening Section -->
+            <div id="section-screening">
+                <div class="card p-4 md:p-8 mb-6 md:mb-8 animate-fade-in">
+                    <div class="text-center md:text-left mb-6 md:mb-8">
+                        <h2 class="text-lg md:text-xl font-extrabold text-gray-900 tracking-tight">Move Screening</h2>
+                        <p class="text-xs md:text-sm text-gray-500 mt-1">Pre-screen international assignments before cost analysis</p>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="screening-progress mb-8">
+                        <div class="screening-progress-track">
+                            <div class="screening-progress-step active" data-step="1">
+                                <div class="screening-progress-circle">1</div>
+                                <span class="screening-progress-label">Assignment</span>
+                            </div>
+                            <div class="screening-progress-line" id="screening-line-1"></div>
+                            <div class="screening-progress-step" data-step="2">
+                                <div class="screening-progress-circle">2</div>
+                                <span class="screening-progress-label">Justification</span>
+                            </div>
+                            <div class="screening-progress-line" id="screening-line-2"></div>
+                            <div class="screening-progress-step" data-step="3">
+                                <div class="screening-progress-circle">3</div>
+                                <span class="screening-progress-label">Decision</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 1: Assignment Details -->
+                    <div id="screening-step-1" class="screening-step">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+                            <div>
+                                <label class="form-label">Home Country <span class="tooltip-wrapper"><span class="help-icon">i</span><span class="tooltip-content">The engineer's country of employment contract</span></span></label>
+                                <select id="screenHomeCountry" class="input-field w-full">
+                                    <option value="">Select...</option>
+                                    <option value="Finland">Finland</option>
+                                    <option value="Portugal">Portugal</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Host Country <span class="tooltip-wrapper"><span class="help-icon">i</span><span class="tooltip-content">The destination country where work will be performed</span></span></label>
+                                <select id="screenHostCountry" class="input-field w-full">
+                                    <option value="">Select...</option>
+                                    <option value="Brazil">Brazil</option>
+                                    <option value="USA">United States</option>
+                                    <option value="Germany">Germany</option>
+                                    <option value="UK">United Kingdom</option>
+                                    <option value="UAE">United Arab Emirates</option>
+                                    <option value="Singapore">Singapore</option>
+                                    <option value="Australia">Australia</option>
+                                    <option value="Mexico">Mexico</option>
+                                    <option value="India">India</option>
+                                    <option value="SouthAfrica">South Africa</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Monthly Salary (EUR) <span class="tooltip-wrapper"><span class="help-icon">i</span><span class="tooltip-content">Gross monthly salary in EUR</span></span></label>
+                                <div class="currency-input">
+                                    <input type="number" id="screenMonthlySalary" class="input-field w-full" min="0" step="100" placeholder="e.g. 7000">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="form-label">Assignment Duration <span class="tooltip-wrapper"><span class="help-icon">i</span><span class="tooltip-content">Length of deployment. Assignments ≥183 days may trigger tax residency.</span></span></label>
+                                <select id="screenAssignmentLength" class="input-field w-full">
+                                    <option value="">Select...</option>
+                                    <option value="1">1 month</option>
+                                    <option value="3">3 months</option>
+                                    <option value="6">6 months</option>
+                                    <option value="12">12 months</option>
+                                    <option value="18">18 months</option>
+                                    <option value="24">24 months</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Working Days / Month <span class="tooltip-wrapper"><span class="help-icon">i</span><span class="tooltip-content">Typical working days per month (usually 20-22)</span></span></label>
+                                <input type="number" id="screenWorkingDays" class="input-field w-full" min="1" max="31" value="22">
+                            </div>
+                            <div>
+                                <label class="form-label">Employee Name <span class="text-gray-400 text-xs font-normal">(optional)</span></label>
+                                <input type="text" id="screenEmployeeName" class="input-field w-full" placeholder="e.g. Matti Virtanen">
+                            </div>
+                            <div>
+                                <label class="form-label">Role / Job Title</label>
+                                <input type="text" id="screenJobTitle" class="input-field w-full" placeholder="e.g. Field Service Engineer">
+                            </div>
+                        </div>
+                        <div class="flex justify-end mt-8">
+                            <button onclick="nextScreeningStep(2)" class="btn-primary px-6 py-3 rounded-xl font-semibold text-sm flex items-center gap-2">
+                                Next: Business Justification
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Business Justification -->
+                    <div id="screening-step-2" class="screening-step hidden">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="form-label">Is there a documented business case for this assignment?</label>
+                                <div class="flex flex-wrap gap-3 mt-2">
+                                    <label class="screening-radio"><input type="radio" name="screenBusinessCase" value="yes"> <span>Yes</span></label>
+                                    <label class="screening-radio"><input type="radio" name="screenBusinessCase" value="no"> <span>No</span></label>
+                                    <label class="screening-radio"><input type="radio" name="screenBusinessCase" value="partial"> <span>Partial</span></label>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="form-label">Is this a short-term business trip (less than 30 days)?</label>
+                                <div class="flex flex-wrap gap-3 mt-2">
+                                    <label class="screening-radio"><input type="radio" name="screenShortTrip" value="yes"> <span>Yes</span></label>
+                                    <label class="screening-radio"><input type="radio" name="screenShortTrip" value="no"> <span>No</span></label>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="form-label">Who initiated this move?</label>
+                                <div class="flex flex-wrap gap-3 mt-2">
+                                    <label class="screening-radio"><input type="radio" name="screenInitiator" value="business"> <span>Business-requested</span></label>
+                                    <label class="screening-radio"><input type="radio" name="screenInitiator" value="self"> <span>Self-initiated</span></label>
+                                    <label class="screening-radio"><input type="radio" name="screenInitiator" value="joint"> <span>Joint decision</span></label>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="form-label">Describe the business justification</label>
+                                <textarea id="screenJustification" class="input-field w-full" rows="3" minlength="50" maxlength="500" placeholder="Briefly explain why this assignment is needed (50-500 characters)"></textarea>
+                                <p class="text-xs text-gray-400 mt-1"><span id="screenJustificationCount">0</span>/500 characters (minimum 50)</p>
+                            </div>
+                            <div>
+                                <label class="form-label">Have you searched the local market for this skill?</label>
+                                <select id="screenLocalSearch" class="input-field w-full">
+                                    <option value="">Select...</option>
+                                    <option value="yes_none">Yes, no suitable candidates found</option>
+                                    <option value="yes_expensive">Yes, but too expensive locally</option>
+                                    <option value="no">No</option>
+                                    <option value="na">Not applicable</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Is there an existing project or client engagement at the destination?</label>
+                                <div class="flex flex-wrap gap-3 mt-2">
+                                    <label class="screening-radio"><input type="radio" name="screenExistingProject" value="yes"> <span>Yes</span></label>
+                                    <label class="screening-radio"><input type="radio" name="screenExistingProject" value="no"> <span>No</span></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between mt-8">
+                            <button onclick="prevScreeningStep(1)" class="px-6 py-3 rounded-xl font-semibold text-sm border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                Back
+                            </button>
+                            <button onclick="submitScreening()" id="screeningSubmitBtn" class="btn-primary px-6 py-3 rounded-xl font-semibold text-sm flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Submit for Screening
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: AI Decision -->
+                    <div id="screening-step-3" class="screening-step hidden">
+                        <!-- Loading state -->
+                        <div id="screening-loading" class="text-center py-12">
+                            <svg class="animate-spin w-10 h-10 mx-auto mb-4" style="color: var(--cozm-teal);" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <p class="text-sm font-semibold text-gray-700">Evaluating assignment...</p>
+                            <p class="text-xs text-gray-400 mt-1">AI is reviewing your submission</p>
+                        </div>
+                        <!-- Result -->
+                        <div id="screening-result" class="hidden"></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Calculator Section -->
-            <div id="section-calculator">
+            <div id="section-calculator" class="hidden">
                 <div class="card p-4 md:p-8 mb-6 md:mb-8 animate-fade-in">
                     <!-- Mobile: Stack title and tabs vertically -->
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 md:mb-8 gap-4">
@@ -1487,6 +1668,7 @@
     <script src="js/app-logic.js?v=1.0.5"></script>
     <script src="js/voice-commands.js?v=2.4.0"></script>
 
+    <script src="js/view-screening.js"></script>
     <script src="js/view-staffing.js"></script>
     <script src="js/view-analytics.js"></script>
 </body>

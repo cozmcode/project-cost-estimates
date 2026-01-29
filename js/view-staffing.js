@@ -3,25 +3,32 @@
 
 // Tab switching logic for Staffing Engine
 function switchMainTab(tab) {
+    const screeningSection = document.getElementById('section-screening');
     const calcSection = document.getElementById('section-calculator');
     const staffSection = document.getElementById('section-staffing');
     const analyticsSection = document.getElementById('section-analytics');
+    const navScreening = document.getElementById('nav-screening');
     const navCalc = document.getElementById('nav-calculator');
     const navStaff = document.getElementById('nav-staffing');
     const navAnalytics = document.getElementById('nav-analytics');
 
     // Hide all
+    if (screeningSection) screeningSection.classList.add('hidden');
     if (calcSection) calcSection.classList.add('hidden');
     if (staffSection) staffSection.classList.add('hidden');
     if (analyticsSection) analyticsSection.classList.add('hidden');
-    
+
     // Deactivate all navs
+    if (navScreening) navScreening.classList.remove('nav-tab-active');
     if (navCalc) navCalc.classList.remove('nav-tab-active');
     if (navStaff) navStaff.classList.remove('nav-tab-active');
     if (navAnalytics) navAnalytics.classList.remove('nav-tab-active');
 
     // Show active
-    if (tab === 'calculator') {
+    if (tab === 'screening') {
+        if (screeningSection) screeningSection.classList.remove('hidden');
+        if (navScreening) navScreening.classList.add('nav-tab-active');
+    } else if (tab === 'calculator') {
         if (calcSection) calcSection.classList.remove('hidden');
         if (navCalc) navCalc.classList.add('nav-tab-active');
     } else if (tab === 'staffing') {
@@ -187,11 +194,21 @@ async function runOptimization() {
                     </div>
                 </td>
                 <td class="px-6 py-4">
-                    <button class="font-bold text-sm" style="color: var(--cozm-teal);" onmouseover="this.style.color='var(--cozm-dark-indigo)'" onmouseout="this.style.color='var(--cozm-teal)'">Select</button>
+                    <button class="font-bold text-sm" style="color: var(--cozm-teal);" onmouseover="this.style.color='var(--cozm-dark-indigo)'" onmouseout="this.style.color='var(--cozm-teal)'" onclick="selectCandidate(this)" data-rank="${index + 1}" data-name="${candidate.first_name} ${candidate.last_name}" data-cost="${details.totalCost}">Select</button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
+
+        // Store results on window for voice assistant access
+        window.lastStaffingResults = results.map((candidate, idx) => ({
+            rank: idx + 1,
+            name: `${candidate.first_name} ${candidate.last_name}`,
+            cost: candidate.scores.details.totalCost,
+            score: candidate.finalScore,
+            location: candidate.current_location,
+            nationality: candidate.nationality
+        }));
 
         document.getElementById('staffing-results').classList.remove('hidden');
         // Scroll to results
@@ -208,5 +225,44 @@ async function runOptimization() {
     }
 }
 
+// Select a candidate from results — highlights the row and stores on window
+function selectCandidate(buttonOrRank) {
+    const tbody = document.getElementById('staffing-results-body');
+    if (!tbody) return;
+
+    let row;
+    if (typeof buttonOrRank === 'number') {
+        // Called with rank number (from voice)
+        row = tbody.querySelectorAll('tr')[buttonOrRank - 1];
+    } else {
+        // Called from button click
+        row = buttonOrRank.closest('tr');
+    }
+
+    if (!row) return;
+
+    // Remove previous highlights
+    tbody.querySelectorAll('tr').forEach(r => {
+        r.classList.remove('ring-2');
+        r.style.removeProperty('box-shadow');
+        r.style.removeProperty('background-color');
+    });
+
+    // Highlight selected row
+    row.style.backgroundColor = 'var(--cozm-light-teal, #C7E5E9)';
+    row.style.boxShadow = '0 0 0 2px var(--cozm-teal, #44919c)';
+
+    // Extract data from the row's select button
+    const btn = row.querySelector('button[data-rank]');
+    if (btn) {
+        window.selectedCandidate = {
+            rank: parseInt(btn.dataset.rank),
+            name: btn.dataset.name,
+            cost: parseFloat(btn.dataset.cost)
+        };
+    }
+}
+
 // Expose to window for voice control
 window.runOptimization = runOptimization;
+window.selectCandidate = selectCandidate;
