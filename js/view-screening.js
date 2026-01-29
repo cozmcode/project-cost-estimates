@@ -316,7 +316,7 @@ function showScreeningToast(message, type) {
     const toast = document.getElementById('voiceToast');
     if (toast) {
         toast.textContent = message;
-        toast.className = 'voice-toast show';
+        toast.className = 'voice-toast visible';
         if (type === 'error') toast.style.background = 'var(--cozm-red)';
         else if (type === 'success') toast.style.background = 'var(--cozm-teal)';
         else toast.style.background = 'var(--cozm-dark-indigo)';
