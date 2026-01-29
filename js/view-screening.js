@@ -103,10 +103,7 @@ function validateScreeningStep(step) {
             if (!checked) missing.push(g.label);
         });
 
-        const justification = document.getElementById('screenJustification');
-        if (!justification || justification.value.trim().length < 50) {
-            missing.push('Business justification (minimum 50 characters)');
-        }
+        // Justification textarea is optional — no minimum character requirement
 
         const localSearch = document.getElementById('screenLocalSearch');
         if (!localSearch || !localSearch.value) {
